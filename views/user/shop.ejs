@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - GLORA</title>
+  <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
+  <link rel="stylesheet" href="/styles/main_styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      background: #fafafa;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .header {
+      height: 60px;
+    }
+
+    .header_inner {
+      padding: 4px 20px !important;
+    }
+
+    .container-fluid {
+      margin-top: 80px;
+    }
+
+    aside .card {
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: none;
+      border-radius: 8px;
+    }
+
+    
+#categoryList .list-group-item.active {
+  background-color: #471710 !important;
+  border-color: #471710 !important;
+  color: #fff !important;
+}
+
+    
+
+    .search-bar-container input {
+      max-width: 500px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 6px rgba(148, 3, 3, 0.05);
+    }
+  
+
+    .product-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      height: 100%;
+      text-align: center;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .product-image-container {
+      background: #f8f9fa;
+      padding: 10px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .product-image {
+      max-width: 100%;
+      max-height: 100%;
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image {
+      transform: scale(1.05);
+    }
+
+    .product-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 10px 0 4px;
+      min-height: 40px;
+    }
+
+    .product-price {
+      font-size: 14px;
+      font-weight: 600;
+      color: #a44b3e;
+    }
+
+    .original-price {
+      text-decoration: line-through;
+      font-size: 12px;
+      color: #999;
+      margin-left: 4px;
+    }
+
+    .btn-view-details {
+      background: #47150d;
+      color: #fff;
+      font-size: 0.9rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 8px;
+      transition: background 0.3s;
+      text-decoration: none;
+    }
+
+    .btn-view-details:hover {
+      background: #4a1f18;
+      color: #fff;
+    }
+
+    .pagination {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .pagination li a {
+      color: #d4b6a6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .pagination li.active a {
+      color: #6b2c22;
+    }
+
+    #sortSelect {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <%- include('../partials/user/header', { userName: userName, url: url }) %>
+
+    <div class="container-fluid py-4">
+
+      <div class="search-bar-container mt-5 mb-4 text-center">
+        <input type="text" id="searchInput" placeholder="Search products...">
+      </div>
+
+      <div class="row">
+<aside class="col-lg-3 mb-4 mb-lg-0">
+  <div class="card p-3">
+    <h5 class="fw-bold mb-2">Categories</h5>
+    <ul class="list-group mb-3" id="categoryList">
+      <li class="list-group-item <%= selectedCategory === 'all' ? 'active' : '' %>">
+        <a href="/shop?category=all" style="text-decoration:none; color:inherit;">All</a>
+      </li>
+      <% categories.forEach(function(category) { %>
+        <li class="list-group-item <%= selectedCategory === category.categoryName ? 'active' : '' %>">
+          <a href="/shop?category=<%= category.categoryName %>" style="text-decoration:none; color:inherit;">
+            <%= category.categoryName %>
+          </a>
+        </li>
+      <% }); %>
+    </ul>
+
+      <input type="hidden" name="category" value="<%= selectedCategory %>" />
+
+      <h5 class="fw-bold mb-2">Sort</h5>
+      <form method="get">
+  <select name="sort" class="form-select mb-3">
+    <option value="">Default</option>
+    <option value="az" <%= selectedSort === 'az' ? 'selected' : '' %>>Name: A to Z</option>
+    <option value="za" <%= selectedSort === 'za' ? 'selected' : '' %>>Name: Z to A</option>
+    <option value="priceLowHigh" <%= selectedSort === 'priceLowHigh' ? 'selected' : '' %>>Price: Low to High</option>
+    <option value="priceHighLow" <%= selectedSort === 'priceHighLow' ? 'selected' : '' %>>Price: High to Low</option>
+  </select>
+
+
+      <h5 class="fw-bold mb-2">Price Range</h5>
+      <div class="d-flex align-items-center mb-2">
+        <input type="number" name="minPrice" class="form-control me-2" placeholder="Min" min="0" style="width:40%;" value="<%= minPrice %>">
+        <span class="mx-1">-</span>
+        <input type="number" name="maxPrice" class="form-control" placeholder="Max" min="0" style="width:40%;" value="<%= maxPrice %>">
+      </div>
+
+      <button type="submit" class="btn btn-outline-primary w-100">Apply Filter</button>
+    </form>
+  </div>
+</aside>
+
+
+
+        <section class="col-lg-9">
+          <div class="row" id="productGrid">
+            <% products.forEach(product=> { %>
+              <div class="col-md-3 mb-4">
+                <div class="product-card">
+                  <div class="product-image-container">
+                    <img
+                      src="<%= product.images && product.images.length > 0 ? '/uploads/products/' + product.images[0] : '/images/placeholder-product.jpg' %>"
+                      alt="<%= product.productName %>" class="product-image">
+                  </div>
+                  <div class="p-2">
+                    <h3 class="product-title">
+                      <%= product.productName %>
+                    </h3>
+                    <div class="product-price">
+                      Rs <%= product.salesPrice> 0 ? product.salesPrice : product.regularPrice %>
+                        <% if (product.salesPrice> 0) { %>
+                          <span class="original-price">Rs <%= product.regularPrice %></span>
+                          <% } %>
+                    </div>
+                    <a href="/product/<%= product._id %>" class="btn-view-details">View Details</a>
+                  </div>
+                </div>
+              </div>
+              <% }); %>
+          </div>
+
+          <nav class="mt-3">
+            <ul class="pagination">
+              <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="<%= i === currentPage ? 'active' : '' %>">
+                    <a href="?page=<%= i %>&category=<%= selectedCategory %>&sort=<%= sort %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>&search=<%= search %>"><%= i %></a>
+                </li>
+              <% } %>
+            </ul>
+
+          </nav>
+        </section>
+      </div>
+    </div>
+
+    <%- include('../partials/user/footer') %>
+
+  <script>
+    const sortDropdown = document.querySelector('select[name="sort"]');
+    if (sortDropdown) {
+      sortDropdown.addEventListener('change', function () {
+        this.form.submit();
+      });
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      let searchTimeout;
+      
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        
+        searchTimeout = setTimeout(() => {
+          const searchTerm = this.value.trim();
+          const url = new URL(window.location.href);
+          
+          if (searchTerm) {
+            url.searchParams.set('search', searchTerm);
+            url.searchParams.set('page', '1');
+          } else {
+            url.searchParams.delete('search');
+          }
+          
+          window.location.href = url.toString();
+        }, 500); 
+      });
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchTerm = urlParams.get('search');
+      if (searchTerm) {
+        searchInput.value = searchTerm;
+      }
+    }
+  </script>
+</body>
+
+</html>

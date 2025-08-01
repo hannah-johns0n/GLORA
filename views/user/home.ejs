@@ -1,0 +1,216 @@
+<% if (user && user.isBlocked) { %>
+  <script>
+    document.cookie = "jwt=; Max-Age=0; path=/";
+    window.location.href = "/login?blocked=1";
+  </script>
+<% } %>
+<body>
+
+<div class="super_container">
+    
+ <%- include('../partials/user/header', { userName: userName }) %>
+
+ <style>
+    body {
+      background: #fafafa;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .section_title {
+      font-size: 28px; 
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .section_subtitle {
+      color: #b88f3b;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .card {
+      border: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .card img {
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover img {
+      transform: scale(1.05);
+    }
+
+    .btn {
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #b88f3b;
+      color: #fff;
+    }
+  </style>
+
+    <div class="home">
+        <div class="home_slider_container">
+            <div class="owl-carousel owl-theme home_slider">
+                <div class="owl-item">
+                    <div class="home_slider_background" style="background-image:url(images/home_slider_1.jpg)"></div>
+                    <div class="home_slider_content">
+                        <div class="home_slider_content_inner">
+                            <div class="home_slider_subtitle">GLORA</div>
+                            <div class="home_slider_title">GLOW LIKE NEVER BEFORE</div>
+                        </div>    
+                    </div>
+                </div>
+            </div>
+            <div class="home_slider_next d-flex flex-column align-items-center justify-content-center"><img src="images/arrow_r.png" alt=""></div>
+            <div class="home_slider_dots_container">
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <div class="home_slider_dots">
+                                <ul id="home_slider_custom_dots" class="home_slider_custom_dots">
+                                    <li class="home_slider_custom_dot active">01.<div></div></li>
+                                    <li class="home_slider_custom_dot">02.<div></div></li>
+                                    <li class="home_slider_custom_dot">03.<div></div></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>        
+            </div>
+        </div>
+    </div>
+
+    <div class="promo">
+    </div>
+
+    <div class="arrivals">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="section_title_container text-center">
+                        <div class="section_subtitle">only the best</div>
+                        <div class="section_title">OUR BEST SELLERS</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+              <% if (products && products.length) { %>
+                <% products.forEach(function(product) { %>
+                  <% if (!product.isBlocked) { %>
+                  <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card h-100">
+                      <div class="p-2" style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; overflow: hidden;">
+                        <% if (product.images && product.images[0]) { %>
+                          <img src="/uploads/products/<%= product.images[0] %>" 
+                               alt="<%= product.productName %>" 
+                               style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        <% } else { %>
+                          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 2rem;">
+                            <i class="fas fa-image"></i>
+                          </div>
+                        <% } %>
+                      </div>
+                      <div class="card-body text-center">
+                        <h5 class="card-title mb-2"><%= product.productName %></h5>
+                        <div class="mb-1">₹<%= product.salesPrice ? product.salesPrice.toLocaleString('en-IN') : 'N/A' %></div>
+                      </div>
+                    </div>
+                  </div>
+                  <% } %>
+                <% }); %>
+              <% } else { %>
+                <div class="col-12 text-center text-muted">No products available.</div>
+              <% } %>
+            </div>
+        </div>
+    </div>
+
+    <div class="extra clearfix">
+    </div>
+
+
+<% if (typeof loginSuccess !== 'undefined' && loginSuccess) { %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    Swal.fire({
+      icon: 'success',
+      title: 'Logged in successfully!',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  </script>
+<% } %>
+    <div class="gallery">
+        <div class="gallery_image" style="background-image:url(images/gallery.jpg)"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="gallery_title text-center">
+                        <ul>
+                            <li><a href="#">#GLORA</a></li>
+                            <li><a href="#">#glorainstagram</a></li>
+                        </ul>
+                    </div>
+                    <div class="gallery_text text-center">
+                      We’ve designed this site with care so sit back, explore, and enjoy your time here
+                    </div>
+              </div> 
+            </div>
+        </div>    
+    </div>
+
+    <div class="newsletter">
+    </div>
+
+<%- include('../partials/user/footer')  %>
+</div>
+
+<script src="js/jquery-3.2.1.min.js"></script>
+<script src="styles/bootstrap4/popper.js"></script>
+<script src="styles/bootstrap4/bootstrap.min.js"></script>
+<script src="plugins/OwlCarousel2-2.2.1/owl.carousel.js"></script>
+<script src="plugins/easing/easing.js"></script>
+<script src="plugins/parallax-js-master/parallax.min.js"></script>
+<script src="plugins/colorbox/jquery.colorbox-min.js"></script>
+<script src="js/custom.js"></script>
+<script>
+  setInterval(async function() {
+    try {
+      const res = await fetch('/user/check-blocked', { credentials: 'same-origin' });
+      if (res.status === 401) {
+        window.location.href = '/login?blocked=1';
+      }
+    } catch (e) {
+    }
+  }, 30000);
+
+  $(document).ready(function(){
+    $('.home_slider').owlCarousel({
+      items: 1,
+      loop: true,
+      autoplay: true,
+      autoplayTimeout: 5000,
+      dots: true,
+      nav: false
+    });
+  });
+</script>
+</body>
+</html>
