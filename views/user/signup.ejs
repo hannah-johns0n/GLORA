@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup - Create Account</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --password-weak: #ff6b6b;
+      --password-medium: #ffd93d;
+      --password-strong: #6bcb77;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #460000 0%, #000000);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .signup-box {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+      color: #333;
+      text-align: center;
+    }
+
+    p {
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 0.75rem;
+      background: linear-gradient(135deg,#000000 0%, #510505 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #5a67d8;
+    }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    .success-message {
+      color: #198754;
+      font-size: 0.875rem;
+      margin: 1rem 0;
+      text-align: center;
+      display: none;
+    }
+    
+    .password-strength {
+      height: 4px;
+      margin-top: 0.5rem;
+      border-radius: 2px;
+      width: 0;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    
+    .password-strength-text {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      color: #6c757d;
+    }
+    
+    #resendOtp {
+      background: none;
+      border: none;
+      color: #6c757d;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.875rem;
+      text-decoration: underline;
+    }
+    
+    #resendOtp:disabled {
+      cursor: not-allowed;
+      text-decoration: none;
+      color: #adb5bd;
+    }
+    
+    .otp-timer {
+      font-size: 0.75rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+    
+    .error {
+      color: red;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      border-top: 1px solid #eee;
+      padding-top: 1rem;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #4f0909;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .password-toggle {
+      position: relative;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 32px;
+      right: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-box">
+    <h1>Create Account</h1>
+    <p>Please fill in the information below</p>
+    <div class="success-message" id="signupSuccess">
+      Registration successful! Please check your email for the OTP.
+    </div>
+
+    <% if (error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+
+    <form action="/signup" method="POST" autocomplete="off">
+      <div>
+        <label for="name">Full Name</label>
+        <input type="text" name="name" id="name" required placeholder="Enter your name">
+      </div>
+
+      <div>
+        <label for="email">Email Address</label>
+        <input type="email" name="email" id="email" required placeholder="Enter email address">
+      </div>
+
+      <div>
+        <label for="phoneNumber">Phone Number</label>
+        <input type="tel" name="phoneNumber" id="phoneNumber" required placeholder="1234567890" pattern="[0-9]{10}">
+      </div>
+
+      <div class="password-toggle">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required 
+               pattern=".{8,}"
+               title="Password must be at least 8 characters long">
+        <div class="error-message" id="passwordError">
+          Password must be at least 8 characters long.
+        </div>
+        <span class="toggle-btn" onclick="togglePassword('password')">👁️</span>
+      </div>
+
+      <div class="password-toggle">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" name="confirmPassword" id="confirmPassword" required placeholder="Confirm password">
+        <span class="toggle-btn" onclick="togglePassword('confirmPassword')">👁️</span>
+      </div>
+
+      <div>
+        <label><input type="checkbox" name="terms" required> I agree to Terms & Privacy Policy</label>
+      </div>
+
+      <div id="otpSection" style="display: none;">
+        <div>
+          <label for="otp">Enter OTP</label>
+          <input type="text" id="otp" name="otp" maxlength="6" pattern="\d{6}" title="Please enter a 6-digit OTP">
+          <div class="otp-timer">
+            OTP will expire in: <span id="otpTimer">05:00</span>
+          </div>
+          <button type="button" id="resendOtp" disabled>Resend OTP</button>
+        </div>
+      </div>
+      <button type="submit" id="submitBtn">Sign Up</button>
+    </form>
+
+    <div class="footer">
+      Already have an account? <a href="/login">Login</a>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(id) {
+      const field = document.getElementById(id);
+      field.type = field.type === "password" ? "text" : "password";
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+ <script>
+  const form = document.querySelector('form');
+  const nameInput = document.getElementById('name');
+
+  form.addEventListener('submit', function (e) {
+    const name = nameInput.value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const nameRegex = /^[A-Za-z ]+$/; 
+    if (!name || !email || !phone || !password || !confirmPassword) {
+      e.preventDefault();
+      Swal.fire("All fields are required", "", "warning");
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      e.preventDefault();
+      Swal.fire("Invalid email format", "", "error");
+      return;
+    }
+
+    if (!nameRegex.test(name) || nameInput.value.startsWith(" ")) {
+      e.preventDefault();
+      Swal.fire("Name cannot have special characters or start with space", "", "error");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      e.preventDefault();
+      Swal.fire("Phone number must be 10 digits", "", "warning");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      e.preventDefault();
+      Swal.fire("Passwords do not match", "", "error");
+      return;
+    }
+
+    if (password.length < 8) {
+      e.preventDefault();
+      Swal.fire("Password must be at least 8 characters", "", "warning");
+      return;
+    }
+
+  });
+</script>
+
+</body>
+</html>

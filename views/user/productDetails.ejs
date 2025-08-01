@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product.productName %> – GLORA</title>
+  <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
+  <link rel="stylesheet" href="/styles/main_styles.css">
+  <style>
+    body{background:#fafafa;font-family:'Poppins',sans-serif;}
+    .product-wrapper{display:flex;flex-wrap:wrap;gap:40px;margin: 160px auto 0; max-width: 1400px; padding: 0 20px;}
+    .img-column{flex:1 1 400px;max-width:500px;}
+    .info-column{flex:1 1 300px;}
+    .main-img-container{width:100%;padding-top:100%;position:relative;overflow:hidden;border-radius:8px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.05);}
+    .main-img-container img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:transform .3s ease;}
+    .main-img-container:hover img{transform:scale(1.6);cursor:zoom-in;}
+    .thumbs{display:flex;gap:10px;margin-top:15px;}
+    .thumbs img{width:70px;height:70px;object-fit:cover;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:border .2s;}
+    .thumbs img.active,.thumbs img:hover{border-color:#471710;}
+    .rating-stars{color:#000000;font-size:1.2rem;}
+    .price{font-weight:600;font-size:1.5rem;color:#a44b3e;}
+    .price .original{font-size:1rem;text-decoration:line-through;color:#999;margin-left:8px;}
+    .info-column h2{font-size:1.8rem;font-weight:600;margin-bottom:10px;word-break:break-word;}
+    .btn-add{background:#6b2c22;color:#fff;padding:.6rem 1.5rem;border:none;border-radius:6px;margin-top:20px;}
+    .product-card:hover {transform: translateY(-5px);box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);}
+
+    
+  </style>
+</head>
+<body>
+  <%- include('../partials/user/header',{ userName:userName, url:url }) %>
+
+  <div class="container">
+    <div class="product-wrapper">
+      <div class="img-column">
+        <div class="main-img-container">
+          <img id="mainImage" src="<%= product.images && product.images.length ? '/uploads/products/' + product.images[0] : '/images/placeholder-product.jpg' %>" alt="<%= product.productName %>">
+        </div>
+        <div class="thumbs">
+          <% product.images.slice(0,4).forEach(function(img,idx){ %>
+            <img class="thumbnail <%= idx===0 ? 'active' : '' %>" src="/uploads/products/<%= img %>" alt="thumbnail <%= idx+1 %>">
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="info-column">
+        <h2><%= product.productName %></h2>
+        <div class="rating-stars mb-2">
+          <% const rating=(product.rating||4); for(let i=1;i<=5;i++){ %>
+            <% if(i<=rating){ %>
+              <i class="fa fa-star"></i>
+            <% }else if(i-rating<1 && i-rating>0){ %>
+              <i class="fa fa-star-half-alt"></i>
+            <% }else{ %>
+              <i class="fa fa-star-o"></i>
+            <% } %>
+          <% } %>
+          <span class="ms-2"><%= rating.toFixed ? rating.toFixed(1) : rating %>/5</span>
+        </div>
+
+        <div class="price">
+          Rs <%= product.salesPrice>0 ? product.salesPrice : product.regularPrice %>
+          <% if(product.salesPrice>0){ %>
+            <span class="original">Rs <%= product.regularPrice %></span>
+          <% } %>
+        </div>
+
+        <p class="mt-3"><%= product.description %></p>
+
+        <button class="btn-add" disabled>Add to Cart</button>
+      </div>
+    </div>
+  </div>
+
+<div style="height: 30px; box-shadow: inset 0 4px 10px -4px rgba(0, 0, 0, 0.3); margin-top: 80px;"></div>
+
+<div class="related-products" style="margin: 60px auto; max-width: 1400px; padding: 0 20px;">
+  <h3 style="font-size: 3rem; font-weight: 500; font-family: 'Playfair Display', serif; color: #3c0404; margin-bottom: 70px; text-align: left;">
+  Some products you may also like
+</h3>
+
+
+  <div class="row">
+    <% relatedProducts.forEach(related => { %>
+      <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card h-100 shadow-sm border-0 product-card" style="transition: transform 0.3s ease;">
+          <div style="height: 200px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+            <img src="<%= related.images && related.images.length ? '/uploads/products/' + related.images[0] : '/images/placeholder-product.jpg' %>" 
+                 alt="<%= related.productName %>" 
+                 style="max-width: 100%; max-height: 100%; object-fit: contain;">
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title"><%= related.productName %></h6>
+            <p class="card-text mb-2 text-danger fw-bold">
+              Rs <%= related.salesPrice > 0 ? related.salesPrice : related.regularPrice %>
+              <% if (related.salesPrice > 0) { %>
+                <span class="text-muted text-decoration-line-through small">Rs <%= related.regularPrice %></span>
+              <% } %>
+            </p>
+            <a href="/product/<%= related._id %>" class="btn btn-outline-dark mt-auto">View Details</a>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+  <%- include('../partials/user/footer') %>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script>
+    $(function(){
+      $('.thumbnail').on('click',function(){
+        const newSrc=$(this).attr('src');
+        $('#mainImage').attr('src',newSrc);
+        $('.thumbnail').removeClass('active');
+        $(this).addClass('active');
+      });
+    });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
