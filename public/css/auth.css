@@ -1,0 +1,11 @@
+/* Basic authentication page styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+input, button {
+  font-family: inherit;
+}
+
+/* Add any page-specific styles below as needed */
