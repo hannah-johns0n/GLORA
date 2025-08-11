@@ -48,14 +48,14 @@ const addCategory = async (req, res) => {
     }
     
     if (/\s{2,}|-{2,}/.test(categoryName)) {
-        return res.status(400).json({ message: "Category name cannot contain consecutive spaces or hyphens" });
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Category name cannot contain consecutive spaces or hyphens" });
     }
     
     try {
         const existingCategory = await Category.findOne({categoryName: name});
         
         if (existingCategory) {
-            return res.status(400).json({ message: `Category "${existingCategory.categoryName}" already exists` });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ message: `Category "${existingCategory.categoryName}" already exists` });
         }
         
         const newCategory = new Category({
@@ -64,11 +64,12 @@ const addCategory = async (req, res) => {
             isBlocked: false
         });
         await newCategory.save();
+
         return res.json({ message: `Category "${categoryName}" added successfully`,category: newCategory});
     } 
     catch (error) {
         console.error('Add Category Error:', error);
-        return res.status(500).json({ message: "An internal server error occurred while adding the category" });
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "An internal server error occurred while adding the category" });
     }
 }
 
@@ -80,7 +81,6 @@ const getListCatergory = async (req,res) => {
             res.redirect('/admin/category')
         }
         catch (error) {
-            ++
             res.redirect('/pageerror')
         }
     }
@@ -115,13 +115,13 @@ const editCategory = async (req, res) => {
     const { name, description } = req.body;
     
     if (!name || !name.trim()) {
-        return res.status(400).json({ success: false, message: "Category name is required" });
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Category name is required" });
     }
     
     const categoryName = name.trim();
     
     if (categoryName.length < 3 || categoryName.length > 50) {
-        return res.status(400).json({ 
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ 
             success: false, 
             message: "Category name must be between 3 and 50 characters" 
         });
@@ -129,14 +129,14 @@ const editCategory = async (req, res) => {
     
     const invalidChars = /[0-9_!@#$%^&*()\[\]{};:'"\\|<>\/=+]/;
     if (invalidChars.test(categoryName)) {
-        return res.status(400).json({ 
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ 
             success: false, 
             message: "Category name can only contain letters, spaces, and hyphens" 
         });
     }
     
     if (/\s{2,}|-{2,}/.test(categoryName)) {
-        return res.status(400).json({ 
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ 
             success: false, 
             message: "Category name cannot contain consecutive spaces or hyphens" 
         });
@@ -149,7 +149,7 @@ const editCategory = async (req, res) => {
         });
         
         if (existingCategory) {
-            return res.status(400).json({ 
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ 
                 success: false, 
                 message: `Category "${existingCategory.categoryName}" already exists` 
             });
@@ -165,7 +165,7 @@ const editCategory = async (req, res) => {
         );
         
         if (!updateCategory) {
-            return res.status(404).json({ 
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ 
                 success: false, 
                 message: "Category not found" 
             });
@@ -191,15 +191,14 @@ const blockCategory = async (req, res) => {
         console.log('[BlockCategory] req.body:', req.body, 'req.query:', req.query);
         const id = req.body.id || req.query.id;
         if (!id) {
-            console.error('[BlockCategory] No category id provided');
-            return res.status(400).json({ success: false, message: 'No category id provided' });
+            return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: 'No category id provided' });
         }
         const result = await Category.updateOne({ _id: id }, { $set: { isBlocked: true } });
         return res.json({ success: result.modifiedCount > 0, message: result.modifiedCount > 0 ? 'Category blocked successfully' : 'No category updated' });
     } 
     catch (error) {
         console.error('[BlockCategory] Error:', error);
-            return res.status(500).json({ success: false, message: 'Failed to block category', error: error.message });
+            return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Failed to block category', error: error.message });
         res.redirect('/pageerror');
     }
 };
@@ -210,10 +209,7 @@ const unblockCategory = async (req, res) => {
         const result = await Category.updateOne({ _id: id }, { $set: { isBlocked: false } });
         return res.json({ success: result.modifiedCount > 0, message: result.modifiedCount > 0 ? 'Category unblocked successfully' : 'No category updated' });
     } catch (error) {
-        console.error('Unblock Category Error:', error);
-        if (req.xhr || req.headers.accept.indexOf('json') > -1) {
             return res.status(500).json({ success: false, message: 'Failed to unblock category' });
-        }
         res.redirect('/pageerror');
     }
 };

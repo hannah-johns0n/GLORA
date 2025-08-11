@@ -47,10 +47,7 @@ exports.editProduct = async (req, res) => {
 
         const nameRegex = /^[A-Za-z\s]+$/;
         if (!nameRegex.test(productName.trim())) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Product name should contain only letters and spaces.' 
-            });
+            return res.status(400).json({success: false, message: 'Product name should contain only letters and spaces.' });
         }
         
         const existingProduct = await Product.findOne({
@@ -319,10 +316,7 @@ exports.toggleProductBlock = async (req, res) => {
       { $set: { isBlocked: !product.isBlocked } }
     );
 
-    return res.json({
-      success: updated.modifiedCount > 0,
-      message: product.isBlocked ? 'Product unblocked' : 'Product blocked',
-    });
+    return res.json({success: updated.modifiedCount > 0,message: product.isBlocked ? 'Product unblocked' : 'Product blocked',});
   } catch (error) {
     console.error('Toggle Block Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to toggle product status' });

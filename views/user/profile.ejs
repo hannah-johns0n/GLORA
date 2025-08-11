@@ -1,0 +1,139 @@
+<%- include('../partials/user/header', { userName: user?.name || 'User' }) %>
+
+<style>
+  /* Overall scale reduction */
+  html {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+
+  /* Navbar height tweak */
+  .navbar {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  /* Sidebar menu styles */
+  .nav.flex-column .nav-link {
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: black !important;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+  }
+
+  .nav.flex-column .nav-link i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* Logout button */
+  .btn-logout {
+    background-color: #8B0000;
+    color: white !important;
+    border: none;
+    font-weight: bold;
+  }
+
+  .btn-logout:hover {
+    background-color: #a30000;
+    color: white !important;
+  }
+
+  /* Labels */
+  .form-label {
+    font-weight: bold;
+  }
+
+  /* Readonly inputs */
+  .form-control[readonly] {
+    font-weight: normal;
+    color: black !important;
+  }
+
+  /* Content wrapper */
+  .content-wrapper {
+    margin-top: 80px;
+  }
+
+  /* Personal Info heading */
+  .personal-info-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+</style>
+
+<div class="container-fluid content-wrapper">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 bg-light border-end p-3">
+      <h5 class="mb-4"><%= user?.name || 'User' %></h5>
+      <ul class="nav flex-column">
+        <li class="nav-item mb-2">
+          <a href="/profile" class="nav-link active"><i class="fas fa-user"></i> My Account</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/my-orders" class="nav-link"><i class="fas fa-box"></i> My Orders</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/manage-address" class="nav-link"><i class="fas fa-map-marker-alt"></i> Manage Addresses</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wallet" class="nav-link"><i class="fas fa-wallet"></i> Wallet</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wishlist" class="nav-link"><i class="fas fa-heart"></i> My Favourite</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/add-account" class="nav-link"><i class="fas fa-user-plus"></i> Add Account</a>
+        </li>
+      </ul>
+      <form action="/logout" method="POST" class="mt-4">
+        <button type="submit" class="btn btn-logout w-100">LOG OUT</button>
+      </form>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9 col-lg-10 p-4">
+      <% if (!user) { %>
+        <div class="alert alert-warning">
+          You need to be logged in to view this page. <a href="/login">Login here</a>
+        </div>
+      <% } else { %>
+        <div class="card p-4 shadow-sm">
+          <h4 class="text-center mb-4 personal-info-title">Personal Information</h4>
+
+          <div class="mb-3">
+            <label class="form-label">Referral Id:</label>
+            <div><%= user.referralId || 'Not set' %></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <input type="text" value="<%= user.name || '' %>" class="form-control" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password:</label>
+            <input type="password" value="******" class="form-control" readonly>
+            <small><a href="/reset-password" class="text-danger">Change Password</a></small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Mobile Number:</label>
+            <input type="text" value="<%= user.phone || '' %>" class="form-control" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">E-mail:</label>
+            <input type="email" value="<%= user.email || '' %>" class="form-control" readonly>
+            <small><a href="/change-email" class="text-danger">Change Email</a></small>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/user/footer') %>

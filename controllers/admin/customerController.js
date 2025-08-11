@@ -56,18 +56,11 @@ const toggleUserBlock = async (req, res) => {
         user.isBlocked = !user.isBlocked;
         await user.save();
 
-        res.json({ 
-            success: true, 
-            message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,
-            isBlocked: user.isBlocked
-        });
-    } catch (error) {
+        res.json({ success: true, message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,isBlocked: user.isBlocked});
+    } 
+    catch (error) {
         console.error('Error toggling user block status:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Failed to update user status',
-            error: error.message 
-        });
+        res.status(500).json({ success: false, message: 'Failed to update user status',error: error.message });
     }
 };
 
