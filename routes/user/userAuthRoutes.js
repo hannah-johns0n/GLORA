@@ -27,10 +27,12 @@ router.post('/forgot-password', userController.postForgotPassword);
 router.get('/forgot-password/verify', userController.verifyPasswordOtp);
 router.post('/forgot-password/verify', userController.postVerifyPasswordOtp);
 
-router.get('/reset-password', userController.getResetPassword);
+router.get('/reset-password',requireAuth, userController.getResetPassword);
 router.post('/reset-password', userController.postResetPassword);
 
-
+router.get('/profile',requireAuth,userController.getProfilePage);
+router.get('/profile/edit', userController.getEditProfilePage);
+router.post('/profile/edit', userController.updateProfile);
 
 router.get('/check-blocked', requireAuth, (req, res) => {
   res.sendStatus(200); 

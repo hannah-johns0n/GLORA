@@ -9,6 +9,7 @@ const User = require('../../models/userModel');
 const TempUser = require('../../models/TempUser');
 const PasswordReset = require('../../models/passwordResetModel');
 const STATUS_CODES = require('../../constants/statusCodes');
+const fs = require('fs');
 
 
 const transporter = nodemailer.createTransport({
@@ -20,7 +21,6 @@ const transporter = nodemailer.createTransport({
 });
 
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
-
 
 const sendOTP = async (email, otp) => {
   await transporter.sendMail({
@@ -486,6 +486,77 @@ const postResetPassword = async (req, res) => {
   }
 };
 
+const getProfilePage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        res.render('user/profile', {
+            user,
+            userName: user?.name || 'User'
+        });
+    } catch (err) {
+        console.error(err);
+        res.redirect('user/profile');
+    }
+};
+
+
+
+const getEditProfilePage = (req, res) => {
+  res.render('user/editProfile', { user: req.user });
+};
+
+
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user._id; 
+        const { name, phone } = req.body;
+
+        if (!name || !phone) {
+            req.flash("error", "Name and phone are required!");
+            return res.redirect('/profile/edit');
+        }
+        if (phone.length !== 10 || isNaN(phone)) {
+            req.flash("error", "Phone must be a valid 10-digit number!");
+            return res.redirect('/profile/edit');
+        }
+
+        let user = await User.findById(userId);
+        let profileImage = user.profileImage;
+
+        // 2. If new profile image uploaded
+        if (req.file) {
+            // Delete old image if it exists
+            if (profileImage) {
+                const oldPath = path.join(__dirname, '../public/uploads', profileImage);
+                if (fs.existsSync(oldPath)) {
+                    fs.unlinkSync(oldPath);
+                }
+            }
+            // Save new image filename
+            profileImage = req.file.filename;
+        }
+
+        // 3. Update in DB
+        user.name = name;
+        user.phone = phone;
+        user.profileImage = profileImage;
+        await user.save();
+
+        req.flash("success", "Profile updated successfully!");
+        res.redirect('/profile');
+
+    } catch (error) {
+        console.log("Update profile error:", error.message);
+        req.flash("error", "Something went wrong!");
+        res.redirect('/profile/edit');
+    }
+};
+
+module.exports = {
+    updateProfile
+};
+
 module.exports = {
   signup,
   getVerifyOtp,
@@ -503,7 +574,10 @@ module.exports = {
   verifyPasswordOtp,
   postVerifyPasswordOtp,
   getResetPassword,
-  postResetPassword
+  postResetPassword,
+  getProfilePage,
+  getEditProfilePage,
+  updateProfile
 };
 
 

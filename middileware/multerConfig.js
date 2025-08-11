@@ -43,13 +43,12 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { 
-    files: 4, 
-    fileSize: 5 * 1024 * 1024,
-    files: 4, 
-    fields: 10, 
-    parts: 20
-  },
+  limits: {
+  files: 4, 
+  fileSize: 5 * 1024 * 1024,
+  fields: 200,    
+  parts: 250      
+},
   preservePath: true
 });
 

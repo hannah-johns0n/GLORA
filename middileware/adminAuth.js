@@ -19,7 +19,8 @@ const requireAdminAuth = async (req, res, next) => {
 
     req.admin = admin; 
     next();
-  } catch (err) {
+  }
+   catch (err) {
     console.log("JWT verification failed:", err);
     res.redirect("/admin/login");
   }

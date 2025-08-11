@@ -46,7 +46,7 @@ exports.getDashboard = async (req, res) => {
     });
   } 
   catch (error) {
-    res.status(500).send('Failed to load dashboard');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Failed to load dashboard');
   }
 }
 
@@ -69,7 +69,7 @@ exports.listCustomers = async (req, res) => {
   } 
   catch (error) {
     console.error('Error fetching customers:', error);
-    res.status(500).send('Failed to load customers');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Failed to load customers');
   }
 }
 
@@ -78,7 +78,7 @@ exports.customerPage = async (req, res) => {
     res.render('admin/customer', { customers: [] }); 
   } 
   catch (error) {
-    res.status(500).send('Failed to load customer page');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Failed to load customer page');
   }
 }
 
@@ -88,7 +88,7 @@ exports.categoryPage = async (req, res) => {
   } 
   catch (error) {
     console.log(error);
-    res.status(500).send('Failed to load category page');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Failed to load category page');
   }
 }
 

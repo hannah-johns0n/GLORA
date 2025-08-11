@@ -12,24 +12,23 @@ router.get('/login', adminController.getAdminLogin);
 router.post('/login', adminController.adminLogin);
 router.post('/logout', adminController.adminLogout);
 
+router.use(requireAdminAuth)
+router.get('/dashboard', adminController.getDashboard);
+router.get('/user', adminController.listCustomers);
+router.get('/customer', adminController.customerPage);
+router.get('/category', adminController.categoryPage);
 
-router.get('/dashboard', requireAdminAuth, adminController.getDashboard);
-router.get('/user', requireAdminAuth, adminController.listCustomers);
-router.get('/customer', requireAdminAuth, adminController.customerPage);
-router.get('/category', requireAdminAuth, adminController.categoryPage);
+router.post('/user/block', customerController.toggleUserBlock);
+router.post('/user/unblock', customerController.toggleUserBlock);
+// router.route('/category').get().post().delete();
+router.post('/categories/add', categoryController.addCategory);
+router.post('/categories/edit/:id', categoryController.editCategory);
+router.post('/categories/block', categoryController.blockCategory);
+router.post('/categories/unblock', categoryController.unblockCategory);
 
-router.post('/user/block', requireAdminAuth, customerController.toggleUserBlock);
-router.post('/user/unblock', requireAdminAuth, customerController.toggleUserBlock);
-
-router.post('/categories/add', requireAdminAuth, categoryController.addCategory);
-router.post('/categories/edit/:id', requireAdminAuth, categoryController.editCategory);
-router.post('/categories/block', requireAdminAuth, categoryController.blockCategory);
-router.post('/categories/unblock', requireAdminAuth, categoryController.unblockCategory);
-
-router.get('/products', requireAdminAuth, productController.productListPage);
-router.get('/products/add', requireAdminAuth, productController.addProductPage);
-router.post('/products/add', 
-  requireAdminAuth, 
+router.get('/products', productController.productListPage);
+router.get('/products/add', productController.addProductPage);
+router.post('/products/add',
   (req, res, next) => {
     upload.array('images', 4)(req, res, (err) => {
       if (err) return handleMulterErrors(err, req, res, next);
@@ -39,8 +38,7 @@ router.post('/products/add',
   productController.addProduct
 );
 
-router.post('/products/edit/:id', 
-  requireAdminAuth, 
+router.post('/products/edit/:id',
   (req, res, next) => {
     upload.array('images', 4)(req, res, (err) => {
       if (err) return handleMulterErrors(err, req, res, next);
@@ -50,7 +48,7 @@ router.post('/products/edit/:id',
   productController.editProduct
 );
 
-router.get('/products/edit/:id', requireAdminAuth, productController.editProductPage);
-router.post('/toggle-product-block', requireAdminAuth, productController.toggleProductBlock);
+router.get('/products/edit/:id', productController.editProductPage);
+router.post('/toggle-product-block', productController.toggleProductBlock);
 
 module.exports = router;

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,25 +17,41 @@
 
   <style>
     .header_inner {
-      padding: 15px 40px;
+      padding: 8px 25px;
       background: #ffffff;
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      height: 65px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: nowrap;
     }
 
     .logo a {
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       color: #222 !important;
       text-decoration: none;
+    }
+
+    .main_nav ul {
+      display: flex;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      gap: 12px;
     }
 
     .main_nav ul li a {
       color: #444;
       font-weight: 500;
       text-transform: uppercase;
-      font-size: 14px;
+      font-size: 12px;
       transition: color 0.3s ease;
+      text-decoration: none;
     }
 
     .main_nav ul li a:hover {
@@ -48,26 +63,9 @@
       font-weight: 700;
     }
 
-    .search_input {
-      padding: 6px 12px;
-      min-width: 170px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .search_button {
-      background: #670202;
-      border-radius: 4px;
-      padding: 4px 8px;
-    }
-
-    .search_button img {
-      filter: brightness(0) invert(1);
-    }
-
     .shopping img, .avatar img {
-      width: 22px;
+      width: 18px;
+      height: 18px;
       transition: transform 0.2s ease;
     }
 
@@ -78,6 +76,12 @@
     .avatar span {
       color: #333;
       font-weight: 600;
+      font-size: 12px;
+    }
+
+    .btn-sm {
+      font-size: 12px;
+      padding: 2px 6px;
     }
 
     .btn-outline-dark {
@@ -87,10 +91,10 @@
     }
 
     .btn-outline-dark:hover {
-    background: #6b2c22;   
-    color: #fff !important;
-    border-color: #6b2c22;
-  }
+      background: #6b2c22;
+      color: #fff !important;
+      border-color: #6b2c22;
+    }
 
     .btn-outline-primary {
       border: 1px solid #620000;
@@ -101,83 +105,58 @@
       background: #720404;
       color: #fff;
     }
+
+    .header_content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
   </style>
 </head>
 
-<header class="header">
-  <div class="header_inner d-flex flex-row align-items-center justify-content-between">
-    <div class="logo">
-      <a href="#">GLORA</a>
-    </div>
-
-    <nav class="main_nav">
-  <ul class="d-flex">
-    <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
-    <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
-    <li><a href="/categories" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
-    <li><a href="/signin" class="<%= url.startsWith('/signin') ? 'active' : '' %>">Sign in</a></li>
-    <li><a href="/contact" class="<%= url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
-  </ul>
-</nav>
-
-
-
-    <div class="header_content d-flex align-items-center" style="gap: 20px;">
-      
-      <div class="search header_search">
-        <form action="#" class="d-flex">
-          <input type="search" class="search_input" placeholder="Search..." required="required">
-          <button type="submit" id="search_button" class="search_button">
-            <img src="images/magnifying-glass.svg" alt="">
-          </button>
-        </form>
+<body>
+  <header class="header">
+    <div class="header_inner">
+      <div class="logo">
+        <a href="#">GLORA</a>
       </div>
 
-      <div class="shopping d-flex align-items-center" style="gap: 15px;">
-        <a href="#" class="d-flex align-items-center">
-          <img src="images/shopping-bag.svg" alt="" style="width: 22px;">
-        </a>
-        <a href="#" class="d-flex align-items-center">
-          <img src="images/star.svg" alt="" style="width: 22px;">
-        </a>
-      </div>
-
-      <div class="avatar d-flex align-items-center" style="gap: 10px;">
-        <img src="images/avatar.svg" alt="" style="width: 28px;">
-
-        <% if (typeof userName !== 'undefined' && userName) { %>
-          <span style="color: #444; font-weight: 600;">
-            <%= userName %>
-          </span>
-          <form action="/logout" method="POST">
-            <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
-          </form>
-        <% } else { %>
-          <span style="color: #777;">Guest</span>
-          <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
-        <% } %>
-      </div>
-
-    </div>
-  </div>
-</header>
-
-<div class="menu d-flex flex-column align-items-end justify-content-start text-right menu_mm trans_400">
-    <div class="menu_close_container"><div class="menu_close"><div></div><div></div></div></div>
-    <div class="logo menu_mm"><a href="#">GLORA</a></div>
-    <div class="search">
-        <form action="#">
-            <input type="search" class="search_input menu_mm" required="required">
-            <button type="submit" id="search_button_menu" class="search_button menu_mm"><img class="menu_mm" src="images/magnifying-glass.svg" alt=""></button>
-        </form>
-    </div>
-    <nav class="menu_nav">
-        <ul class="menu_mm">
-            <li class="menu_mm"><a href="/">Home</a></li>
-            <li class="menu_mm"><a href="/categories">Shop</a></li>
-            <li class="menu_mm"><a href="/categories">About Us</a></li>
-            <li class="menu_mm"><a href="/categories">Sign in</a></li>
-            <li class="menu_mm"><a href="/contact">Contact Us</a></li>
+      <nav class="main_nav">
+        <ul>
+          <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
+          <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
+          <li><a href="/categories" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
+          <li><a href="/signin" class="<%= url.startsWith('/signin') ? 'active' : '' %>">Sign in</a></li>
+          <li><a href="/contact" class="<%= url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
         </ul>
-    </nav>
+      </nav>
+
+      <div class="header_content">
+        <div class="shopping d-flex align-items-center" style="gap: 10px;">
+          <a href="#"><img src="images/shopping-bag.svg" alt="Bag"></a>
+          <a href="#"><img src="images/star.svg" alt="Wishlist"></a>
+        </div>
+
+        <div class="avatar d-flex align-items-center" style="gap: 6px;">
+  <% if (typeof userName !== 'undefined' && userName) { %>
+    <a href="/profile" class="d-flex align-items-center" style="gap: 6px; text-decoration: none; color: inherit;">
+      <img src="images/avatar.svg" alt="Avatar">
+      <span><%= userName %></span>
+    </a>
+    <form action="/logout" method="POST" style="margin: 0;">
+      <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
+    </form>
+  <% } else { %>
+    <img src="images/avatar.svg" alt="Avatar">
+    <span style="color: #777;">Guest</span>
+    <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
+  <% } %>
 </div>
+
+      </div>
+    </div>
+  </header>
+</body>
+</html>
