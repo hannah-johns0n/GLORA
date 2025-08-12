@@ -8,6 +8,7 @@ const Product = require('../../models/productModel');
 const User = require('../../models/userModel');
 const TempUser = require('../../models/TempUser');
 const PasswordReset = require('../../models/passwordResetModel');
+const Address = require('../../models/addressModel');
 const STATUS_CODES = require('../../constants/statusCodes');
 const fs = require('fs');
 
@@ -288,7 +289,8 @@ const getShopPage = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-    const userName = req.session?.userName || null;
+    const userName = req.user ? req.user.name : null;
+
     const url = req.originalUrl;
 
     res.render('user/shop', {
@@ -495,67 +497,156 @@ const getProfilePage = async (req, res) => {
             userName: user?.name || 'User'
         });
     } catch (err) {
-        console.error(err);
         res.redirect('user/profile');
     }
 };
 
-
-
 const getEditProfilePage = (req, res) => {
-  res.render('user/editProfile', { user: req.user });
-};
-
-
-const updateProfile = async (req, res) => {
     try {
-        const userId = req.user._id; 
-        const { name, phone } = req.body;
-
-        if (!name || !phone) {
-            req.flash("error", "Name and phone are required!");
-            return res.redirect('/profile/edit');
+        if (!req.user) {
+            return res.redirect('/login');
         }
-        if (phone.length !== 10 || isNaN(phone)) {
-            req.flash("error", "Phone must be a valid 10-digit number!");
-            return res.redirect('/profile/edit');
-        }
-
-        let user = await User.findById(userId);
-        let profileImage = user.profileImage;
-
-        // 2. If new profile image uploaded
-        if (req.file) {
-            // Delete old image if it exists
-            if (profileImage) {
-                const oldPath = path.join(__dirname, '../public/uploads', profileImage);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
-                }
-            }
-            // Save new image filename
-            profileImage = req.file.filename;
-        }
-
-        // 3. Update in DB
-        user.name = name;
-        user.phone = phone;
-        user.profileImage = profileImage;
-        await user.save();
-
-        req.flash("success", "Profile updated successfully!");
-        res.redirect('/profile');
-
+        res.render('user/editProfile', { 
+            user: req.user,
+            userName: req.user.name 
+        });
     } catch (error) {
-        console.log("Update profile error:", error.message);
-        req.flash("error", "Something went wrong!");
-        res.redirect('/profile/edit');
+        console.error('Error in getEditProfilePage:', error);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
     }
 };
 
-module.exports = {
-    updateProfile
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user._id; 
+    const { name, phone } = req.body;
+
+    if (!name || !phone) {
+      return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Name and phone are required!" });
+    }
+
+    if (phone.length !== 10 || isNaN(phone)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Phone must be a valid 10-digit number!" });
+    }
+
+    let user = await User.findById(userId);
+
+    user.name = name;
+    user.phone = phone;
+    await user.save();
+
+    return res.send({ success: true, message: "Profile updated successfully!" });
+
+  } 
+  catch (error) {
+    console.log("Update profile error:", error.message);
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send({ success: false, message: "Something went wrong!" });
+  }
 };
+
+
+const getManageAddressPage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id); 
+        const addresses = await Address.find({ userId: req.user._id });
+
+        res.render('user/manage-address', {
+            user,
+            userName: user.name , 
+            addresses
+        });
+    } 
+    catch (error) {
+        res.redirect('/profile');
+    }
+};
+
+
+const getAddAddressPage = (req, res) => {
+    res.render('user/add-address', { userName: req.user.name });
+};
+
+
+const postAddAddress = async (req, res) => {
+    try {
+        if ( !req.user.id) {
+            return res.status(STATUS_CODES.BAD_REQUEST).redirect('/login');
+        }
+        
+        const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+        await Address.create({
+            userId: req.user.id,
+            addressType,
+            city,
+            landmark,
+            state,
+            pincode,
+            phoneNumber
+        });
+        res.redirect('/manage-address');
+    } 
+    catch (err) {
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render('error', { message: 'Failed to add address',error: err.message });
+    }
+};
+
+const getEditAddressPage = async (req, res) => {
+    try {
+        const address = await Address.findOne({ _id: req.params.id, userId: req.user._id }).lean();
+
+        if (!address) return res.redirect('/manage-address');
+        res.render('user/edit-address', { address, userName: req.user.name });
+    } 
+    catch (err) {
+        console.error(err);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+    }
+};
+
+
+const postEditAddress = async (req, res) => {
+  try {
+    if ( !req.user._id) {
+      return res.status(STATUS_CODES.BAD_REQUEST).send("Unauthorized");
+    }
+
+    const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+
+    const noSpecialChars = /^[a-zA-Z0-9\s]+$/;
+
+    if (!addressType || !city || !landmark || !state || !pincode || !phoneNumber) {
+      return res.render('user/edit-address', { address: req.body, error: 'All fields are required.', userName: req.user.name });
+    }
+    if (
+      !noSpecialChars.test(addressType) || !noSpecialChars.test(city) || !noSpecialChars.test(landmark) || !noSpecialChars.test(state)) 
+      {
+      return res.render('user/edit-address', { address: req.body, error: 'No special characters allowed in Address Type, City, Landmark, or State.', userName: req.user.name });
+    }
+
+    await Address.updateOne(
+      { _id: req.params.id, userId: req.user._id },
+      { addressType, city, landmark, state, pincode, phoneNumber }
+    );
+
+    return res.render('user/edit-address', { address: req.body, success: 'Address updated successfully!', userName: req.user.name  });
+
+  } catch (err) {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+  }
+};
+
+
+const deleteAddress = async (req, res) => {
+    try {
+        await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
+        res.redirect('/manage-address');
+    } 
+    catch (err) {
+        console.error(err);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+    }
+};
+
 
 module.exports = {
   signup,
@@ -577,6 +668,13 @@ module.exports = {
   postResetPassword,
   getProfilePage,
   getEditProfilePage,
+  updateProfile,
+  getManageAddressPage,
+  getAddAddressPage,
+  postAddAddress,
+  getEditAddressPage,
+  postEditAddress,
+  deleteAddress,
   updateProfile
 };
 

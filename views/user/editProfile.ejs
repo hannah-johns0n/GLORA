@@ -1,29 +1,138 @@
-<%- include('../partials/header') %>
+<%- include('../partials/user/header', { userName: user?.name || 'User' }) %>
 
-<div class="container mt-4">
-  <h2>Edit Profile</h2>
+<style>
+  /* Overall scale reduction */
+  html {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
 
-  <form action="/profile/edit" method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-      <label>Name</label>
-      <input type="text" name="name" value="<%= user.name %>" class="form-control" required>
+  /* Navbar height tweak */
+  .navbar {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  /* Sidebar menu styles */
+  .nav.flex-column .nav-link {
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: black !important;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+  }
+
+  .nav.flex-column .nav-link i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* Dark red buttons */
+  .btn-dark-red {
+    background-color: #450808;
+    color: white !important;
+    border: none;
+    font-weight: bold;
+  }
+
+  .btn-dark-red:hover {
+    background-color: #400606;
+    color: white !important;
+  }
+
+  /* Labels */
+  .form-label {
+    font-weight: bold;
+  }
+
+  /* Content wrapper */
+  .content-wrapper {
+    margin-top: 80px;
+  }
+
+  /* Form button style */
+  .btn-save {
+    background-color: darkred;
+    border: none;
+    width: 100%;
+    color: white;
+    font-weight: bold;
+  }
+  .btn-save:hover {
+    background-color: #700000;
+    color: white;
+  }
+</style>
+
+<div class="container-fluid content-wrapper">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 bg-light border-end p-3">
+      <h5 class="mb-4"><%= user?.name || 'User' %></h5>
+      <ul class="nav flex-column">
+        <li class="nav-item mb-2">
+          <a href="/profile" class="nav-link"> My Account</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/my-orders" class="nav-link"> My Orders</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/manage-address" class="nav-link"> Manage Addresses</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wallet" class="nav-link"> Wallet</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wishlist" class="nav-link">My Favourite</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/add-account" class="nav-link"> Add Account</a>
+        </li>
+      </ul>
+      <form action="/logout" method="POST" class="mt-4">
+        <button type="submit" class="btn btn-dark-red w-100">LOG OUT</button>
+      </form>
     </div>
 
-    <div class="form-group">
-      <label>Phone</label>
-      <input type="text" name="phone" value="<%= user.phone %>" class="form-control" required>
-    </div>
+    <div class="col-md-9 col-lg-10 p-4">
+      <% if (!user) { %>
+        <div class="alert alert-warning">
+          You need to be logged in to view this page. <a href="/login">Login here</a>
+        </div>
+      <% } else { %>
+        <div class="col-md-9 col-lg-10 p-4">
+          <h2 class="fw-bold mb-4 text-center" style="color: #333;">Edit Personal Information</h2>
 
-    <div class="form-group">
-      <label>Profile Image</label>
-      <% if (user.profileImage) { %>
-        <img src="/uploads/<%= user.profileImage %>" alt="Profile Image" width="80">
+          <form action="/profile/edit" method="POST" style="max-width: 600px; margin: 0 auto;">
+            <div class="mb-4">
+              <label class="form-label">Name</label>
+              <input type="text" name="name" value="<%= user.name || '' %>" class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Mobile Number</label>
+              <input type="text" name="phoneNumber" value="<%= user.phoneNumber || '' %>" class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">E-mail</label>
+              <input type="email" name="email" value="<%= user.email || '' %>" class="form-control" required>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <a href="/profile" class="btn btn-outline-secondary" style="width: 48%;">
+                Cancel
+              </a>
+              <button type="submit" class="btn btn-dark" style="width: 48%; background-color: rgb(70, 6, 6);">
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
       <% } %>
-      <input type="file" name="profileImage" class="form-control mt-2">
     </div>
-
-    <button type="submit" class="btn btn-success mt-3">Update</button>
-  </form>
+  </div>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/user/footer') %>

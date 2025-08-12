@@ -1,0 +1,39 @@
+<%- include('../partials/user/header', { userName: userName }) %>
+
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow p-4" style="max-width: 600px; width: 100%;">
+        <h2 class="text-center mb-4">Add New Address</h2>
+        <form action="/add-address" method="POST">
+            <div class="mb-3">
+                <label class="form-label">Address Type</label>
+                <input type="text" name="addressType" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">City</label>
+                <input type="text" name="city" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Landmark</label>
+                <input type="text" name="landmark" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">State</label>
+                <input type="text" name="state" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Pincode</label>
+                <input type="number" name="pincode" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="number" name="phoneNumber" class="form-control" required>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn" style="background-color: darkred; color: white;">Save Address
+</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/user/footer') %>

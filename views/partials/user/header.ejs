@@ -2,31 +2,31 @@
 <html lang="en">
 <head>
   <title>GLORA</title>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="description" content="Wish shop project">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" type="text/css" href="styles/bootstrap4/bootstrap.min.css">
-  <link href="plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" type="text/css" href="plugins/OwlCarousel2-2.2.1/owl.carousel.css">
-  <link rel="stylesheet" type="text/css" href="plugins/OwlCarousel2-2.2.1/owl.theme.default.css">
-  <link rel="stylesheet" type="text/css" href="plugins/OwlCarousel2-2.2.1/animate.css">
-  <link href="plugins/colorbox/colorbox.css" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" type="text/css" href="styles/main_styles.css">
-  <link rel="stylesheet" type="text/css" href="styles/responsive.css">
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="description" content="Wish shop project" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" type="text/css" href="/styles/bootstrap4/bootstrap.min.css" />
+  <link href="/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.carousel.css" />
+  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.theme.default.css" />
+  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/animate.css" />
+  <link href="/plugins/colorbox/colorbox.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="/styles/main_styles.css" />
+  <link rel="stylesheet" type="text/css" href="/styles/responsive.css" />
 
   <style>
     .header_inner {
-      padding: 8px 25px;
+      padding: 8px;
       background: #ffffff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
       height: 65px;
       display: flex;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      flex-wrap: nowrap;
+      gap: 2px;
     }
 
     .logo a {
@@ -37,12 +37,18 @@
       text-decoration: none;
     }
 
+    .main_nav {
+      flex-shrink: 0;
+      margin: 0 1px;
+    }
+
     .main_nav ul {
       display: flex;
       margin: 0;
       padding: 0;
       list-style: none;
-      gap: 12px;
+      white-space: nowrap;
+      flex-wrap: nowrap;
     }
 
     .main_nav ul li a {
@@ -63,13 +69,15 @@
       font-weight: 700;
     }
 
-    .shopping img, .avatar img {
+    .shopping img,
+    .avatar img {
       width: 18px;
       height: 18px;
       transition: transform 0.2s ease;
     }
 
-    .shopping img:hover, .avatar img:hover {
+    .shopping img:hover,
+    .avatar img:hover {
       transform: scale(1.1);
     }
 
@@ -81,7 +89,7 @@
 
     .btn-sm {
       font-size: 12px;
-      padding: 2px 6px;
+      padding: 2px 2px;
     }
 
     .btn-outline-dark {
@@ -112,6 +120,7 @@
       gap: 16px;
       flex-wrap: nowrap;
       white-space: nowrap;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -135,26 +144,25 @@
 
       <div class="header_content">
         <div class="shopping d-flex align-items-center" style="gap: 10px;">
-          <a href="#"><img src="images/shopping-bag.svg" alt="Bag"></a>
-          <a href="#"><img src="images/star.svg" alt="Wishlist"></a>
+          <a href="#"><img src="/images/shopping-bag.svg" alt="Bag" /></a>
+          <a href="#"><img src="/images/star.svg" alt="Wishlist" /></a>
         </div>
 
         <div class="avatar d-flex align-items-center" style="gap: 6px;">
-  <% if (typeof userName !== 'undefined' && userName) { %>
-    <a href="/profile" class="d-flex align-items-center" style="gap: 6px; text-decoration: none; color: inherit;">
-      <img src="images/avatar.svg" alt="Avatar">
-      <span><%= userName %></span>
-    </a>
-    <form action="/logout" method="POST" style="margin: 0;">
-      <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
-    </form>
-  <% } else { %>
-    <img src="images/avatar.svg" alt="Avatar">
-    <span style="color: #777;">Guest</span>
-    <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
-  <% } %>
-</div>
-
+          <% if (typeof userName !== 'undefined' && userName) { %>
+            <a href="/profile" class="d-flex align-items-center" style="gap: 6px; text-decoration: none; color: inherit;">
+              <img src="/images/avatar.svg" alt="Avatar" />
+              <span><%= userName %></span>
+            </a>
+            <form action="/logout" method="POST" style="margin: 0;">
+              <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
+            </form>
+          <% } else { %>
+            <img src="/images/avatar.svg" alt="Avatar" />
+            <span style="color: #777;">Guest</span>
+            <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
+          <% } %>
+        </div>
       </div>
     </div>
   </header>

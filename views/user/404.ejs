@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #650f0f;
+      --secondary: #5d0e0e;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --muted: #6c757d;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--dark);
+    }
+    
+    .error-container {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+      transform: translateY(0);
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .error-code {
+      font-size: 8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+      text-shadow: 3px 3px 0 rgba(108, 99, 255, 0.1);
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+    }
+    
+    p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid var(--primary);
+      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+    }
+    
+    .btn:hover {
+      background: transparent;
+      color: var(--primary);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+    }
+    
+    .error-code {
+      margin-top: 20px;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    @media (max-width: 576px) {
+      .error-code {
+        font-size: 6rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .illustration {
+        width: 150px;
+        height: 150px;
+      }
+      
+      .illustration::before {
+        font-size: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="error-container">
+
+    <div class="error-code">404</div>
+    <h1>Oops! Page Not Found</h1>
+    <p>We can't seem to find the page you're looking for. It might have been moved or doesn't exist anymore.</p>
+    <a href="/" class="btn">Return to Homepage</a>
+  </div>
+</body>
+</html>

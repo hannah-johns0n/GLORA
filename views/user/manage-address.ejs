@@ -1,0 +1,150 @@
+<%- include('../partials/user/header', { userName: userName }) %>
+
+<style>
+  /* Overall scale reduction */
+  html {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+
+  /* Navbar height tweak */
+  .navbar {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+    margin-bottom: 40px; /* extra space below navbar */
+  }
+
+  /* Sidebar menu styles */
+  .nav.flex-column .nav-link {
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: black !important;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+  }
+
+  .nav.flex-column .nav-link i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+  }
+
+  /* Logout button */
+  .btn-logout {
+    background-color: #8B0000;
+    color: white !important;
+    border: none;
+    font-weight: bold;
+  }
+
+  .btn-logout:hover {
+    background-color: #a30000;
+    color: white !important;
+  }
+
+  /* Labels */
+  .form-label {
+    font-weight: bold;
+  }
+
+  /* Readonly inputs */
+  .form-control[readonly] {
+    font-weight: normal;
+    color: black !important;
+  }
+
+  /* Content wrapper */
+  .content-wrapper {
+    margin-top: 120px; /* increased from 100px to 120px for more gap */
+  }
+
+  /* Personal Info heading */
+  .personal-info-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+</style>
+
+<div class="container-fluid content-wrapper">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 bg-light border-end p-3">
+      <ul class="nav flex-column">
+        <li class="nav-item mb-2">
+          <a href="/profile" class="nav-link active"> My Account</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/my-orders" class="nav-link"> My Orders</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/manage-address" class="nav-link"> Manage Addresses</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wallet" class="nav-link"> Wallet</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/wishlist" class="nav-link"> My Favourite</a>
+        </li>
+        <li class="nav-item mb-2">
+          <a href="/add-account" class="nav-link"> Add Account</a>
+        </li>
+      </ul>
+      <form action="/logout" method="POST" class="mt-4">
+        <button type="submit" class="btn btn-logout w-100">LOG OUT</button>
+      </form>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <div class="col-md-9 col-lg-10 p-4">
+        <h2 class="fw-bold mb-4 text-center" style="color: #333;">Manage Addresses</h2>
+
+        <% if (addresses.length === 0) { %>
+          <div class="text-center py-5">
+            <p class="text-muted">No addresses available.</p>
+            <a href="/add-address" class="btn btn-dark">Add New Address</a>
+          </div>
+        <% } else { %>
+          <a href="/add-address" class="btn btn-dark mb-3">+ Add New Address</a>
+          <div class="row">
+            <% addresses.forEach(address => { %>
+              <div class="col-md-6 mb-3">
+                <div class="border rounded p-3 h-100 bg-light">
+                  <strong><%= address.addressType %></strong><br>
+                  <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
+                  Landmark: <%= address.landmark %><br>
+                  Phone: <%= address.phoneNumber %><br>
+
+                  <div class="mt-2">
+                    <a href="/edit-address/<%= address._id %>" class="btn btn-warning btn-sm">Edit</a>
+                    <form action="/delete-address/<%= address._id %>" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/user/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  <% if (typeof success !== 'undefined' && success) { %>
+    Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: '<%= success %>',
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false
+    });
+  <% } %>
+</script>
+

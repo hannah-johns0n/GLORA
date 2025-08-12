@@ -28,16 +28,16 @@
     font-size: 1.1rem;
   }
 
-  /* Logout button */
-  .btn-logout {
-    background-color: #8B0000;
+  /* Dark red buttons */
+  .btn-dark-red {
+    background-color: #450808;
     color: white !important;
     border: none;
     font-weight: bold;
   }
 
-  .btn-logout:hover {
-    background-color: #a30000;
+  .btn-dark-red:hover {
+    background-color: #400606;
     color: white !important;
   }
 
@@ -71,26 +71,26 @@
       <h5 class="mb-4"><%= user?.name || 'User' %></h5>
       <ul class="nav flex-column">
         <li class="nav-item mb-2">
-          <a href="/profile" class="nav-link active"><i class="fas fa-user"></i> My Account</a>
+          <a href="/profile" class="nav-link active"> My Account</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/my-orders" class="nav-link"><i class="fas fa-box"></i> My Orders</a>
+          <a href="/my-orders" class="nav-link"> My Orders</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/manage-address" class="nav-link"><i class="fas fa-map-marker-alt"></i> Manage Addresses</a>
+          <a href="/manage-address" class="nav-link"> Manage Addresses</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/wallet" class="nav-link"><i class="fas fa-wallet"></i> Wallet</a>
+          <a href="/wallet" class="nav-link"> Wallet</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/wishlist" class="nav-link"><i class="fas fa-heart"></i> My Favourite</a>
+          <a href="/wishlist" class="nav-link">My Favourite</a>
         </li>
         <li class="nav-item mb-2">
-          <a href="/add-account" class="nav-link"><i class="fas fa-user-plus"></i> Add Account</a>
+          <a href="/add-account" class="nav-link"> Add Account</a>
         </li>
       </ul>
       <form action="/logout" method="POST" class="mt-4">
-        <button type="submit" class="btn btn-logout w-100">LOG OUT</button>
+        <button type="submit" class="btn btn-dark-red w-100">LOG OUT</button>
       </form>
     </div>
 
@@ -101,12 +101,21 @@
           You need to be logged in to view this page. <a href="/login">Login here</a>
         </div>
       <% } else { %>
-        <div class="card p-4 shadow-sm">
-          <h4 class="text-center mb-4 personal-info-title">Personal Information</h4>
+        <div class="col-md-9 col-lg-10 p-4">
+          <h2 class="fw-bold mb-4 text-center" style="color: #333;">Personal Information</h2>
+
+          <% 
+            let referralCode = user.referralId;
+            if (!referralCode) {
+              let letters = (user.name ? user.name.substring(0, 3) : "USR").toUpperCase();
+              let numbers = Math.floor(1000 + Math.random() * 9000);
+              referralCode = letters + numbers;
+            }
+          %>
 
           <div class="mb-3">
             <label class="form-label">Referral Id:</label>
-            <div><%= user.referralId || 'Not set' %></div>
+            <div><%= referralCode %></div>
           </div>
 
           <div class="mb-3">
@@ -122,7 +131,7 @@
 
           <div class="mb-3">
             <label class="form-label">Mobile Number:</label>
-            <input type="text" value="<%= user.phone || '' %>" class="form-control" readonly>
+            <input type="text" value="<%= user.phoneNumber || '' %>" class="form-control" readonly>
           </div>
 
           <div class="mb-3">
@@ -131,6 +140,13 @@
             <small><a href="/change-email" class="text-danger">Change Email</a></small>
           </div>
         </div>
+
+        <div class="text-end mb-4">
+    <a href="/profile/edit" class="btn btn-danger" style="background-color: rgb(70, 6, 6); border: none;">
+      Edit Profile
+    </a>
+
+  </div>
       <% } %>
     </div>
   </div>

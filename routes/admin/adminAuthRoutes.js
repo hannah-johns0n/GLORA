@@ -20,7 +20,6 @@ router.get('/category', adminController.categoryPage);
 
 router.post('/user/block', customerController.toggleUserBlock);
 router.post('/user/unblock', customerController.toggleUserBlock);
-// router.route('/category').get().post().delete();
 router.post('/categories/add', categoryController.addCategory);
 router.post('/categories/edit/:id', categoryController.editCategory);
 router.post('/categories/block', categoryController.blockCategory);
