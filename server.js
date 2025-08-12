@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -28,6 +28,11 @@ app.use((req, res, next) => {
 
 app.use('/', userRouter);
 app.use('/admin', adminRouter);
+
+app.use((req, res) => {
+  res.status(404).render('user/404', { title: 'Page Not Found' });
+});
+
 
 mongoose.connect(process.env.MONGODB_URL)
   .then(() => {

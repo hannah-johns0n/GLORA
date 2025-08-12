@@ -66,7 +66,11 @@
         <% for (let i = 0; i < 4; i++) { %>
           <div class="col">
             <div class="image-upload-box position-relative border rounded d-flex align-items-center justify-content-center" style="height: 180px; cursor:pointer; background:#f9f9f9;" onclick="document.getElementById('imageInput<%= i %>').click()">
-              <input type="file" class="d-none image-upload-input" id="imageInput<%= i %>" name="images" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" data-index="<%= i %>" onchange="handleImageSelect(event, <%= i %>)">
+              <input type="file" class="d-none image-upload-input" id="imageInput<%= i %>" name="images" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" data-index="<%= i %>" 
+                <% if (product.images && product.images[i]) { %>
+                  data-existing-id="<%= product.images[i]._id || '' %>"
+                <% } %>
+                onchange="handleImageSelect(event, <%= i %>)">
               <% if (product.images && product.images[i]) { %>
                 <img id="previewImg<%= i %>" src="/uploads/products/<%= product.images[i] %>" alt="" style="max-width: 100%; max-height: 100%; display:block; object-fit: contain;">
                 <span id="placeholder<%= i %>" class="text-muted" style="font-size:2rem; display:none;">+</span>
@@ -207,59 +211,85 @@
         e.preventDefault();
         
         const input = document.getElementById('imageInput' + idx);
-        if (input) {
-          input.value = '';
-          croppedImages[idx] = null;
+        if (!input) return;
+        
+        // Reset the file input
+        input.value = '';
+        croppedImages[idx] = null;
+        
+        const previewImg = document.getElementById('previewImg' + idx);
+        const placeholder = document.getElementById('placeholder' + idx);
+        const clearBtn = input.parentElement.querySelector('button');
+        
+        if (previewImg) {
+          const isExistingImage = previewImg.src.includes('/uploads/products/');
           
-          const previewImg = document.getElementById('previewImg' + idx);
-          const placeholder = document.getElementById('placeholder' + idx);
-          const clearBtn = input.parentElement.querySelector('button');
-          
-          if (previewImg) {
-            const isExistingImage = previewImg.src.includes('/uploads/products/');
-            if (isExistingImage) {
-              if (clearBtn) clearBtn.classList.add('d-none');
-            } else {
-              previewImg.src = '';
-              previewImg.style.display = 'none';
-              if (placeholder) placeholder.style.display = 'block';
-              if (clearBtn) clearBtn.classList.add('d-none');
-            }
+          // For existing images, we need to mark them for removal
+          if (isExistingImage) {
+            // Create a hidden input to mark this image for deletion
+            const deleteInput = document.createElement('input');
+            deleteInput.type = 'hidden';
+            deleteInput.name = 'deletedImages';
+            deleteInput.value = input.getAttribute('data-existing-id') || '';
+            input.parentNode.appendChild(deleteInput);
+            
+            // Also remove the existing image from the preview
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+          } else {
+            // For new images, just clear the preview
+            previewImg.src = '';
+            previewImg.style.display = 'none';
           }
           
-          const event = new Event('change');
-          input.dispatchEvent(event);
+          // Show the placeholder and hide the clear button
+          if (placeholder) placeholder.style.display = 'block';
+          if (clearBtn) clearBtn.classList.add('d-none');
         }
+        
+        // Trigger validation update
+        updateImageValidation();
+        
+        // Dispatch change event to update any other listeners
+        const event = new Event('change');
+        input.dispatchEvent(event);
       }
 
-      function updateImageValidation() {
+      function countTotalImages() {
         const imageInputs = document.querySelectorAll('.image-upload-input');
-        let uploadedCount = 0;
+        let totalImages = 0;
         
-        imageInputs.forEach(input => {
-          if (input.files && input.files.length > 0) {
-            uploadedCount++;
-          } else if (input.hasAttribute('data-existing') && input.getAttribute('data-existing') === 'true') {
-            uploadedCount++;
+        imageInputs.forEach((input, index) => {
+          const previewImg = document.getElementById(`previewImg${index}`);
+          // Check if there's a new file or an existing image
+          if ((input.files && input.files.length > 0) || 
+              (previewImg && previewImg.src && previewImg.src.includes('/uploads/products/'))) {
+            totalImages++;
           }
         });
         
+        return totalImages;
+      }
+
+      function updateImageValidation() {
+        const totalImages = countTotalImages();
         const feedback = document.getElementById('imageValidationFeedback');
-        if (uploadedCount < requiredImages) {
+        
+        if (totalImages < requiredImages) {
           if (feedback) {
             feedback.style.display = 'block';
-            feedback.textContent = `Please upload at least ${requiredImages - uploadedCount} more image(s).`;
+            feedback.textContent = `Please upload at least ${requiredImages - totalImages} more image(s).`;
             feedback.className = 'invalid-feedback d-block';
           }
           document.getElementById('image-grid').classList.add('is-invalid');
+          return false;
         } else {
           if (feedback) {
             feedback.style.display = 'none';
           }
           document.getElementById('image-grid').classList.remove('is-invalid');
+          return true;
         }
-        
-        return uploadedCount >= requiredImages;
       }
     </script>
     <button type="submit" class="btn btn-primary">Update Product</button>
@@ -343,34 +373,33 @@
   document.addEventListener('DOMContentLoaded', function() {
     'use strict';
 
+    // Initial validation check when page loads
+    updateImageValidation();
+
+    // Add event listeners to all image inputs to update validation on change
+    document.querySelectorAll('.image-upload-input').forEach(input => {
+      input.addEventListener('change', updateImageValidation);
+    });
+
     var forms = document.querySelectorAll('.needs-validation');
 
     Array.prototype.slice.call(forms).forEach(function (form) {
       form.addEventListener('submit', function (event) {
-        const imageInputs = document.querySelectorAll('.image-upload-input');
-        let uploadedCount = 0;
-        
-        imageInputs.forEach(input => {
-          if (input.files && input.files.length > 0) {
-            uploadedCount++;
-          } else if (input.hasAttribute('data-existing') && input.getAttribute('data-existing') === 'true') {
-            uploadedCount++;
-          }
-        });
-        
-        if (uploadedCount < 3) { 
+        // First check form validity
+        if (!form.checkValidity()) {
           event.preventDefault();
           event.stopPropagation();
+        }
+        
+        // Then check image validation
+        if (!updateImageValidation()) {
+          event.preventDefault();
+          event.stopPropagation();
+          // Scroll to the validation message
           const feedback = document.getElementById('imageValidationFeedback');
           if (feedback) {
-            feedback.style.display = 'block';
-            feedback.textContent = `Please upload at least ${3 - uploadedCount} more image(s).`;
-            feedback.className = 'invalid-feedback d-block';
+            feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
-          document.getElementById('image-grid').classList.add('is-invalid');
-        } else if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
         }
 
         form.classList.add('was-validated');
