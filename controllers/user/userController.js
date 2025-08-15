@@ -2,11 +2,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
-dotenv.config();
-const Category = require('../../models/categoryModel');
-const Product = require('../../models/productModel');
 const User = require('../../models/userModel');
+const Product = require('../../models/productModel');
+const Cart = require('../../models/cartModel');
+const Category = require('../../models/categoryModel');
 const TempUser = require('../../models/TempUser');
+dotenv.config();
 const PasswordReset = require('../../models/passwordResetModel');
 const Address = require('../../models/addressModel');
 const STATUS_CODES = require('../../constants/statusCodes');
@@ -331,27 +332,41 @@ const getShopPage = async (req, res) => {
 const getProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-
     const product = await Product.findById(productId);
     if (!product || product.isBlocked) {
-      return res.status(STATUS_CODES.NOT_FOUND).send('Product not found');
+      return res.status(404).send('Product not found');
     }
 
     let userName = null;
     let user = null;
+    let cartCount = 0;
+
     const token = req.cookies.jwt;
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        userName = decoded.name || null;
-        user = decoded;
+
+        // Fetch user from DB to get name
+        const foundUser = await User.findById(decoded.id).select('name');
+        if (foundUser) {
+          userName = foundUser.name;
+          user = foundUser;
+        }
+
+       // Get cart count
+const cart = await Cart.findOne({ userId: decoded.id });
+cartCount = cart ? cart.items.reduce((sum, p) => sum + p.quantity, 0) : 0;
+console.log(cart)
       } catch (err) {
-        userName = null;
-        user = null;
+        console.error("JWT error:", err);
       }
     }
 
-    const relatedProducts = await Product.find({category: product.category,_id: { $ne: product._id },isBlocked: false}).limit(4);
+    const relatedProducts = await Product.find({
+      category: product.category,
+      _id: { $ne: product._id },
+      isBlocked: false
+    }).limit(4);
 
     res.render('user/productDetails', {
       product,
@@ -359,11 +374,12 @@ const getProductDetails = async (req, res) => {
       userName,
       user,
       url: req.originalUrl,
+      cartCount
     });
-  } 
-  catch (error) {
+
+  } catch (error) {
     console.error('Product details error:', error);
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
+    res.status(500).send('Internal Server Error');
   }
 };
 
@@ -544,7 +560,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-
 const getManageAddressPage = async (req, res) => {
     try {
         const user = await User.findById(req.user._id); 
@@ -561,11 +576,9 @@ const getManageAddressPage = async (req, res) => {
     }
 };
 
-
 const getAddAddressPage = (req, res) => {
     res.render('user/add-address', { userName: req.user.name });
 };
-
 
 const postAddAddress = async (req, res) => {
     try {
@@ -598,11 +611,9 @@ const getEditAddressPage = async (req, res) => {
         res.render('user/edit-address', { address, userName: req.user.name });
     } 
     catch (err) {
-        console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
     }
 };
-
 
 const postEditAddress = async (req, res) => {
   try {
@@ -635,7 +646,6 @@ const postEditAddress = async (req, res) => {
   }
 };
 
-
 const deleteAddress = async (req, res) => {
     try {
         await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
@@ -644,6 +654,64 @@ const deleteAddress = async (req, res) => {
     catch (err) {
         console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+    }
+};
+
+const getChangeEmailPage = (req, res) => {
+    res.render('user/change-email', { error: null });
+};
+
+const getVerifyEmailOtpPage = (req, res) => {
+    res.render('user/otp', { error: null });
+};
+
+const sendChangeEmailOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const userId = req.user._id; 
+
+        const otp = generateOtp();
+        otpStore[userId] = { otp, newEmail: email, expires: Date.now() + 5 * 60 * 1000 };
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Change Email OTP',
+            text: `Your OTP is ${otp}. It will expire in 5 minutes.`
+        });
+
+        console.log(`OTP for ${email} is ${otp}`);
+
+        res.render('user/otp', { error: null });
+    } 
+    catch (error) {
+        console.error('Error sending OTP:', error);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error sending OTP');
+    }
+};
+
+
+const verifyChangeEmailOtp = async (req, res) => {
+    try {
+        const { otp } = req.body;
+        const userId = req.user.id;
+        const stored = otpStore[userId];
+
+        if (!stored) {
+            return res.render('user/otp', { error: 'OTP expired. Try again.' });
+        }
+
+        if (stored.otp !== otp || Date.now() > stored.expires) {
+            return res.render('user/otp', { error: 'Invalid or expired OTP' });
+        }
+
+        await User.findByIdAndUpdate(userId, { email: stored.newEmail });
+
+        delete otpStore[userId]; // clear OTP
+        res.send('Email changed successfully!');
+    }
+    catch (err) {
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error verifying OTP');
     }
 };
 
@@ -675,7 +743,11 @@ module.exports = {
   getEditAddressPage,
   postEditAddress,
   deleteAddress,
-  updateProfile
+  updateProfile,
+  verifyChangeEmailOtp,
+  sendChangeEmailOtp,
+  getChangeEmailPage,
+  getVerifyEmailOtpPage
 };
 
 

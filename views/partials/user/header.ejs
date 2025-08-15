@@ -122,6 +122,18 @@
       white-space: nowrap;
       flex-shrink: 0;
     }
+
+    /* Cart count badge */
+    .cart-count {
+      background: #b71c1c;
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 50%;
+      position: relative;
+      top: -8px;
+      left: -8px;
+    }
   </style>
 </head>
 
@@ -144,7 +156,12 @@
 
       <div class="header_content">
         <div class="shopping d-flex align-items-center" style="gap: 10px;">
-          <a href="#"><img src="/images/shopping-bag.svg" alt="Bag" /></a>
+          <a href="/cart" style="position: relative;">
+            <img src="/images/shopping-bag.svg" alt="Bag" />
+            <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+              <span class="cart-count"><%= cartCount %></span>
+            <% } %>
+          </a>
           <a href="#"><img src="/images/star.svg" alt="Wishlist" /></a>
         </div>
 
@@ -166,5 +183,39 @@
       </div>
     </div>
   </header>
+
+  <!-- SweetAlert script for Add to Cart -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+
+      addToCartButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const productId = this.dataset.id;
+
+          fetch(`/cart/add/${productId}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Added to Cart',
+                  text: 'Product added successfully!',
+                  timer: 1500,
+                  showConfirmButton: false
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops!',
+                  text: data.message || 'Could not add to cart'
+                });
+              }
+            });
+        });
+      });
+    });
+  </script>
 </body>
 </html>
