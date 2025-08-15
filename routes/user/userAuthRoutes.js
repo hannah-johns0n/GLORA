@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const userController = require("../../controllers/user/userController");
+const cartController = require("../../controllers/user/cartController");
+const checkoutController = require("../../controllers/user/checkoutController");
 const requireAuth = require('../../middileware/userAuth');
 
 router.get('/signup', userController.getSignup);
@@ -44,6 +46,21 @@ router.post('/edit-address/:id', requireAuth, userController.postEditAddress);
 
 router.post('/delete-address/:id',requireAuth, userController.deleteAddress);
 
+router.get('/change-email', requireAuth, userController.getChangeEmailPage);
+router.get('/verify-change-email-otp', requireAuth, userController.getVerifyEmailOtpPage);
+router.post('/send-change-email-otp', userController.sendChangeEmailOtp);
+router.post('/verify-change-email-otp', userController.verifyChangeEmailOtp);
+
+router.get('/cart', requireAuth, cartController.getCart);
+router.post('/cart/add/:id', requireAuth, cartController.addToCart);
+router.post('/cart/increment/:id', requireAuth, cartController.incQuantity);
+router.post('/cart/decrement/:id', requireAuth, cartController.decQuantity);
+router.post('/cart/remove/:id', requireAuth, cartController.removeFromCart);
+router.post('/cart/validate-checkout', requireAuth, cartController.validateCheckout);
+
+router.get("/checkout", requireAuth, checkoutController.getCheckoutPage);
+router.post("/place-order", requireAuth, checkoutController.placeOrder);
+router.get("/order-success/:orderId", requireAuth, checkoutController.orderSuccess);
 
 router.get('/check-blocked', requireAuth, (req, res) => {
   res.sendStatus(200); 

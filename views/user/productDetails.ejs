@@ -23,12 +23,23 @@
     .info-column h2{font-size:1.8rem;font-weight:600;margin-bottom:10px;word-break:break-word;}
     .btn-add{background:#6b2c22;color:#fff;padding:.6rem 1.5rem;border:none;border-radius:6px;margin-top:20px;}
     .product-card:hover {transform: translateY(-5px);box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);}
-
     
+    /* SweetAlert Custom Styles */
+    .swal2-toast .swal2-title {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    .swal2-icon.swal2-success {
+      color: #198754;
+      border-color: #198754;
+    }
+    .swal2-popup {
+      font-family: 'Poppins', sans-serif;
+    }
   </style>
 </head>
 <body>
-  <%- include('../partials/user/header',{ userName:userName, url:url }) %>
+  <%- include('../partials/user/header',{ userName:userName, cartCount: cartCount }) %>
 
   <div class="container">
     <div class="product-wrapper">
@@ -67,7 +78,8 @@
 
         <p class="mt-3"><%= product.description %></p>
 
-        <button class="btn-add" disabled>Add to Cart</button>
+        <!-- Add to Cart button with AJAX -->
+        <button type="button" id="addToCartBtn" class="btn-add" data-id="<%= product._id %>">Add to Cart</button>
       </div>
     </div>
   </div>
@@ -78,7 +90,6 @@
   <h3 style="font-size: 3rem; font-weight: 500; font-family: 'Playfair Display', serif; color: #3c0404; margin-bottom: 70px; text-align: left;">
   Some products you may also like
 </h3>
-
 
   <div class="row">
     <% relatedProducts.forEach(related => { %>
@@ -107,17 +118,93 @@
 
   <%- include('../partials/user/footer') %>
 
+  <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script>
-    $(function(){
-      $('.thumbnail').on('click',function(){
-        const newSrc=$(this).attr('src');
-        $('#mainImage').attr('src',newSrc);
-        $('.thumbnail').removeClass('active');
-        $(this).addClass('active');
+    // Make sure Swal is available globally
+    window.Swal = Swal;
+    
+    // Simple image thumbnail click handler
+    document.addEventListener('DOMContentLoaded', function() {
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      const mainImage = document.getElementById('mainImage');
+      
+      // Handle thumbnail clicks
+      thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+          mainImage.src = this.src;
+          thumbnails.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
       });
+
+      // Handle add to cart button
+      const addToCartBtn = document.getElementById('addToCartBtn');
+      if (addToCartBtn) {
+        console.log('Add to cart button found, adding event listener...');
+        addToCartBtn.addEventListener('click', async function(e) {
+          console.log('Add to cart button clicked');
+          // Prevent default form submission
+          e.preventDefault();
+          e.stopPropagation();
+          const productId = this.getAttribute('data-id');
+          const btnText = this.textContent;
+          console.log('Product ID:', productId);
+          
+          // Disable button and show loading
+          this.disabled = true;
+          this.textContent = 'Adding...';
+          
+          try {
+            const response = await fetch(`/cart/add/${productId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({})
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+              // Show success message - basic version
+              Swal.fire({
+                title: 'Success!',
+                text: 'Product added to cart',
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
+              
+              // Update cart count if element exists
+              const cartCountElement = document.querySelector('.cart-count');
+              if (cartCountElement) {
+                cartCountElement.textContent = result.cartCount || 0;
+              }
+            } else {
+              throw new Error(result.message || 'Failed to add to cart');
+            }
+          } catch (error) {
+            window.Swal.fire({
+              position: 'center',
+              icon: 'error',
+              title: 'Error',
+              text: error.message || 'Failed to add to cart. Please try again.',
+              showConfirmButton: true
+            });
+          } finally {
+            // Re-enable button
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = btnText;
+          }
+        });
+      }
     });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+
+
 </body>
 </html>
