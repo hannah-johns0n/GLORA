@@ -1,0 +1,233 @@
+<%- include('../partials/admin/header') %>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+    <h2>Order Details</h2>
+
+    <div class="card p-3 mb-3">
+        <h5>Order ID: <%= order.orderId %></h5>
+        <p>Date: <%= order.createdAt.toDateString() %></p>
+        <p>User: <%= order.userId?.name %> (<%= order.userId?.email %>)</p>
+        
+        <div class="status-update mb-3">
+            <form id="status-form" action="/admin/order-list/<%= order._id %>/status" method="POST">
+                <div class="d-flex align-items-center">
+                    <label class="form-label mb-0 me-2 fw-medium">Order Status:</label>
+                    <div class="d-flex flex-grow-1">
+                        <select class="form-select form-select-sm me-2" name="status" id="status-select" style="max-width: 150px;">
+                            <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                            <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                            <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                            <option value="Return-Request" <%= order.status === 'Return-Request' ? 'selected' : '' %>>Return-Request</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" type="submit" id="status-update-btn">
+                            <i class="fas fa-save me-1"></i> Update
+                        </button>
+                    </div>
+                </div>
+                <div class="form-text text-muted small mt-1">Last updated: <%= order.updatedAt ? new Date(order.updatedAt).toLocaleString() : 'N/A' %></div>
+            </form>
+        </div>
+
+        <% if (order.status === 'Return-Request' && order.returnReason) { %>
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span>This order has a return request.</span>
+                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#returnReasonModal">
+                    <i class="fas fa-eye me-1"></i> View Reason
+                </button>
+            </div>
+            <div class="d-flex gap-2 mb-3">
+                <a href="/admin/order-list/<%= order._id %>/verify-return?action=accept" class="btn btn-success">
+                    <i class="fas fa-check-circle me-1"></i> Accept Return
+                </a>
+                <a href="/admin/order-list/<%= order._id %>/verify-return?action=reject" class="btn btn-danger">
+                    <i class="fas fa-times-circle me-1"></i> Reject Return
+                </a>
+            </div>
+        <% } %>
+
+        <p>Total: ₹<%= order.totalPrice %></p>
+        <p>Address: 
+            <%= order.addressId?.addressType %>, 
+            <%= order.addressId?.city %>, 
+            <%= order.addressId?.state %> - 
+            <%= order.addressId?.pincode %>
+        </p>
+        <p>Landmark: <%= order.addressId?.landmark %></p>
+        <p>Phone: <%= order.addressId?.phoneNumber %></p>
+    </div>
+
+    <h5>Order Items</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% order.orderItems.forEach(item => { %>
+            <tr>
+                <td><%= item.productId?.productName || 'N/A' %></td>
+                <td>₹<%= item.productId?.salesPrice || 'N/A' %></td>
+                <td><%= item.quantity %></td>
+                <td>
+                    <% if (item.productId?.salesPrice && item.quantity) { %>
+                        ₹<%= (item.productId.salesPrice * item.quantity).toFixed(2) %>
+                    <% } else { %>
+                        N/A
+                    <% } %>
+                </td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <a href="/admin/order-list" class="btn btn-secondary mt-3">Back to Orders</a>
+</main>
+
+<% if (order.status === 'Return-Request' && order.returnReason) { %>
+<div class="modal fade" id="returnReasonModal" tabindex="-1" aria-labelledby="returnReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="returnReasonModalLabel">Return Reason for Order <%= order.orderId %></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><%= order.returnReason %></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.getElementById('status-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const status = formData.get('status');
+        const orderId = '<%= order.orderId %>';
+        
+        const updateButton = document.getElementById('status-update-btn');
+        const originalButtonContent = updateButton.innerHTML;
+        updateButton.disabled = true;
+        updateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating...';
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ status: status })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Status Updated!',
+                    text: `Order #${orderId} status has been updated to: ${status}`,
+                    showConfirmButton: false,
+                    timer: 1500,
+                    willClose: () => {
+                        window.location.reload();
+                    }
+                });
+            } else {
+                throw new Error(result.message || 'Failed to update order status');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Update Failed',
+                text: error.message || 'An error occurred while updating the order status.',
+                confirmButtonText: 'OK'
+            });
+        } finally {
+            updateButton.disabled = false;
+            updateButton.innerHTML = originalButtonContent;
+        }
+    });
+
+    document.getElementById('status-select')?.addEventListener('change', function() {
+        const statusBadge = document.querySelector('.order-status-badge');
+        if (statusBadge) {
+            statusBadge.textContent = this.value;
+            statusBadge.className = 'order-status-badge ' + this.value.toLowerCase();
+        }
+    });
+</script>
+
+<style>
+    .status-update {
+        background-color: #f8f9fa;
+        padding: 12px 15px;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .order-status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+    
+    .order-status-badge.pending { background-color: #fff3cd; color: #856404; }
+    .order-status-badge.processing { background-color: #cce5ff; color: #004085; }
+    .order-status-badge.shipped { background-color: #e2e3e5; color: #383d41; }
+    .order-status-badge.delivered { background-color: #d4edda; color: #155724; }
+    .order-status-badge.cancelled { background-color: #f8d7da; color: #721c24; }
+    .order-status-badge.returned { background-color: #e2d4ed; color: #4a1c72; }
+    
+    #status-select {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    #status-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    #status-update-btn {
+        min-width: 90px;
+    }
+    
+    @media (max-width: 576px) {
+        .status-update .d-flex {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        #status-select {
+            max-width: 100% !important;
+            width: 100%;
+        }
+        
+        #status-update-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<%- include('../partials/admin/footer') %>

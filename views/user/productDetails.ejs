@@ -144,7 +144,6 @@
       // Handle add to cart button
       const addToCartBtn = document.getElementById('addToCartBtn');
       if (addToCartBtn) {
-        console.log('Add to cart button found, adding event listener...');
         addToCartBtn.addEventListener('click', async function(e) {
           console.log('Add to cart button clicked');
           // Prevent default form submission
@@ -169,6 +168,8 @@
             });
             
             const result = await response.json();
+            
+                          console.log(result)
             
             if (response.ok) {
               // Show success message - basic version

@@ -6,6 +6,7 @@ const adminController = require('../../controllers/admin/adminController');
 const customerController = require('../../controllers/admin/customerController');
 const categoryController = require('../../controllers/admin/categoryController');
 const productController = require('../../controllers/admin/productController');
+const orderController = require('../../controllers/admin/orderController');
 
 
 router.get('/login', adminController.getAdminLogin);
@@ -36,7 +37,6 @@ router.post('/products/add',
   },
   productController.addProduct
 );
-
 router.post('/products/edit/:id',
   (req, res, next) => {
     upload.array('images', 4)(req, res, (err) => {
@@ -46,8 +46,12 @@ router.post('/products/edit/:id',
   },
   productController.editProduct
 );
-
 router.get('/products/edit/:id', productController.editProductPage);
 router.post('/toggle-product-block', productController.toggleProductBlock);
+
+router.get('/order-list', orderController.getAllOrders);
+router.get('/order-list/:id', orderController.getOrderDetails);
+router.post('/order-list/:id/status', orderController.updateOrderStatus);
+router.post('/order-list/:id/verify-return', orderController.verifyReturnRequest);
 
 module.exports = router;

@@ -1,0 +1,99 @@
+<%- include('../partials/admin/header') %>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+
+<h2>Order Management</h2>
+    <form method="GET" action="/admin/order-list" class="mb-3 d-flex gap-2">
+        <input type="text" name="search" value="<%= search %>" placeholder="Search Order ID" class="form-control w-25">
+        <select name="status" class="form-select w-25">
+            <option value="">All Status</option>
+            <option value="Pending" <%= status === "Pending" ? "selected" : "" %>>Pending</option>
+            <option value="Shipped" <%= status === "Shipped" ? "selected" : "" %>>Shipped</option>
+            <option value="Out for Delivery" <%= status === "Out for Delivery" ? "selected" : "" %>>Out for Delivery</option>
+            <option value="Delivered" <%= status === "Delivered" ? "selected" : "" %>>Delivered</option>
+            <option value="Cancelled" <%= status === "Cancelled" ? "selected" : "" %>>Cancelled</option>
+        </select>
+        <select name="sort" class="form-select w-25">
+            <option value="desc" <%= sort === "desc" ? "selected" : "" %>>Newest First</option>
+            <option value="asc" <%= sort === "asc" ? "selected" : "" %>>Oldest First</option>
+        </select>
+        <button class="btn btn-primary">Filter</button>
+        <a href="/admin/order-list" class="btn btn-secondary">Clear</a>
+    </form>
+
+    <% if (orders.length === 0) { %>
+        <div class="alert alert-info text-center mt-4" role="alert">
+            No orders found.
+        </div>
+    <% } else { %>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% orders.forEach(order => { %>
+                <tr>
+                    <td><%= order.orderId || 'N/A' %></td>
+                    <td><%= order.createdAt ? order.createdAt.toDateString() : 'N/A' %></td>
+                    <td><%= (order.userId && order.userId.name) ? order.userId.name : 'Unknown User' %></td>
+                    <td><%= order.status || 'N/A' %></td>
+                    <td>₹<%= order.totalPrice || 'N/A' %></td>
+                    <td><a href="/admin/order-list/<%= order._id %>" class="btn btn-info btn-sm">View</a></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination">
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
+                      <a class="page-link" href="?page=<%= i %>&search=<%= search %>&status=<%= status %>&sort=<%= sort %>"><%= i %></a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</main>
+
+<script>
+    document.getElementById('status-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const status = formData.get('status');
+        const updateButton = form.querySelector('button');
+        updateButton.disabled = true;
+        updateButton.textContent = 'Updating...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: status })
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/admin/order-list';
+            } else {
+                return response.json().then(err => { throw new Error(err.message || 'Failed to update order status.'); });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update order status: ' + error.message);
+            updateButton.disabled = false;
+            updateButton.textContent = 'Update';
+        });
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>

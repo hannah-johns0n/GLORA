@@ -59,7 +59,6 @@
     border-radius: 2px;
   }
   
-  /* Shipping address card styles */
   .address-card {
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -80,7 +79,6 @@
     background-color: #fef6f5;
   }
   
-  /* Payment method card styles */
   .payment-method .address-card:hover {
     background-color: #fff;
     border-color: #e0e0e0;
@@ -222,7 +220,6 @@
   </div>
 
   <form action="/place-order" method="POST" class="checkout-grid">
-    <!-- Left Column: Shipping Information -->
     <div class="address-section">
       <h2 class="section-title">Shipping Information</h2>
       
@@ -278,7 +275,6 @@
               <div class="ms-3">
                 <div class="d-flex align-items-center">
                   <strong>Online Payment</strong>
-                  <span class="badge bg-secondary ms-2">Coming Soon</span>
                 </div>
                 <p class="mb-0 text-muted">Pay securely online</p>
               </div>
@@ -288,14 +284,13 @@
       </div>
     </div>
 
-    <!-- Right Column: Order Summary -->
     <div class="order-summary">
       <h2 class="section-title">Order Summary</h2>
       
       <div class="order-items">
         <% cartItems.forEach(item => { %>
           <div class="order-item">
-            <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>" class="order-item-img">
+            <img src="/uploads/products/<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>" class="order-item-img">
             <div class="order-item-details">
               <div class="order-item-name"><%= item.productId.productName %></div>
               <div class="order-item-qty">Qty: <%= item.quantity %></div>
@@ -349,18 +344,38 @@
 </div>
 
 <script>
-  // Add click handler for address cards
   document.querySelectorAll('.address-card').forEach(card => {
     card.addEventListener('click', function() {
-      // Remove selected class from all cards
       document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
-      // Add selected class to clicked card
       this.classList.add('selected');
-      // Check the radio input
       const radio = this.querySelector('input[type="radio"]');
       if (radio) radio.checked = true;
     });
   });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const checkoutForm = document.querySelector('form[action="/place-order"]');
+  const placeOrderBtn = document.querySelector('.btn-place-order');
+
+  placeOrderBtn.addEventListener('click', function(e) {
+    e.preventDefault(); 
+
+    const selectedAddress = document.querySelector('input[name="addressId"]:checked');
+
+    if (!selectedAddress) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No Address Selected',
+        text: 'Please select a shipping address before placing your order.',
+        confirmButtonColor: '#1e1e27'
+      });
+      return; 
+    }
+
+    checkoutForm.submit();
+  });
+</script>
+
 
 <%- include('../partials/user/footer') %>

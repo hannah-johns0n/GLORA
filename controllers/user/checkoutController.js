@@ -2,32 +2,31 @@ const Address = require("../../models/addressModel");
 const Cart = require("../../models/cartModel");
 const Order = require("../../models/orderModel");
 const Product = require("../../models/productModel");
+const STATUS_CODES = require('../../constants/statusCodes');
 const { v4: uuidv4 } = require('uuid');
-  // Show checkout page
+
+
 const  getCheckoutPage = async (req, res) => {
     try {
       const userId = req.user.id;
-      const userName = req.user.name; // make sure 'name' exists in token
+      const userName = req.user.name; 
 
-      // Fetch addresses
       const addresses = await Address.find({ userId });
 
-      // Fetch cart items
       const cart = await Cart.findOne({ userId }).populate("items.productId");
 
       if (!cart || cart.items.length === 0) {
         return res.redirect("/cart");
       }
 
-      // Calculate total
       let subtotal = 0;
       cart.items.forEach(item => {
         subtotal += item.productId.price * item.quantity;
       });
 
-      const tax = subtotal * 0.05; // example 5%
-      const discount = 0; // for now
-      const shipping = 50; // flat shipping
+      const tax = subtotal * 0.05;
+      const discount = 0; 
+      const shipping = 50; 
       const finalTotal = subtotal + tax + shipping - discount;
 
       res.render("user/checkout", {
@@ -45,13 +44,15 @@ const  getCheckoutPage = async (req, res) => {
       res.status(500).send("Server Error");
     }
   };
-
-
-
-const placeOrder = async (req, res) => {
+  
+  const placeOrder = async (req, res) => {
     try {
         const userId = req.user.id;
         const { addressId } = req.body;
+
+        if (!addressId) {
+      return res.status(STATUS_CODES.BAD_REQUEST).send("Please select a shipping address");
+    }
 
         const cart = await Cart.findOne({ userId }).populate("items.productId");
         if (!cart || cart.items.length === 0) {
@@ -80,13 +81,10 @@ const placeOrder = async (req, res) => {
         console.log("subtotal", subtotal);
         console.log("final total", finalTotal);
 
-        // --- THE MISSING LINE IS HERE ---
-        // Generate a unique orderId before creating the Order object
         const orderId = uuidv4();
 
-        // Save order
         const order = new Order({
-            orderId, // Now this variable is defined and will be a unique UUID
+            orderId,
             userId,
             addressId,
             orderItems: cart.items.map(i => ({
@@ -100,7 +98,6 @@ const placeOrder = async (req, res) => {
 
         await order.save();
 
-        // Clear cart
         cart.items = [];
         await cart.save();
 
@@ -108,25 +105,21 @@ const placeOrder = async (req, res) => {
 
     } catch (err) {
         console.error("Error in placeOrder controller:", err);
-        res.status(500).send("Server Error");
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
     }
 };
 
-
-  // Order success page
 const orderSuccess = async (req, res) => {
   try {
-    const orderId = req.params.orderId;
-    const userName = req.user?.name || ""; // Get name from decoded JWT
-    res.render("user/order-success", { orderId, userName });
+    const Id = req.params.orderId;
+    const orderId = await Order.findById(Id) 
+    const userName = req.user?.name || ""; 
+    res.render("user/order-success", { orderId: orderId.orderId, userName });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server Error");
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
   }
 };
-
-
-
 
   module.exports = {
     orderSuccess,

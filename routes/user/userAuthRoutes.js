@@ -3,7 +3,27 @@ const router = express.Router();
 const userController = require("../../controllers/user/userController");
 const cartController = require("../../controllers/user/cartController");
 const checkoutController = require("../../controllers/user/checkoutController");
+const orderController = require("../../controllers/user/orderController")
 const requireAuth = require('../../middileware/userAuth');
+const cartModel = require('../../models/cartModel');
+const jwt = require('jsonwebtoken')
+
+router.use(async (req,res,next)=>{
+    const token = req.cookies.jwt;
+    let cartCount = 0
+      if(token){
+
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const userId = decoded.id || decoded.userId;
+          if(userId){   
+              const cart = await cartModel.findOne({ userId: userId  })
+              cartCount = cart.items.length
+            }
+            
+        }
+        res.locals.cartCount = cartCount
+        next()
+})
 
 router.get('/signup', userController.getSignup);
 router.post('/signup', userController.signup);
@@ -62,8 +82,16 @@ router.get("/checkout", requireAuth, checkoutController.getCheckoutPage);
 router.post("/place-order", requireAuth, checkoutController.placeOrder);
 router.get("/order-success/:orderId", requireAuth, checkoutController.orderSuccess);
 
+router.get('/my-orders', requireAuth, orderController.getMyOrders);
+router.get('/my-orders/:orderId', requireAuth, orderController.getOrderDetails);
+router.post('/my-orders/:orderId/cancel', requireAuth, orderController.cancelOrder);
+router.post('/my-orders/:orderId/cancel-product/:productId', requireAuth, orderController.cancelProduct);
+router.get('/my-orders/:orderId/return-request', requireAuth, orderController.getReturnRequestPage);
+router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
+router.get('/my-orders/:orderId/invoice', requireAuth, orderController.downloadInvoice);
+
 router.get('/check-blocked', requireAuth, (req, res) => {
-  res.sendStatus(200); 
+    res.sendStatus(200); 
 });
 
 module.exports = router;
