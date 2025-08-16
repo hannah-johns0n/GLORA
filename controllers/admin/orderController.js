@@ -15,17 +15,14 @@ const getAllOrders = async (req, res) => {
 
         const query = {};
 
-        // Only add the orderId search if a search term exists
         if (search) {
             query.orderId = { $regex: search, $options: "i" };
         }
         
-        // Add status filter if it exists and is not 'All Status'
         if (status) {
             query.status = status;
         }
 
-        // Log the final query and sort objects
         console.log('MongoDB Query:', query);
         console.log('MongoDB Sort:', { createdAt: sort === "asc" ? 1 : -1 });
 
@@ -52,7 +49,6 @@ const getAllOrders = async (req, res) => {
     }
 };
 
-// View Order Details
 const getOrderDetails = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -69,7 +65,6 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
-// Change Order Status
 const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
@@ -98,7 +93,6 @@ const updateOrderStatus = async (req, res) => {
         order.status = status;
         await order.save();
         
-        // Send a success JSON response
         res.status(STATUS_CODES.SUCCESS).json({ message: "Order status updated successfully!" });
 
     } catch (err) {
@@ -107,7 +101,6 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-// Verify Return Request
 const verifyReturnRequest = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
