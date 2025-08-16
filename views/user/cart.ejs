@@ -79,12 +79,12 @@
 }
 
 .button {
-  display: flex;               /* Make it a flex container */
-  align-items: center;         /* Vertical centering */
-  justify-content: center;     /* Horizontal centering */
-  padding: 12px 24px;           /* Bigger padding */
-  min-height: 50px;             /* Taller buttons */
-  min-width: 200px;             /* Wider buttons */
+  display: flex;               
+  align-items: center;   
+  justify-content: center; 
+  padding: 12px 24px; 
+  min-height: 50px;   
+  min-width: 200px;  
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
@@ -95,7 +95,7 @@
   border: none;
   outline: none;
   text-align: center;
-  white-space: normal;         /* Allow text to wrap if long */
+  white-space: normal;         
 }
 
 .continue_shopping_button {
@@ -111,12 +111,12 @@
 }
 
 button.checkout_button {
-  background: #480606 !important; /* dark red */
+  background: #480606 !important;
   color: #fff !important;
 }
 
 button.checkout_button:hover {
-  background: #300101 !important; /* darker red */
+  background: #300101 !important; 
   color: #fff !important;
 }
 
@@ -137,7 +137,6 @@ button.checkout_button:hover {
   <div class="super_container_inner">
     <div class="super_overlay"></div>
     
-    <!-- Cart -->
     <div class="cart_section">
       <div class="container">
         <div class="row">
@@ -218,7 +217,6 @@ button.checkout_button:hover {
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // Function to update the UI after quantity change
   function updateQuantityUI(btn, newQuantity) {
     const quantitySpan = btn.parentElement.querySelector('span');
     const row = btn.closest('tr');
@@ -230,7 +228,6 @@ button.checkout_button:hover {
     updateCheckoutTotal();
   }
 
-  // Function to update the checkout total
   function updateCheckoutTotal() {
     let subtotal = 0;
     document.querySelectorAll('tbody tr').forEach(row => {
@@ -245,7 +242,6 @@ button.checkout_button:hover {
     }
   }
 
-  // Show error message using SweetAlert
   function showError(message) {
     Swal.fire({
       icon: 'error',
@@ -256,7 +252,6 @@ button.checkout_button:hover {
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    // Increment quantity
     document.querySelectorAll('.inc-btn').forEach(btn => {
       btn.addEventListener('click', async function () {
         const id = this.dataset.id;
@@ -277,33 +272,27 @@ button.checkout_button:hover {
       });
     });
 
-    // Decrement quantity
-    document.querySelectorAll('.dec-btn').forEach(btn => {
-      btn.addEventListener('click', async function () {
-        const id = this.dataset.id;
-        try {
-          const response = await fetch(`/cart/decrement/${id}`, { method: 'POST' });
-          const result = await response.json();
-          
-          if (result.success) {
-            const currentQty = parseInt(this.nextElementSibling.textContent);
-            if (currentQty > 1) {
-              updateQuantityUI(this, currentQty - 1);
-            } else {
-              this.closest('tr').remove();
-              updateCheckoutTotal();
-            }
-          } else {
-            showError(result.message || 'Failed to decrease quantity');
-          }
-        } catch (error) {
-          showError('Failed to update quantity.');
-          console.error(error);
-        }
-      });
-    });
+document.querySelectorAll('.dec-btn').forEach(btn => {
+  btn.addEventListener('click', async function () {
+    const id = this.dataset.id;
+    try {
+      const response = await fetch(`/cart/decrement/${id}`, { method: 'POST' });
+      const result = await response.json();
+      
+      if (result.success) {
+        const currentQty = parseInt(this.nextElementSibling.textContent);
+        updateQuantityUI(this, currentQty - 1);
+      } else {
+        showError(result.message || 'Failed to decrease quantity');
+      }
+    } catch (error) {
+      showError('Failed to update quantity.');
+      console.error(error);
+    }
+  });
+});
 
-    // Remove product
+
     document.querySelectorAll('.remove-btn').forEach(btn => {
       btn.addEventListener('click', function () {
         const id = this.dataset.id;
@@ -324,7 +313,6 @@ button.checkout_button:hover {
       });
     });
 
-    // Checkout validation
     document.getElementById('checkout-btn')?.addEventListener('click', function () {
       fetch(`/cart/validate-checkout`, { method: 'POST' })
         .then(res => res.json())

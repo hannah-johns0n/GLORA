@@ -1,10 +1,11 @@
 const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
 const Wishlist = require('../../models/wishlistModel');
+const STATUS_CODES = require('../../constants/statusCodes');
 
-const MAX_QTY = 5; // max quantity per product
 
-// Show Cart Page
+const MAX_QTY = 5; 
+
 const getCart = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -23,38 +24,31 @@ const getCart = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).send('Server Error');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Server Error');
   }
 };
 
 
-
-// Add to Cart
 const addToCart = async (req, res) => {
   try {
     const userId = req.user.id;
     const productId = req.params.id;
 
-    // Find product
     const product = await Product.findById(productId);
     if (!product) {
       return res.json({ success: false, message: 'Product not found' });
     }
 
-    // Check if blocked/unlisted
     if (product.isBlocked || product.quantity <= 0) {
       return res.json({ success: false, message: 'Product is unavailable' });
     }
 
-    // Check stock
     if (product.stock <= 0) {
       return res.json({ success: false, message: 'Product is out of stock' });
     }
 
-    // Remove from wishlist if exists
     await Wishlist.updateOne({ userId }, { $pull: { products: productId } });
 
-    // Check if already in cart
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = new Cart({ userId, items: [] });
@@ -64,11 +58,11 @@ const addToCart = async (req, res) => {
     const price = product.salesPrice > 0 ? product.salesPrice : product.regularPrice;
     
     if (existingItem) {
-      if (existingItem.quantity < MAX_QTY && existingItem.quantity < product.stock) {
+      if (existingItem.quantity < MAX_QTY && existingItem.quantity < product.quantity) {
         existingItem.quantity += 1;
         existingItem.totalPrice = existingItem.quantity * price;
       } else {
-        return res.json({ success: false, message: 'Max quantity reached' });
+        return res.status(500).json({ success: false, message: 'Max quantity reached' });
       }
     } else {
       cart.items.push({
@@ -78,16 +72,16 @@ const addToCart = async (req, res) => {
       });
     }
 
+    let cartCount = cart.items.length
+
     await cart.save();
-    res.json({ success: true });
+    res.status(200).json({ success: true, cartCount });
 
   } catch (err) {
-    console.error(err);
-    res.json({ success: false, message: 'Something went wrong' });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Something went wrong' });
   }
 };
 
-// Increment quantity
 const incQuantity = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -114,7 +108,6 @@ catch (err) {
   }
 };
 
-// Decrement quantity
 const decQuantity = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -128,19 +121,19 @@ const decQuantity = async (req, res) => {
 
     if (cart.items[itemIndex].quantity > 1) {
       cart.items[itemIndex].quantity -= 1;
+      await cart.save();
+      return res.json({ success: true });
     } else {
-      cart.items.splice(itemIndex, 1); // remove if qty = 0
+      return res.json({ success: false, message: 'Quantity cannot be less than 1' });
     }
 
-    await cart.save();
-    res.json({ success: true });
-
   } catch (err) {
+    console.error(err);
     res.json({ success: false, message: 'Something went wrong' });
   }
 };
 
-// Remove product from cart
+
 const removeFromCart = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -154,7 +147,6 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-// Validate checkout (no out-of-stock)
 const validateCheckout = async (req, res) => {
   try {
     const userId = req.user.id;

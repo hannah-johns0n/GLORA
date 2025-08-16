@@ -346,14 +346,12 @@ const getProductDetails = async (req, res) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Fetch user from DB to get name
         const foundUser = await User.findById(decoded.id).select('name');
         if (foundUser) {
           userName = foundUser.name;
           user = foundUser;
         }
 
-       // Get cart count
 const cart = await Cart.findOne({ userId: decoded.id });
 cartCount = cart ? cart.items.reduce((sum, p) => sum + p.quantity, 0) : 0;
 console.log(cart)
@@ -518,41 +516,40 @@ const getProfilePage = async (req, res) => {
 };
 
 const getEditProfilePage = (req, res) => {
-    try {
-        if (!req.user) {
-            return res.redirect('/login');
-        }
-        res.render('user/editProfile', { 
-            user: req.user,
-            userName: req.user.name 
-        });
-    } catch (error) {
-        console.error('Error in getEditProfilePage:', error);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
-    }
+try {
+if (!req.user) {
+   return res.redirect('/login');
+ }
+res.render('user/editProfile', { 
+ user: req.user, 
+ userName: req.user.name 
+ });
+ } catch (error) {
+ console.error('Error in getEditProfilePage:', error);
+ res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
+ }
 };
+
 
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user._id; 
-    const { name, phone } = req.body;
+    const userId = req.user._id;
+    const { name, phoneNumber } = req.body;
 
-    if (!name || !phone) {
+    if (!name || !phoneNumber) {
       return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Name and phone are required!" });
     }
 
-    if (phone.length !== 10 || isNaN(phone)) {
+    if (phoneNumber.length !== 10 || isNaN(phoneNumber)) {
       return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Phone must be a valid 10-digit number!" });
     }
 
     let user = await User.findById(userId);
-
     user.name = name;
-    user.phone = phone;
+    user.phoneNumber = phoneNumber;
     await user.save();
 
     return res.send({ success: true, message: "Profile updated successfully!" });
-
   } 
   catch (error) {
     console.log("Update profile error:", error.message);
@@ -560,15 +557,19 @@ const updateProfile = async (req, res) => {
   }
 };
 
+
 const getManageAddressPage = async (req, res) => {
     try {
         const user = await User.findById(req.user._id); 
         const addresses = await Address.find({ userId: req.user._id });
 
+        const success = req.query.deleted ? 'Address deleted successfully!' : null;
+
         res.render('user/manage-address', {
             user,
-            userName: user.name , 
-            addresses
+            userName: user.name, 
+            addresses,
+            success
         });
     } 
     catch (error) {
@@ -576,31 +577,74 @@ const getManageAddressPage = async (req, res) => {
     }
 };
 
+
 const getAddAddressPage = (req, res) => {
     res.render('user/add-address', { userName: req.user.name });
 };
 
 const postAddAddress = async (req, res) => {
-    try {
-        if ( !req.user.id) {
-            return res.status(STATUS_CODES.BAD_REQUEST).redirect('/login');
-        }
-        
-        const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
-        await Address.create({
-            userId: req.user.id,
-            addressType,
-            city,
-            landmark,
-            state,
-            pincode,
-            phoneNumber
-        });
-        res.redirect('/manage-address');
-    } 
-    catch (err) {
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render('error', { message: 'Failed to add address',error: err.message });
+  try {
+    if (!req.user.id) {
+      return res.redirect('/login');
     }
+
+    const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+
+    const noSpecialChars = /^[a-zA-Z0-9\s]+$/;
+
+    if (!addressType || !city || !landmark || !state || !pincode || !phoneNumber) {
+      return res.render('user/add-address', { 
+        userName: req.user.name, 
+        error: 'All fields are required.' 
+      });
+    }
+
+    if (!noSpecialChars.test(addressType) || 
+        !noSpecialChars.test(city) || 
+        !noSpecialChars.test(landmark) || 
+        !noSpecialChars.test(state)) {
+      return res.render('user/add-address', { 
+        userName: req.user.name, 
+        error: 'No special characters allowed in Address Type, City, Landmark, or State.' 
+      });
+    }
+
+    if (!/^\d{6}$/.test(pincode)) {
+      return res.render('user/add-address', { 
+        userName: req.user.name, 
+        error: 'Pincode must be exactly 6 digits.' 
+      });
+    }
+
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      return res.render('user/add-address', { 
+        userName: req.user.name, 
+        error: 'Phone number must be exactly 10 digits.' 
+      });
+    }
+
+    await Address.create({
+      userId: req.user.id,
+      addressType,
+      city,
+      landmark,
+      state,
+      pincode,
+      phoneNumber
+    });
+
+    return res.render('user/add-address', { 
+      userName: req.user.name, 
+      success: 'Address added successfully!' 
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('user/add-address', { 
+      userName: req.user.name, 
+      error: 'Server error. Failed to add address.' 
+    });
+  }
 };
 
 const getEditAddressPage = async (req, res) => {
@@ -617,39 +661,86 @@ const getEditAddressPage = async (req, res) => {
 
 const postEditAddress = async (req, res) => {
   try {
-    if ( !req.user._id) {
+    if (!req.user._id) {
       return res.status(STATUS_CODES.BAD_REQUEST).send("Unauthorized");
     }
 
-    const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+    let { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+    addressType = addressType?.trim();
+    city = city?.trim();
+    landmark = landmark?.trim();
+    state = state?.trim();
+    const pincodeStr = String(pincode).trim();
+    const phoneStr = String(phoneNumber).trim();
 
-    const noSpecialChars = /^[a-zA-Z0-9\s]+$/;
+    const onlyLetters = /^[a-zA-Z\s]+$/;
 
-    if (!addressType || !city || !landmark || !state || !pincode || !phoneNumber) {
-      return res.render('user/edit-address', { address: req.body, error: 'All fields are required.', userName: req.user.name });
+    if (!addressType || !city || !landmark || !state || !pincodeStr || !phoneStr) {
+      return res.render('user/edit-address', { 
+        address: { ...req.body, _id: req.params.id }, 
+        error: 'All fields are required.', 
+        userName: req.user.name 
+      });
     }
+
     if (
-      !noSpecialChars.test(addressType) || !noSpecialChars.test(city) || !noSpecialChars.test(landmark) || !noSpecialChars.test(state)) 
-      {
-      return res.render('user/edit-address', { address: req.body, error: 'No special characters allowed in Address Type, City, Landmark, or State.', userName: req.user.name });
+      !onlyLetters.test(addressType) || 
+      !onlyLetters.test(city) || 
+      !onlyLetters.test(landmark) || 
+      !onlyLetters.test(state)
+    ) {
+      return res.render('user/edit-address', { 
+        address: { ...req.body, _id: req.params.id }, 
+        error: 'Address Type, City, Landmark, and State must contain letters and spaces only.', 
+        userName: req.user.name 
+      });
+    }
+
+    if (!/^\d{6}$/.test(pincodeStr)) {
+      return res.render('user/edit-address', { 
+        address: { ...req.body, _id: req.params.id }, 
+        error: 'Pincode must be exactly 6 digits.', 
+        userName: req.user.name 
+      });
+    }
+
+    if (!/^\d{10}$/.test(phoneStr)) {
+      return res.render('user/edit-address', { 
+        address: { ...req.body, _id: req.params.id }, 
+        error: 'Phone number must be exactly 10 digits.', 
+        userName: req.user.name 
+      });
     }
 
     await Address.updateOne(
       { _id: req.params.id, userId: req.user._id },
-      { addressType, city, landmark, state, pincode, phoneNumber }
+      { 
+        addressType, 
+        city, 
+        landmark, 
+        state, 
+        pincode: Number(pincodeStr), 
+        phoneNumber: Number(phoneStr) 
+      }
     );
 
-    return res.render('user/edit-address', { address: req.body, success: 'Address updated successfully!', userName: req.user.name  });
+    return res.render('user/edit-address', { 
+      address: { ...req.body, _id: req.params.id }, 
+      success: 'Address updated successfully!', 
+      userName: req.user.name 
+    });
 
   } catch (err) {
+    console.error(err);
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
   }
 };
 
+
 const deleteAddress = async (req, res) => {
     try {
         await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
-        res.redirect('/manage-address');
+         res.redirect('/manage-address?deleted=true');
     } 
     catch (err) {
         console.error(err);
@@ -707,7 +798,7 @@ const verifyChangeEmailOtp = async (req, res) => {
 
         await User.findByIdAndUpdate(userId, { email: stored.newEmail });
 
-        delete otpStore[userId]; // clear OTP
+        delete otpStore[userId]; 
         res.send('Email changed successfully!');
     }
     catch (err) {

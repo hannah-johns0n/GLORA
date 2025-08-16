@@ -123,7 +123,6 @@
       flex-shrink: 0;
     }
 
-    /* Cart count badge */
     .cart-count {
       background: #b71c1c;
       color: white;
@@ -141,7 +140,7 @@
   <header class="header">
     <div class="header_inner">
       <div class="logo">
-        <a href="#">GLORA</a>
+        <a href="/">GLORA</a>
       </div>
 
       <nav class="main_nav">
@@ -149,7 +148,6 @@
           <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
           <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
           <li><a href="/categories" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
-          <li><a href="/signin" class="<%= url.startsWith('/signin') ? 'active' : '' %>">Sign in</a></li>
           <li><a href="/contact" class="<%= url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
         </ul>
       </nav>
@@ -158,9 +156,7 @@
         <div class="shopping d-flex align-items-center" style="gap: 10px;">
           <a href="/cart" style="position: relative;">
             <img src="/images/shopping-bag.svg" alt="Bag" />
-            <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
-              <span class="cart-count"><%= cartCount %></span>
-            <% } %>
+              <span class="cart-count"><%= cartCount || 0 %></span>
           </a>
           <a href="#"><img src="/images/star.svg" alt="Wishlist" /></a>
         </div>
