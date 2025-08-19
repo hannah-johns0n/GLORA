@@ -1,138 +1,455 @@
+
 <%- include('../partials/user/header', { userName: user?.name || 'User' }) %>
 
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
-  /* Overall scale reduction */
-  html {
-    transform: scale(0.9);
-    transform-origin: top center;
-  }
+        /* Overall scale reduction */
+        html {
+            transform: scale(0.9);
+            transform-origin: top center;
+        }
 
-  /* Navbar height tweak */
-  .navbar {
-    padding-top: 0.3rem !important;
-    padding-bottom: 0.3rem !important;
-  }
+        /* Navbar height tweak */
+        .navbar {
+            padding-top: 0.3rem !important;
+            padding-bottom: 0.3rem !important;
+        }
 
-  /* Sidebar menu styles */
-  .nav.flex-column .nav-link {
-    font-weight: bold;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: black !important;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-  }
+        /* Sidebar menu styles */
+        .nav.flex-column .nav-link {
+            font-weight: bold;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: black !important;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+        }
 
-  .nav.flex-column .nav-link i {
-    margin-right: 8px;
-    font-size: 1.1rem;
-  }
+        .nav.flex-column .nav-link i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
 
-  /* Dark red buttons */
-  .btn-dark-red {
-    background-color: #450808;
-    color: white !important;
-    border: none;
-    font-weight: bold;
-  }
+        /* Dark red buttons */
+        .btn-dark-red {
+            background-color: #450808;
+            color: white !important;
+            border: none;
+            font-weight: bold;
+        }
 
-  .btn-dark-red:hover {
-    background-color: #400606;
-    color: white !important;
-  }
+        .btn-dark-red:hover {
+            background-color: #400606;
+            color: white !important;
+        }
 
-  /* Labels */
-  .form-label {
-    font-weight: bold;
-  }
+        /* Labels */
+        .form-label {
+            font-weight: bold;
+        }
 
-  /* Content wrapper */
-  .content-wrapper {
-    margin-top: 80px;
-  }
+        /* Content wrapper */
+        .content-wrapper {
+            margin-top: 80px;
+        }
 
-  /* Form button style */
-  .btn-save {
-    background-color: darkred;
-    border: none;
-    width: 100%;
-    color: white;
-    font-weight: bold;
-  }
-  .btn-save:hover {
-    background-color: #700000;
-    color: white;
-  }
-</style>
+        /* Form button style */
+        .btn-save {
+            background-color: darkred;
+            border: none;
+            width: 100%;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-save:hover {
+            background-color: #700000;
+            color: white;
+        }
 
-<div class="container-fluid content-wrapper">
-  <div class="row">
-    <!-- Sidebar -->
-    <div class="col-md-3 col-lg-2 bg-light border-end p-3">
-      <h5 class="mb-4"><%= user?.name || 'User' %></h5>
-      <ul class="nav flex-column">
-        <li class="nav-item mb-2">
-          <a href="/profile" class="nav-link"> My Account</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/my-orders" class="nav-link"> My Orders</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/manage-address" class="nav-link"> Manage Addresses</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/wallet" class="nav-link"> Wallet</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/wishlist" class="nav-link">My Favourite</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/add-account" class="nav-link"> Add Account</a>
-        </li>
-      </ul>
-      <form action="/logout" method="POST" class="mt-4">
-        <button type="submit" class="btn btn-dark-red w-100">LOG OUT</button>
-      </form>
+        /* Error message styles */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .form-control.is-valid {
+            border-color: #198754;
+        }
+
+        /* Loading spinner */
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Success message */
+        .alert-success {
+            background-color: #d1edff;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+
+    <div class="container-fluid content-wrapper">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 bg-light border-end p-3">
+                <h5 class="mb-4"><%= user?.name || 'User' %></h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item mb-2">
+                        <a href="/profile" class="nav-link">My Account</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/my-orders" class="nav-link">My Orders</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/manage-address" class="nav-link">Manage Addresses</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/wallet" class="nav-link">Wallet</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/wishlist" class="nav-link">My Favourite</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a href="/add-account" class="nav-link">Add Account</a>
+                    </li>
+                </ul>
+                <form action="/logout" method="POST" class="mt-4">
+                    <button type="submit" class="btn btn-dark-red w-100">LOG OUT</button>
+                </form>
+            </div>
+
+            <div class="col-md-9 col-lg-10 p-4">
+                <% if (!user) { %>
+                    <div class="alert alert-warning">
+                        You need to be logged in to view this page. <a href="/login">Login here</a>
+                    </div>
+                <% } else { %>
+                    <div class="col-md-9 col-lg-10 p-4">
+                        <h2 class="fw-bold mb-4 text-center" style="color: #333;">Edit Personal Information</h2>
+                        
+                        <!-- Alert Messages -->
+                        <div id="alertContainer" class="mb-3" style="display: none;"></div>
+
+                        <form id="profileForm" style="max-width: 600px; margin: 0 auto;" novalidate>
+                            <div class="mb-4">
+                                <label class="form-label">Name</label>
+                                <input type="text" name="name" id="name" value="<%= user.name || '' %>" class="form-control">
+                                <div id="nameError" class="error-message"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mobile Number:</label>
+                                <input type="text" name="phoneNumber" id="phoneNumber" value="<%= user.phoneNumber || '' %>" class="form-control">
+                                <div id="phoneError" class="error-message"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label">E-mail</label>
+                                <input type="email" name="email" id="email" value="<%= user.email || '' %>" class="form-control" readonly>
+                                <div id="emailError" class="error-message"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="/profile" class="btn btn-outline-secondary" style="width: 48%;">Cancel</a>
+                                <button type="submit" id="saveBtn" class="btn btn-dark" style="width: 48%; background-color: rgb(70, 6, 6);">
+                                    <span id="saveText">Save Changes</span>
+                                    <span id="saveSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                <% } %>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <% if (!user) { %>
-        <div class="alert alert-warning">
-          You need to be logged in to view this page. <a href="/login">Login here</a>
-        </div>
-      <% } else { %>
-        <div class="col-md-9 col-lg-10 p-4">
-          <h2 class="fw-bold mb-4 text-center" style="color: #333;">Edit Personal Information</h2>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // User data from EJS rendering
+        const userData = {
+            name: '<%= user?.name || "" %>',
+            phoneNumber: '<%= user?.phoneNumber || "" %>',
+            email: '<%= user?.email || "" %>'
+        };
 
-          <form action="/profile/edit" method="POST" style="max-width: 600px; margin: 0 auto;">
-            <div class="mb-4">
-              <label class="form-label">Name</label>
-              <input type="text" name="name" value="<%= user.name || '' %>" class="form-control" required>
-            </div>
+        // Initialize form with user data
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('name').value = userData.name;
+            document.getElementById('phoneNumber').value = userData.phoneNumber;
+            document.getElementById('email').value = userData.email;
+        });
 
-            <div class="mb-4">
-              <label class="form-label">Mobile Number</label>
-              <input type="text" name="phoneNumber" value="<%= user.phoneNumber || '' %>" class="form-control" required>
-            </div>
+        // Validation functions
+        function validateName(name) {
+            if (!name || name.trim().length === 0) {
+                return 'Name is required';
+            }
+            if (name.trim().length < 2) {
+                return 'Name must be at least 2 characters long';
+            }
+            if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+                return 'Name can only contain letters and spaces';
+            }
+            return null;
+        }
 
-            <div class="mb-4">
-              <label class="form-label">E-mail</label>
-              <input type="email" name="email" value="<%= user.email || '' %>" class="form-control" required>
-            </div>
+        function validatePhoneNumber(phone) {
+            if (!phone || phone.trim().length === 0) {
+                return 'Mobile number is required';
+            }
+            // Remove all non-digit characters for validation
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 10) {
+                return 'Mobile number must be at least 10 digits';
+            }
+            if (cleanPhone.length > 15) {
+                return 'Mobile number cannot exceed 15 digits';
+            }
+            return null;
+        }
 
-            <div class="d-flex justify-content-between mt-4">
-              <a href="/profile" class="btn btn-outline-secondary" style="width: 48%;">
-                Cancel
-              </a>
-              <button type="submit" class="btn btn-dark" style="width: 48%; background-color: rgb(70, 6, 6);">
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      <% } %>
-    </div>
-  </div>
-</div>
+        function validateEmail(email) {
+            if (!email || email.trim().length === 0) {
+                return 'Email is required';
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return 'Please enter a valid email address';
+            }
+            return null;
+        }
+
+        // Show error message
+        function showError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            
+            field.classList.add('is-invalid');
+            field.classList.remove('is-valid');
+        }
+
+        // Show success (clear error)
+        function showSuccess(fieldId) {
+            const field = document.getElementById(fieldId);
+            
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+        }
+
+        // Clear all validations
+        function clearValidations() {
+            const fields = ['name', 'phoneNumber', 'email'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                
+                field.classList.remove('is-invalid', 'is-valid');
+                errorDiv.textContent = '';
+            });
+        }
+
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertClass = type === 'danger' ? 'alert-danger' : `alert-${type}`;
+            
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.style.display = 'block';
+            
+            // Scroll to alert if not visible
+            alertContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Auto-hide success messages after 5 seconds, keep error messages until manually dismissed
+            if (type === 'success') {
+                setTimeout(() => {
+                    const alert = alertContainer.querySelector('.alert');
+                    if (alert && alert.classList.contains('show')) {
+                        alert.classList.remove('show');
+                        setTimeout(() => {
+                            if (alertContainer.style.display !== 'none') {
+                                alertContainer.style.display = 'none';
+                            }
+                        }, 150);
+                    }
+                }, 5000);
+            }
+        }
+
+        // Real-time validation
+        document.getElementById('name').addEventListener('input', function() {
+            const error = validateName(this.value);
+            if (error) {
+                showError('name', error);
+            } else {
+                showSuccess('name');
+            }
+        });
+
+        document.getElementById('phoneNumber').addEventListener('input', function() {
+            const error = validatePhoneNumber(this.value);
+            if (error) {
+                showError('phoneNumber', error);
+            } else {
+                showSuccess('phoneNumber');
+            }
+        });
+
+        // Form submission
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                email: document.getElementById('email').value.trim()
+            };
+
+            // Validate all fields
+            const nameError = validateName(formData.name);
+            const phoneError = validatePhoneNumber(formData.phoneNumber);
+            const emailError = validateEmail(formData.email);
+
+            let hasErrors = false;
+
+            if (nameError) {
+                showError('name', nameError);
+                hasErrors = true;
+            } else {
+                showSuccess('name');
+            }
+
+            if (phoneError) {
+                showError('phoneNumber', phoneError);
+                hasErrors = true;
+            } else {
+                showSuccess('phoneNumber');
+            }
+
+            if (emailError) {
+                showError('email', emailError);
+                hasErrors = true;
+            } else {
+                showSuccess('email');
+            }
+
+            if (hasErrors) {
+                showAlert('invalid credentials', 'danger');
+                return;
+            }
+
+            // Show loading state
+            const saveBtn = document.getElementById('saveBtn');
+            const saveText = document.getElementById('saveText');
+            const saveSpinner = document.getElementById('saveSpinner');
+            
+            saveBtn.disabled = true;
+            saveText.style.display = 'none';
+            saveSpinner.style.display = 'inline-block';
+
+            try {
+                // Make fetch request
+                const response = await fetch('/profile/edit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(result.message || 'Profile updated successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/profile';
+                    }, 2000);
+                } else {
+                    // Handle different status codes
+                    let errorMessage = 'Failed to update profile. Please try again.';
+                    
+                    try {
+                        const errorResult = await response.json();
+                        
+                        // Handle validation errors from server
+                        if (errorResult.errors && Array.isArray(errorResult.errors)) {
+                            // Display multiple validation errors
+                            const errorMessages = errorResult.errors.map(err => err.message || err).join('<br>');
+                            showAlert(errorMessages, 'danger');
+                            
+                            // Highlight specific fields if field info is provided
+                            errorResult.errors.forEach(err => {
+                                if (err.field) {
+                                    showError(err.field, err.message);
+                                }
+                            });
+                            
+                        } else if (errorResult.message) {
+                            errorMessage = errorResult.message;
+                            showAlert(errorMessage, 'danger');
+                        } else {
+                            showAlert(errorMessage, 'danger');
+                        }
+                        
+                    } catch (parseError) {
+                        // If JSON parsing fails, handle based on status code
+                        switch (response.status) {
+                            case 400:
+                                errorMessage = 'Invalid data provided. Please check your inputs.';
+                                break;
+                            case 401:
+                                errorMessage = 'You are not authorized to perform this action. Please log in again.';
+                                break;
+                            case 403:
+                                errorMessage = 'You do not have permission to update this profile.';
+                                break;
+                            case 404:
+                                errorMessage = 'Profile not found.';
+                                break;
+                            case 422:
+                                errorMessage = 'The data you provided is not valid. Please check and try again.';
+                                break;
+                            case 500:
+                                errorMessage = 'Server error occurred. Please try again later.';
+                                break;
+                            default:
+                                errorMessage = `An error occurred (${response.status}). Please try again.`;
+                        }
+                        showAlert(errorMessage, 'danger');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Check if it's a network error
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showAlert('Network error: Please check your internet connection and try again.', 'danger');
+                } else if (error.name === 'AbortError') {
+                    showAlert('Request was cancelled. Please try again.', 'danger');
+                } else {
+                    showAlert('An unexpected error occurred while updating your profile. Please try again later.', 'danger');
+                }
+            } finally {
+                // Reset loading state
+                saveBtn.disabled = false;
+                saveText.style.display = 'inline';
+                saveSpinner.style.display = 'none';
+            }
+        });
+    </script>
+
+
 
 <%- include('../partials/user/footer') %>
