@@ -79,11 +79,11 @@ router.get('/forgot-password/verify', userController.verifyPasswordOtp);
 router.post('/forgot-password/verify', userController.postVerifyPasswordOtp);
 
 router.get('/reset-password',requireAuth, userController.getResetPassword);
-router.post('/reset-password', userController.postResetPassword);
+router.post('/reset-password', requireAuth, userController.postResetPassword);
 
 router.get('/profile',requireAuth,userController.getProfilePage);
 router.get('/profile/edit',requireAuth, userController.getEditProfilePage);
-router.post('/profile/edit', userController.updateProfile);
+router.post('/profile/edit',requireAuth, userController.updateProfile);
 
 router.get('/manage-address', requireAuth, userController.getManageAddressPage);
 

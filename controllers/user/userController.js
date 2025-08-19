@@ -465,7 +465,6 @@ const postVerifyPasswordOtp = async (req, res) => {
   }
 };
 
-
 const getResetPassword = (req, res) => {
   try {
     const token = req.cookies.allowResetToken;
@@ -539,7 +538,6 @@ return res.render("user/resetPassword", {
   }
 };
 
-
 const getProfilePage = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -553,21 +551,21 @@ const getProfilePage = async (req, res) => {
     }
 };
 
-const getEditProfilePage = (req, res) => {
+const getEditProfilePage = async (req, res) => {
 try {
 if (!req.user) {
    return res.redirect('/login');
  }
+
+ const user = await User.findById(req.user._id);
 res.render('user/editProfile', { 
- user: req.user, 
- userName: req.user.name 
+ user
  });
  } catch (error) {
  console.error('Error in getEditProfilePage:', error);
  res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
  }
 };
-
 
 const updateProfile = async (req, res) => {
   try {
@@ -587,14 +585,11 @@ const updateProfile = async (req, res) => {
     user.phoneNumber = phoneNumber;
     await user.save();
 
-    return res.send({ success: true, message: "Profile updated successfully!" });
-  } 
-  catch (error) {
-    console.log("Update profile error:", error.message);
-    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send({ success: false, message: "Something went wrong!" });
+    return res.json({ success: true, message: "Profile updated successfully!" });
+  } catch (error) {
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
   }
 };
-
 
 const getManageAddressPage = async (req, res) => {
     try {
@@ -616,12 +611,17 @@ const getManageAddressPage = async (req, res) => {
 };
 
 const getAddAddressPage = (req, res) => {
-    const fromCheckout = req.query.fromCheckout === "true";  // ✅ capture flag
+    const fromCheckout = req.query.fromCheckout === "true";  
     res.render('user/add-address', { userName: req.user.name, fromCheckout });
 };
 
 const postAddAddress = async (req, res) => {
   try {
+const user = await User.findById(req.user._id);
+const addresses = await Address.find({ userId: req.user._id });
+
+        const fromCheckout = req.body.fromCheckout === "true"; 
+
     if (!req.user.id) {
       return res.redirect('/login');
     }
@@ -671,16 +671,16 @@ const postAddAddress = async (req, res) => {
       phoneNumber
     });
 
-if (fromCheckout === "true") {
+if (fromCheckout) {
       return res.redirect('/checkout');
     }
 
-    // otherwise → stay in profile flow
-    return res.render('user/manage-address', { 
-      userName: req.user.name, 
-      success: 'Address added successfully!' 
-    });
-
+  return res.render('user/manage-address', { 
+  user,
+  userName: user.name,
+  addresses,
+  success: 'Address added successfully!'
+});
 
 
   } catch (err) {
