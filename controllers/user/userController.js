@@ -506,7 +506,6 @@ const postResetPassword = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // Try updating a real User first; if not found, try TempUser
     let updated = await User.updateOne({ email }, { $set: { password: hash } });
     if (!updated.matchedCount) {
       updated = await TempUser.updateOne({ email }, { $set: { password: hash } });
@@ -518,7 +517,6 @@ const postResetPassword = async (req, res) => {
       }
     }
 
-    // Cleanup (optional)
     await PasswordReset.deleteOne({ email }).catch(() => {});
     res.clearCookie("allowResetToken");
     res.clearCookie("resetToken");
@@ -896,8 +894,6 @@ const saveNewEmail = async (req, res) => {
     });
   }
 };
-
-
 
 
 module.exports = {

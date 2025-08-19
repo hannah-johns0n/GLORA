@@ -136,14 +136,13 @@
       let croppedImages = new Array(4).fill(null);
       let modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
 
-      // Initialize cropper when modal is shown
       document.getElementById('cropImageModal').addEventListener('shown.bs.modal', function () {
         const image = document.getElementById('imageToCrop');
         if (cropper) {
           cropper.destroy();
         }
         cropper = new Cropper(image, {
-          aspectRatio: 1, // Square aspect ratio
+          aspectRatio: 1, 
           viewMode: 1,
           autoCropArea: 0.8,
           responsive: true,
@@ -151,7 +150,6 @@
         });
       });
 
-      // Clean up cropper when modal is hidden
       document.getElementById('cropImageModal').addEventListener('hidden.bs.modal', function () {
         if (cropper) {
           cropper.destroy();
@@ -159,10 +157,8 @@
         }
       });
 
-      // Handle crop button click
       document.getElementById('cropImageBtn').addEventListener('click', function() {
         if (cropper) {
-          // Get the cropped canvas
           const canvas = cropper.getCroppedCanvas({
             width: 800,
             height: 800,
@@ -175,11 +171,9 @@
             imageSmoothingQuality: 'high',
           });
 
-          // Convert canvas to blob and update preview
           canvas.toBlob((blob) => {
             const url = URL.createObjectURL(blob);
             
-            // Update the preview image
             const previewImg = document.getElementById(`previewImg${currentImageIndex}`);
             const placeholder = document.getElementById(`placeholder${currentImageIndex}`);
             const clearBtn = document.querySelector(`#imageInput${currentImageIndex}`).parentElement.querySelector('button');
@@ -189,26 +183,20 @@
             placeholder.style.display = 'none';
             clearBtn.classList.remove('d-none');
             
-            // Store the cropped image data
             croppedImages[currentImageIndex] = url;
             
-            // Update the file input with the cropped image
             const fileInput = document.getElementById(`imageInput${currentImageIndex}`);
             const file = new File([blob], `cropped-image-${currentImageIndex}.jpg`, { type: 'image/jpeg' });
             
-            // Create a new DataTransfer object and add the file to it
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(file);
             
-            // Assign the DataTransfer's files to the file input
             fileInput.files = dataTransfer.files;
             
-            // Hide the modal
             modal.hide();
             
-            // Update validation
             updateImageValidation();
-          }, 'image/jpeg', 0.9); // 0.9 quality
+          }, 'image/jpeg', 0.9);
         }
       });
 
