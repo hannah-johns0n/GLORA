@@ -14,11 +14,15 @@ const userSchema = new mongoose.Schema({
     },
     phoneNumber : {
         type : String,
-        required : true,
+        default: null
     },
     password : {
         type : String,
-        required : true,
+        default: null
+    },
+    googleId: {
+        type: String,
+        default: null
     },
     isBlocked : {
         type : Boolean,

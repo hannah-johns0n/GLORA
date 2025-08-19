@@ -58,7 +58,7 @@ const getOrderDetails = async (req, res) => {
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
 
-        res.render('admin/orderDetails', { order });
+        res.render('admin/orderDetails', { order, req });
     } catch (err) {
         console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
@@ -109,24 +109,31 @@ const verifyReturnRequest = async (req, res) => {
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
 
-        if (req.body.action === "accept") {
+        let actionTaken = null;
+
+        if (req.query.action === "accept") {
             for (const item of order.orderItems) {
                 await Product.findByIdAndUpdate(item.productId._id, { $inc: { stock: item.quantity } });
             }
-
             order.status = "Returned";
+            actionTaken = "accept";
+        } else if (req.query.action === "reject") {
+            order.status = "Return-Rejected"; 
+            actionTaken = "reject";
         } else {
-            order.status = "Return-Rejected";
+            return res.status(STATUS_CODES.BAD_REQUEST).send("Invalid action");
         }
 
         await order.save();
-        res.redirect('/admin/order-list');
-    } 
-    catch (err) {
+
+        res.redirect(`/admin/order-list/${order._id}?actionTaken=${actionTaken}`);
+    } catch (err) {
         console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
     }
 };
+
+
 
 module.exports = {
     getAllOrders,

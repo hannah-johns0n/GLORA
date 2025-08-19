@@ -5,22 +5,39 @@ const Category = require('../../models/categoryModel');
 
 
 exports.productListPage = async (req, res) => {
-    try {
-        const products = await Product.find({}).sort({ createdAt: -1 });
-        const productsWithThumb = products.map(product => ({
-            ...product.toObject(),
-            thumb: product.images && product.images.length > 0 ? `/uploads/products/${product.images[0]}` : null
-        }));
-        res.render('admin/product', {
-            products: productsWithThumb,
-            currentPage: 1,
-            totalPages: 1
-        });
-    } catch (error) {
-        console.error('Failed to load products:', error);
-        res.status(500).send('Failed to load products');
-    }
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const totalProducts = await Product.countDocuments();
+
+    const products = await Product.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const productsWithThumb = products.map(product => ({
+      ...product.toObject(),
+      thumb: product.images && product.images.length > 0 
+        ? `/uploads/products/${product.images[0]}`
+        : null
+    }));
+
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    res.render('admin/product', {
+      products: productsWithThumb,
+      currentPage: page,
+      totalPages,
+      totalProducts
+    });
+  } catch (error) {
+    console.error('Failed to load products:', error);
+    res.status(500).send('Failed to load products');
+  }
 };
+
 
 exports.editProductPage = async (req, res) => {
     try {

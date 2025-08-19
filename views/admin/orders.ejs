@@ -43,7 +43,21 @@
                     <td><%= order.orderId || 'N/A' %></td>
                     <td><%= order.createdAt ? order.createdAt.toDateString() : 'N/A' %></td>
                     <td><%= (order.userId && order.userId.name) ? order.userId.name : 'Unknown User' %></td>
-                    <td><%= order.status || 'N/A' %></td>
+                    <td>
+                        <% 
+        let statusClass = 'bg-secondary';
+        if (order.status === 'Processing') statusClass = 'bg-info';
+        else if (order.status === 'Shipped') statusClass = 'bg-primary';
+        else if (order.status === 'Out for Delivery') statusClass = 'bg-warning';
+        else if (order.status === 'Delivered') statusClass = 'bg-success';
+        else if (order.status === 'Cancelled') statusClass = 'bg-danger';
+        else if (order.status === 'Returned') statusClass = 'bg-dark';
+        else if (order.status === 'Return-Request') statusClass = 'bg-warning text-dark';
+        else if (order.status === 'Return-Rejected') statusClass = 'bg-danger';
+
+    %>
+                        <span class="badge <%= statusClass %>"><%= order.status || 'N/A' %></span>
+                    </td>
                     <td>₹<%= order.totalPrice || 'N/A' %></td>
                     <td><a href="/admin/order-list/<%= order._id %>" class="btn btn-info btn-sm">View</a></td>
                 </tr>
@@ -51,15 +65,17 @@
             </tbody>
         </table>
 
-        <nav>
-            <ul class="pagination">
-                <% for(let i = 1; i <= totalPages; i++) { %>
-                    <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-                      <a class="page-link" href="?page=<%= i %>&search=<%= search %>&status=<%= status %>&sort=<%= sort %>"><%= i %></a>
-                    </li>
-                <% } %>
-            </ul>
-        </nav>
+        <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        <% for (let i=1; i <=totalPages; i++) { %>
+          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>">
+              <%= i %>
+            </a>
+          </li>
+          <% } %>
+      </ul>
+    </nav>
     <% } %>
 </main>
 

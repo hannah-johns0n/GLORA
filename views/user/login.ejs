@@ -4,6 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - GLORA</title>
+  <style>
+    .google-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1rem;
+  background: #fff;
+  color: #444;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.google-btn:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+  </style>
 </head>
 <body style="
   margin: 0;
@@ -140,6 +162,14 @@
       </button>
     </form>
 
+    <div style="text-align: center; margin: 1rem 0;">
+  <a href="/auth/google" class="google-btn">
+    <img src="https://img.icons8.com/color/16/google-logo.png" alt="Google logo" style="margin-right: 8px;">
+    Sign in with Google
+  </a>
+</div>
+
+
     <div style="margin-top: 1rem; text-align: right;">
       <a href="/forgot-password" style="color: #3c1212; text-decoration: none; font-size: 0.9rem;">Forgot password?</a>
     </div>
@@ -237,6 +267,30 @@
 <% } %>
 
   }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  <% if (typeof success !== "undefined" && success) { %>
+    Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: "<%= success %>",
+      confirmButtonText: "OK"
+    });
+  <% } %>
+
+<% if (typeof signupSuccess !== 'undefined' && signupSuccess) { %>
+  <script>
+    Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: "Your account has been created. Please log in.",
+      confirmButtonText: "OK"
+    });
+  </script>
+<% } %>
+
+
 </script>
 
 

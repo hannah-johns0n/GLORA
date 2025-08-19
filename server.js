@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require('path');
+const nocache = require('nocache')
 
 const userRouter = require('./routes/user/userAuthRoutes');
 const adminRouter = require('./routes/admin/adminAuthRoutes');
@@ -10,10 +11,10 @@ const adminRouter = require('./routes/admin/adminAuthRoutes');
 
 const app = express();
 
+app.use(nocache())
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
-
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

@@ -53,7 +53,7 @@ exports.getDashboard = async (req, res) => {
 exports.listCustomers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
     
     const totalCustomers = await User.countDocuments({ role: 'user' });
@@ -64,7 +64,8 @@ exports.listCustomers = async (req, res) => {
     res.render('admin/customer', { 
       customers,
       currentPage: page,
-      totalPages
+      totalPages,
+      totalCustomers
     });
   } 
   catch (error) {

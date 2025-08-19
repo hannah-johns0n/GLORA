@@ -21,32 +21,47 @@
                             <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                             <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
                             <option value="Return-Request" <%= order.status === 'Return-Request' ? 'selected' : '' %>>Return-Request</option>
+                            <option value="Return-Rejected" <%= order.status === 'Return-Rejected' ? 'selected' : '' %>>Return-Rejected</option>
                         </select>
                         <button class="btn btn-sm btn-primary" type="submit" id="status-update-btn">
                             <i class="fas fa-save me-1"></i> Update
                         </button>
                     </div>
                 </div>
-                <div class="form-text text-muted small mt-1">Last updated: <%= order.updatedAt ? new Date(order.updatedAt).toLocaleString() : 'N/A' %></div>
             </form>
         </div>
 
-        <% if (order.status === 'Return-Request' && order.returnReason) { %>
-            <div class="alert alert-info d-flex justify-content-between align-items-center">
-                <span>This order has a return request.</span>
-                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#returnReasonModal">
-                    <i class="fas fa-eye me-1"></i> View Reason
+       <% if (order.status === 'Return-Request' || order.status === 'Returned' || order.status === 'Delivered' || order.status === 'Cancelled') { %>
+    <% if (order.status === 'Cancelled' && order.cancelReason) { %>
+        <div class="alert alert-danger mt-3">
+            <strong>Cancellation Reason:</strong> <%= order.cancelReason %>
+        </div>
+    <% } %>
+
+    <div class="alert alert-warning d-flex align-items-center justify-content-between mt-3 mb-0" role="alert">
+        <% if (order.status === 'Return-Request') { %>
+            <span><i class="fas fa-exclamation-triangle me-2"></i> This order has a pending return request.</span>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#returnReasonModal">
+                    View Reason
                 </button>
+                <a href="/admin/order-list/<%= order._id %>/verify-return?action=accept" class="btn btn-sm btn-success">Accept Return</a>
+                <a href="/admin/order-list/<%= order._id %>/verify-return?action=reject" class="btn btn-sm btn-danger">Reject Return</a>
             </div>
-            <div class="d-flex gap-2 mb-3">
-                <a href="/admin/order-list/<%= order._id %>/verify-return?action=accept" class="btn btn-success">
-                    <i class="fas fa-check-circle me-1"></i> Accept Return
-                </a>
-                <a href="/admin/order-list/<%= order._id %>/verify-return?action=reject" class="btn btn-danger">
-                    <i class="fas fa-times-circle me-1"></i> Reject Return
-                </a>
+        <% } else if (order.status === 'Returned') { %>
+            <span>Return accepted</span>
+            <div>
+                <button class="btn btn-sm btn-success">Returned</button>
+            </div>
+        <% } else if (order.status === 'Return-Rejected' && req.query.actionTaken === 'reject') { %>
+            <span>Return rejected</span>
+            <div>
+                <button class="btn btn-sm btn-danger">Rejected</button>
             </div>
         <% } %>
+    </div>
+<% } %>
+
 
         <p>Total: ₹<%= order.totalPrice %></p>
         <p>Address: 
@@ -62,54 +77,102 @@
     <h5>Order Items</h5>
     <table class="table table-bordered">
         <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% order.orderItems.forEach(item => { %>
-            <tr>
-                <td><%= item.productId?.productName || 'N/A' %></td>
-                <td>₹<%= item.productId?.salesPrice || 'N/A' %></td>
-                <td><%= item.quantity %></td>
-                <td>
-                    <% if (item.productId?.salesPrice && item.quantity) { %>
-                        ₹<%= (item.productId.salesPrice * item.quantity).toFixed(2) %>
-                    <% } else { %>
-                        N/A
-                    <% } %>
-                </td>
-            </tr>
-            <% }) %>
-        </tbody>
-    </table>
+    <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Subtotal</th>
+        <th>Action</th> 
+    </tr>
+</thead>
+<tbody>
+    <% order.orderItems.forEach(item => { %>
+    <tr id="item-row-<%= item.productId?._id %>">
+        <td><%= item.productId?.productName || 'N/A' %></td>
+        <td>₹<%= item.productId?.salesPrice || 'N/A' %></td>
+        <td><%= item.quantity %></td>
+        <td>
+            <% if (item.productId?.salesPrice && item.quantity) { %>
+                ₹<%= (item.productId.salesPrice * item.quantity).toFixed(2) %>
+            <% } else { %>
+                N/A
+            <% } %>
+        </td>
+        <td>
+    <% if(item.status === 'Cancelled') { %>
+        <span class="text-danger">Cancelled</span>
+        <button class="btn btn-sm btn-info mt-1" 
+                data-bs-toggle="modal" 
+                data-bs-target="#viewReasonModal" 
+                onclick="showReasonModal('<%= item.cancelReason %>')">
+            View Reason
+        </button>
+    <% } else if(item.status === 'Delivered') { %>
+        <span class="text-success">Delivered</span>
+    <% } else { %>
+        <span class="text-primary">Ordered</span>
+        <br>
+    <% } %>
+</td>
 
-    <a href="/admin/order-list" class="btn btn-secondary mt-3">Back to Orders</a>
+    </tr>
+    <% }) %>
+</tbody>
+</table>
+<a href="/admin/order-list" class="btn btn-secondary mt-3">Back to Orders</a>
+
 </main>
 
-<% if (order.status === 'Return-Request' && order.returnReason) { %>
+<!-- Return Reason Modal -->
 <div class="modal fade" id="returnReasonModal" tabindex="-1" aria-labelledby="returnReasonModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="returnReasonModalLabel">Return Reason for Order <%= order.orderId %></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p><%= order.returnReason %></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="returnReasonModalLabel">Return Request Reason</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <% if (order.returnReason) { %>
+          <p><%= order.returnReason %></p>
+        <% } else { %>
+          <p class="text-muted">No reason provided.</p>
+        <% } %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
-<% } %>
+
+<!-- View Reason Modal -->
+<div class="modal fade" id="viewReasonModal" tabindex="-1" aria-labelledby="viewReasonModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewReasonModalLabel">Cancellation Reason</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-reason-content">
+        <!-- Reason will be injected here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function showReasonModal(reason) {
+    document.getElementById('modal-reason-content').innerText = reason || "No reason provided";
+}
+</script>
+
 
 <script>
     document.getElementById('status-form')?.addEventListener('submit', async function(e) {
@@ -173,7 +236,7 @@
         }
     });
 </script>
-
+<%- include('../partials/admin/footer') %>
 <style>
     .status-update {
         background-color: #f8f9fa;
@@ -230,4 +293,3 @@
     }
 </style>
 
-<%- include('../partials/admin/footer') %>

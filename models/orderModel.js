@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const { v4: uuidv4 } = require('uuid');
 
 const orderSchema = new mongoose.Schema ({
     orderId : {
         type : String,
         unique : true,
+        default: () => uuidv4(),
     },
     userId : {
         type : Schema.Types.ObjectId,
@@ -20,7 +22,16 @@ const orderSchema = new mongoose.Schema ({
     quantity : {
         type : Number,
         required : true,
-    }
+    },
+    status: {
+            type: String,
+            enum: ['Pending', 'Cancelled', 'Returned', 'Delivered', 'Return-Request', 'Return-Rejected'],
+            default: 'Pending'
+        },
+    cancelReason: {
+            type: String,
+            default: null
+        },
     }],
     totalPrice : {
         type : Number,
@@ -37,13 +48,17 @@ const orderSchema = new mongoose.Schema ({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Return-Request'],
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Return-Request', 'Return-Rejected'],
         default: 'Pending'
     },
     returnReason: {
         type: String,
         default: null
     },
+    cancellationReason: {   // <-- add this at order level
+        type: String,
+        default: null
+    }
 }, { timestamps : true });
 
 module.exports = mongoose.model("Order", orderSchema)

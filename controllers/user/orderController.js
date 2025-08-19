@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Address = require('../../models/addressModel');
@@ -49,16 +50,19 @@ const getOrderDetails = async (req, res) => {
 const cancelOrder = async (req, res) => {
     try {
         const { reason } = req.body;
+        const userId = req.user.id; 
         const orderId = req.params.orderId;
+
+           console.log(orderId);
 
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: "User not authenticated." });
         }
 
         const order = await Order.findOne({
-            orderId: orderId,
-            userId: req.user.id,
-        });
+        orderId: orderId, // use your UUID field
+        userId: req.user.id,
+        })
 
         if (!order) {
             return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Order not found or you do not have permission to cancel it." });
@@ -77,8 +81,8 @@ const cancelOrder = async (req, res) => {
         }
         
         order.status = "Cancelled";
-        order.cancellationReason = reason;
-        await order.save();
+order.cancellationReason = req.body.reason || "No reason provided";
+await order.save();
 
         res.status(STATUS_CODES.SUCCESS).json({ message: "Order cancelled successfully!" });
     } catch (err) {
@@ -90,27 +94,41 @@ const cancelOrder = async (req, res) => {
 
 const cancelProduct = async (req, res) => {
     try {
-        const { productId } = req.params;
+        const { reason } = req.body;
+        const { orderId, productId } = req.params;
+
         const order = await Order.findOne({
-            orderId: req.params.orderId,
+            orderId: orderId,
             userId: req.user.id
-        });
+        }).populate("orderItems.productId");
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
 
-        const item = order.orderItems.find(i => i.productId.toString() === productId);
-        if (item) {
-            await Product.findByIdAndUpdate(productId, { $inc: { stock: item.quantity } });
-            order.orderItems = order.orderItems.filter(i => i.productId.toString() !== productId);
-            await order.save();
+        const item = order.orderItems.find(i => i.productId._id.toString() === productId);
+        if (!item) return res.status(STATUS_CODES.NOT_FOUND).send("Item not found in order");
+
+        console.log('Item status:', item.status, 'Product ID:', productId);
+        if (item.status === "Cancelled" || item.status === "Delivered") {
+            return res.status(STATUS_CODES.BAD_REQUEST).send("This item cannot be cancelled");
         }
 
-        res.redirect('/my-orders/' + req.params.orderId);
+        // restore stock
+        await Product.findByIdAndUpdate(productId, { $inc: { stock: item.quantity } });
+
+        // update status and reason
+        item.status = "Cancelled";
+        item.cancelReason = reason || "No reason provided";
+
+        await order.save();
+
+        res.json({ success: true });
+
     } catch (err) {
-        console.error(err);
+        console.error("Error cancelling product:", err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
     }
 };
+
 
 const getReturnRequestPage = async (req, res) => {
     try {
@@ -147,6 +165,7 @@ const returnOrder = async (req, res) => {
         if (order.status !== "Delivered") return res.status(STATUS_CODES.BAD_REQUEST).send("Only delivered orders can be returned");
 
         order.status = "Return-Request";
+        order.returnReason = reason; 
         await order.save();
 
         res.redirect('/my-orders');
@@ -157,92 +176,120 @@ const returnOrder = async (req, res) => {
 };
 
 const downloadInvoice = async (req, res) => {
-    try {
-        const order = await Order.findOne({
-            orderId: req.params.orderId,
-            userId: req.user.id
-        })
-        .populate('orderItems.productId')
-        .populate('addressId')
-        .populate('userId');
+  try {
+    const order = await Order.findOne({
+      orderId: req.params.orderId,
+      userId: req.user.id
+    })
+      .populate("orderItems.productId")
+      .populate("addressId")
+      .populate("userId");
 
-        if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
+    if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
 
-        const doc = new PDFDocument({ margin: 50 });
+    const doc = new PDFDocument({ margin: 50 });
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=invoice-${order.orderId}.pdf`);
-        doc.pipe(res);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=invoice-${order.orderId}.pdf`);
+    doc.pipe(res);
 
-        // --- Header ---
-        doc.fontSize(25).text('INVOICE', { align: 'center' });
-        doc.moveDown();
+    // ---------- HEADER ----------
+    doc
+      .fontSize(28)
+      .font("Helvetica-Bold")
+      .text("INVOICE", { align: "center" });
+    doc.moveDown();
 
-        // --- Order and Customer Details ---
-        doc.fontSize(12).text(`Invoice for Order: ${order.orderId}`, { continued: true }).text('', { continued: false });
-        doc.text(`Date: ${order.createdAt.toDateString()}`, { continued: true }).text('', { continued: false });
-        doc.text(`Status: ${order.status}`);
-        doc.moveDown();
+    // ---------- ORDER DETAILS ----------
+    doc
+      .fontSize(12)
+      .font("Helvetica")
+      .text(`Order ID: `, { continued: true })
+      .font("Helvetica-Bold")
+      .text(`${order.orderId}`);
+    doc
+      .font("Helvetica")
+      .text(`Date: `, { continued: true })
+      .font("Helvetica-Bold")
+      .text(order.createdAt.toDateString());
+    doc
+      .font("Helvetica")
+      .text(`Status: `, { continued: true })
+      .font("Helvetica-Bold")
+      .text(order.status);
+    doc.moveDown(2);
 
-        doc.fontSize(12).text('Billed To:', { underline: true });
-        doc.text(`${order.userId?.name || 'N/A'}`);
-        doc.text(`${order.userId?.email || 'N/A'}`);
-        doc.moveDown();
+    // ---------- BILLING INFO ----------
+    doc.font("Helvetica-Bold").text("Billed To:");
+    doc.font("Helvetica").text(`${order.userId?.name || "N/A"}`);
+    doc.text(`${order.userId?.email || "N/A"}`);
+    doc.moveDown();
 
-        doc.text('Shipping Address:', { underline: true });
-        doc.text(`${order.addressId?.city || 'N/A'}, ${order.addressId?.state || 'N/A'}`);
-        doc.text(`Pincode: ${order.addressId?.pincode || 'N/A'}`);
-        doc.text(`Phone: ${order.addressId?.phoneNumber || 'N/A'}`);
-        doc.moveDown();
+    // ---------- SHIPPING INFO ----------
+    doc.font("Helvetica-Bold").text("Shipping Address:");
+    doc.font("Helvetica").text(
+      `${order.addressId?.city || "N/A"}, ${order.addressId?.state || "N/A"}`
+    );
+    doc.text(`Pincode: ${order.addressId?.pincode || "N/A"}`);
+    doc.text(`Phone: ${order.addressId?.phoneNumber || "N/A"}`);
+    doc.moveDown(2);
 
-        // --- Order Items Table ---
-        const table = {
-            headers: ['Product', 'Price', 'Quantity', 'Subtotal'],
-            rows: []
-        };
+    // ---------- ORDER ITEMS TABLE ----------
+    let grandTotal = 0;
+    const table = {
+      headers: ["Product", "Price", "Qty", "Subtotal"],
+      rows: []
+    };
 
-        let grandTotal = 0;
-        if (order.orderItems && order.orderItems.length > 0) {
-            order.orderItems.forEach(item => {
-                const price = item.productId?.price || 0;
-                const quantity = item.quantity || 0;
-                const subtotal = price * quantity;
-                grandTotal += subtotal;
+    if (order.orderItems && order.orderItems.length > 0) {
+      order.orderItems.forEach((item) => {
+        const price = item.productId?.price || 0;
+        const quantity = item.quantity || 0;
+        const subtotal = price * quantity;
+        grandTotal += subtotal;
 
-                table.rows.push([
-                    item.productId?.name || 'N/A',
-                    `₹${price.toFixed(2)}`,
-                    quantity,
-                    `₹${subtotal.toFixed(2)}`
-                ]);
-            });
-        }
-
-        const startY = doc.y;
-        doc.table(table, {
-            x: 50,
-            y: startY,
-            hideHeader: false,
-            columnsSize: [250, 70, 70, 100],
-            prepareHeader: () => doc.font('Helvetica-Bold').fontSize(10),
-            prepareRow: (row, i) => doc.font('Helvetica').fontSize(10),
-        });
-
-        // --- Total Price ---
-        doc.moveDown(2);
-        doc.fontSize(14).text(`Total Price: ₹${order.totalPrice?.toFixed(2) || '0.00'}`, { align: 'right' });
-
-        // --- Footer ---
-        doc.moveDown(5);
-        doc.fontSize(10).text('Thank you for your order!', { align: 'center' });
-
-        doc.end();
-
-    } catch (err) {
-        console.error(err);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
+        table.rows.push([
+          item.productId?.name || "N/A",
+          `₹${price.toFixed(2)}`,
+          quantity,
+          `₹${subtotal.toFixed(2)}`
+        ]);
+      });
     }
+
+    await doc.table(table, {
+      prepareHeader: () => doc.font("Helvetica-Bold").fontSize(12),
+      prepareRow: (row, i) => doc.font("Helvetica").fontSize(10),
+      columnSpacing: 10,
+      columnsSize: [200, 100, 70, 100],
+    });
+
+    doc.moveDown(2);
+
+    // ---------- TOTAL ----------
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(14)
+      .text(`Total Price: ₹${order.totalPrice?.toFixed(2) || "0.00"}`, {
+        align: "right",
+      });
+
+    doc.moveDown(3);
+
+    // ---------- FOOTER ----------
+    doc
+      .font("Helvetica-Oblique")
+      .fontSize(10)
+      .text("Thank you for shopping with us!", { align: "center" });
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
+  }
 };
+
+module.exports = { downloadInvoice };
 
 module.exports = {
     getMyOrders,

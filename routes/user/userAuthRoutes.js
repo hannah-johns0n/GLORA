@@ -4,36 +4,65 @@ const userController = require("../../controllers/user/userController");
 const cartController = require("../../controllers/user/cartController");
 const checkoutController = require("../../controllers/user/checkoutController");
 const orderController = require("../../controllers/user/orderController")
-const requireAuth = require('../../middileware/userAuth');
+const {requireAuth, isUserLoggedIn} = require('../../middileware/userAuth');
 const cartModel = require('../../models/cartModel');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
+require('../../config/passport')
 
-router.use(async (req,res,next)=>{
-    const token = req.cookies.jwt;
-    let cartCount = 0
-      if(token){
+router.use(async (req, res, next) => {
+  const token = req.cookies.jwt;
+  let cartCount = 0;
 
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const userId = decoded.id || decoded.userId;
-          if(userId){   
-              const cart = await cartModel.findOne({ userId: userId  })
-              cartCount = cart.items.length
-            }
-            
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.id || decoded.userId;
+
+      if (userId) {
+        const cart = await cartModel.findOne({ userId: userId });
+        if (cart && cart.items) {
+          cartCount = cart.items.length;
         }
-        res.locals.cartCount = cartCount
-        next()
-})
+      }
+    } catch (err) {
+      console.error("Cart middleware error:", err.message);
+    }
+  }
 
-router.get('/signup', userController.getSignup);
-router.post('/signup', userController.signup);
+  res.locals.cartCount = cartCount;
+  next();
+});
+
+
+router.get('/signup', isUserLoggedIn , userController.getSignup);
+router.post('/signup', isUserLoggedIn, userController.signup);
 
 router.get('/verify-otp', userController.getVerifyOtp);
 router.post('/verify-otp', userController.postVerifyOtp);
 router.get('/resend-otp', userController.resendOtp);
 
-router.get('/login', userController.getLogin);
-router.post('/login', userController.login);
+router.get('/login', isUserLoggedIn, userController.getLogin);
+router.post('/login', isUserLoggedIn , userController.login);
+
+router.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login' }),
+  (req, res) => {
+    const { token } = req.user;
+    res.cookie('jwt', token, 
+      { 
+        httpOnly: true ,
+         maxAge: 60 * 60 * 1000 
+
+      });
+    res.redirect('/');
+  }
+);
+
 
 router.post('/logout', userController.logout);
 
@@ -70,6 +99,7 @@ router.get('/change-email', requireAuth, userController.getChangeEmailPage);
 router.get('/verify-change-email-otp', requireAuth, userController.getVerifyEmailOtpPage);
 router.post('/send-change-email-otp', userController.sendChangeEmailOtp);
 router.post('/verify-change-email-otp', userController.verifyChangeEmailOtp);
+router.post('/save-new-email', requireAuth, userController.saveNewEmail);
 
 router.get('/cart', requireAuth, cartController.getCart);
 router.post('/cart/add/:id', requireAuth, cartController.addToCart);

@@ -10,7 +10,6 @@ const getCart = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Populate productId inside items
     const cart = await Cart.findOne({ userId }).populate('items.productId');
 
     if (!cart || cart.items.length === 0) {
@@ -18,7 +17,7 @@ const getCart = async (req, res) => {
     }
 
     res.render('user/cart', {
-      cart: cart.items, // send items array
+      cart: cart.items, 
       userName: req.user.name
     });
 

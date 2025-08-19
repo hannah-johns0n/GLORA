@@ -4,7 +4,7 @@ const STATUS_CODES = require('../../constants/statusCodes')
 const categoryInfo = async (req,res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 20; 
+        const limit = 10; 
         const skip = (page-1)*limit;
         const categoryDate = await Category.find({})
         .sort({createdAt : -1})
@@ -13,12 +13,13 @@ const categoryInfo = async (req,res) => {
 
         const totalCategory = await Category.countDocuments();
         const totalPages = Math.ceil( totalCategory / limit);
-        res.render("admin/category",{
-            categories : categoryDate,
-            currentPage : page,
-            totalPages : totalPages,
-            totalCategory : totalCategory
-        });
+        res.render("admin/category", {
+    categories: categoryDate,
+    currentPage: page,
+    totalPages: totalPages,
+    totalCategory: totalCategory
+});
+
     }
     catch (error){
         console.error(error);

@@ -5,7 +5,6 @@ const requireAuth = async (req, res, next) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    
     return res.redirect("/login");
   }
 
@@ -39,4 +38,47 @@ const requireAuth = async (req, res, next) => {
   }
 };
 
-module.exports = requireAuth;
+
+const isUserLoggedIn = async (req,res,next) =>{
+
+
+    const token = req.cookies.jwt;
+
+  if (!token) {
+    return next()
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id || decoded.userId;
+    if (!userId) {
+      res.clearCookie("jwt");
+      return next()
+    }
+
+
+    const user = await User.findById(userId).select("name email role isBlocked");
+
+    if (!user || user.role !== "user") {
+      res.clearCookie("jwt");
+      return next()
+    }
+
+    if (user.isBlocked) {
+      res.clearCookie("jwt");
+      return next()
+    }
+
+    req.user = user;
+    return res.redirect('/')
+
+
+
+
+}catch(err){
+  next()
+}
+
+}
+
+module.exports = {requireAuth, isUserLoggedIn};

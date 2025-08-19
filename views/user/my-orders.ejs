@@ -49,9 +49,14 @@
                             <div class="order-date">Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %></div>
                         </div>
                         
-                        <div class="order-status">
+                        <div class="order-status d-flex align-items-center">
                             <span class="status-badge <%= statusClass %>"><%= statusText %></span>
-                            <span class="status-date">
+                            <% if (order.status === 'Cancelled' && order.cancellationReason) { %>
+                                <span class="ms-2 text-muted">
+                                    <i class="fas fa-info-circle"></i> Reason: <%= order.cancellationReason %>
+                                </span>
+                            <% } %>
+                            <span class="status-date ms-auto">
                                 <% if (order.updatedAt) { %>
                                     Updated on <%= new Date(order.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
                                 <% } %>
@@ -95,12 +100,13 @@
                             
                             <% if(order.status === "Delivered") { %>
                                 <a href="/my-orders/<%= order.orderId %>/return-request" class="btn-return">
-                                    Return
+                                    <i class="fas fa-undo me-1"></i> Return
                                 </a>
-                            <% } else if(order.status !== "Cancelled" && order.status !== "Returned") { %>
-                                <button type="button" class="btn-cancel" data-bs-toggle="modal" data-bs-target="#cancelOrderModal<%= order.orderId %>">
-                                    Cancel Order
-                                </button>
+                            <% } else if(order.status === 'Pending' || order.status === 'Processing') { %>
+                                <button type="button" class="btn-cancel" onclick="cancelOrder('<%= order.orderId %>')">
+    <i class="fas fa-times-circle me-1"></i> Cancel Order
+</button>
+
                             <% } %>
                             
                             <a href="/my-orders/<%= order.orderId %>/invoice" class="btn-invoice">Download Invoice</a>
@@ -112,7 +118,9 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Cancel Order #<%= order.orderId %></h5>
+                                        <button type="button" class="btn-cancel" data-orderid="<%= order.orderId %>">
+                    <i class="fas fa-times-circle me-1"></i> Cancel Order
+                </button>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <form action="/my-orders/<%= order.orderId %>/cancel" method="POST" class="cancel-form" data-order-id="<%= order.orderId %>">
@@ -422,56 +430,50 @@
         }
     </style>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const cancelForms = document.querySelectorAll('.cancel-form');
+<script>
+async function cancelOrder(orderId) {
+    // Step 1: Ask for optional reason
+    const { value: reason } = await Swal.fire({
+        title: 'Reason for cancellation (optional)',
+        input: 'textarea',
+        inputPlaceholder: 'Why are you cancelling this order?',
+        showCancelButton: true,
+        confirmButtonText: 'Submit'
+    });
 
-            cancelForms.forEach(form => {
-                form.addEventListener('submit', async function(event) {
-                    event.preventDefault(); 
+    if (reason === undefined) return; // user cancelled input
 
-                    const reason = form.querySelector('textarea[name="reason"]').value;
-                    const url = form.action;
+    // Step 2: Ask for final confirmation
+    const confirm = await Swal.fire({
+        title: 'Are you sure?',
+        text: 'This will cancel your order.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, cancel it!'
+    });
 
-                    try {
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ reason: reason }), 
-                        });
+    if (!confirm.isConfirmed) return;
 
-                        const result = await response.json();
-
-                        if (response.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Success!',
-                                text: result.message,
-                                showConfirmButton: false,
-                                timer: 1500,
-                                willClose: () => {
-                                    window.location.reload(); 
-                                }
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error!',
-                                text: result.message || 'Something went wrong.',
-                            });
-                        }
-
-                    } catch (error) {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Failed to cancel the order.',
-                        });
-                    }
-                });
-            });
+    // Step 3: Send POST request to cancel
+    try {
+        const res = await fetch(`/my-orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason })
         });
-    </script>
+
+        const data = await res.json();
+
+        if (res.ok) {
+            Swal.fire('Cancelled!', data.message, 'success').then(() => window.location.reload());
+        } else {
+            Swal.fire('Error!', data.message, 'error');
+        }
+    } catch (err) {
+        console.error('Error cancelling order:', err);
+        Swal.fire('Error!', 'Something went wrong.', 'error');
+    }
+}
+</script>
+
+

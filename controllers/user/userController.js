@@ -96,7 +96,8 @@ const getVerifyOtp = async (req, res) => {
   const viewData = {
     email,
     error: null,
-    expiresIn: 300 
+    expiresIn: 300,
+    purpose: "verify"    
   };
   res.render("user/otp", viewData);
 };
@@ -123,7 +124,7 @@ const postVerifyOtp = async (req, res) => {
 
   await TempUser.deleteOne({ email });
 
-  res.redirect("/login");
+res.redirect("/login?signupSuccess=1");
 };
 
 const resendOtp = async (req, res) => {
@@ -145,6 +146,7 @@ const resendOtp = async (req, res) => {
     error: null,
     OTP : otp,
     ExpiresAt : otpExpires,
+    purpose: "verify"
   };
 
   await transporter.sendMail({
@@ -159,7 +161,8 @@ const resendOtp = async (req, res) => {
 
 const getLogin = (req, res) => {
   try {
-    res.render("user/login");
+  const signupSuccess = req.query.signupSuccess === "1";
+  res.render("user/login", { signupSuccess });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
   }
@@ -440,28 +443,28 @@ const verifyPasswordOtp = (req, res) => {
 
 const postVerifyPasswordOtp = async (req, res) => {
   try {
-    const { otp } = req.body;
-    const token = req.cookies.resetToken;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
-
+    const { otp, email } = req.body;   
     const record = await PasswordReset.findOne({ email });
     if (!record || record.otp !== otp || record.otpExpires < Date.now()) {
-      return res.render("user/otp", {email,error: "Invalid or expired OTP",purpose: "reset"});
+      return res.render("user/otp", {
+        email,
+        error: "Invalid or expired OTP",
+        purpose: "reset"
+      });
     }
 
     await PasswordReset.deleteOne({ email });
 
-    const allowResetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "10m" });
-    res.cookie("allowResetToken", allowResetToken, { httpOnly: true, maxAge: 10 * 60 * 1000 });
+    res.render("user/resetPassword", { error : null, email });
 
-    res.redirect("/reset-password");
-
-  }
-  catch (error) {
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
+  } catch (error) {
+    console.error(error);
+    res
+      .status(STATUS_CODES.INTERNAL_SERVER_ERROR)
+      .send("There is some internal error, so please try again later");
   }
 };
+
 
 const getResetPassword = (req, res) => {
   try {
@@ -479,28 +482,63 @@ const getResetPassword = (req, res) => {
 
 const postResetPassword = async (req, res) => {
   try {
-    const token = req.cookies.allowResetToken;
-    const { email } = jwt.verify(token, process.env.JWT_SECRET);
+    const { email, password, confirmPassword } = req.body;
 
-    const { password, confirmPassword } = req.body;
+    if (!email) {
+      return res.render("user/resetPassword", {
+        error: "Time expired. Please restart the reset flow.",
+        email: ""
+      });
+    }
+
+    if (!password || !confirmPassword) {
+      return res.render("user/resetPassword", {
+        error: "Both fields are required.",
+        email
+      });
+    }
+
     if (password !== confirmPassword) {
-      return res.render("user/resetPassword", { error: "Passwords do not match" });
+      return res.render("user/resetPassword", {
+        error: "Passwords do not match.",
+        email
+      });
     }
 
     const hash = await bcrypt.hash(password, 10);
-    await User.updateOne({ email }, { $set: { password: hash } });
 
-    await TempUser.deleteOne({ email });
+    // Try updating a real User first; if not found, try TempUser
+    let updated = await User.updateOne({ email }, { $set: { password: hash } });
+    if (!updated.matchedCount) {
+      updated = await TempUser.updateOne({ email }, { $set: { password: hash } });
+      if (!updated.matchedCount) {
+        return res.render("user/resetPassword", {
+          error: "Account not found for this email.",
+          email
+        });
+      }
+    }
+
+    // Cleanup (optional)
+    await PasswordReset.deleteOne({ email }).catch(() => {});
     res.clearCookie("allowResetToken");
     res.clearCookie("resetToken");
 
-    res.redirect("/login");
-
-  }
+return res.render("user/resetPassword", {
+  error: null,
+  email: "",
+  success: true
+});    
+  } 
   catch (error) {
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
+    console.error("postResetPassword error:", error);
+    return res.render("user/resetPassword", {
+      error: "Something went wrong. Please try again.",
+      email: req.body.email || ""
+    });
   }
 };
+
 
 const getProfilePage = async (req, res) => {
     try {
@@ -577,9 +615,9 @@ const getManageAddressPage = async (req, res) => {
     }
 };
 
-
 const getAddAddressPage = (req, res) => {
-    res.render('user/add-address', { userName: req.user.name });
+    const fromCheckout = req.query.fromCheckout === "true";  // ✅ capture flag
+    res.render('user/add-address', { userName: req.user.name, fromCheckout });
 };
 
 const postAddAddress = async (req, res) => {
@@ -633,10 +671,17 @@ const postAddAddress = async (req, res) => {
       phoneNumber
     });
 
-    return res.render('user/add-address', { 
+if (fromCheckout === "true") {
+      return res.redirect('/checkout');
+    }
+
+    // otherwise → stay in profile flow
+    return res.render('user/manage-address', { 
       userName: req.user.name, 
       success: 'Address added successfully!' 
     });
+
+
 
   } catch (err) {
     console.error(err);
@@ -736,7 +781,6 @@ const postEditAddress = async (req, res) => {
   }
 };
 
-
 const deleteAddress = async (req, res) => {
     try {
         await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
@@ -756,12 +800,14 @@ const getVerifyEmailOtpPage = (req, res) => {
     res.render('user/otp', { error: null });
 };
 
+let otpStore = {};
+
 const sendChangeEmailOtp = async (req, res) => {
     try {
         const { email } = req.body;
-        const userId = req.user._id; 
+const userId = req.user?._id || req.user?.id;
 
-        const otp = generateOtp();
+        const otp = generateOTP();
         otpStore[userId] = { otp, newEmail: email, expires: Date.now() + 5 * 60 * 1000 };
 
         await transporter.sendMail({
@@ -773,7 +819,7 @@ const sendChangeEmailOtp = async (req, res) => {
 
         console.log(`OTP for ${email} is ${otp}`);
 
-        res.render('user/otp', { error: null });
+        res.render('user/otp', { error: null, purpose: 'changeEmail', email});
     } 
     catch (error) {
         console.error('Error sending OTP:', error);
@@ -781,30 +827,77 @@ const sendChangeEmailOtp = async (req, res) => {
     }
 };
 
-
 const verifyChangeEmailOtp = async (req, res) => {
     try {
-        const { otp } = req.body;
-        const userId = req.user.id;
+        const { otp, email } = req.body;
+const userId = req.user?._id || req.user?.id;
         const stored = otpStore[userId];
-
+console.log(req.body)
         if (!stored) {
-            return res.render('user/otp', { error: 'OTP expired. Try again.' });
+            return res.render('user/otp', { 
+                error: 'OTP expired. Try again.', 
+                purpose: 'changeEmail',
+                email,
+                expiresIn: 300
+            });
         }
 
         if (stored.otp !== otp || Date.now() > stored.expires) {
-            return res.render('user/otp', { error: 'Invalid or expired OTP' });
+            return res.render('user/otp', { error: 'Invalid or expired OTP',purpose: 'changeEmail',email: stored.newEmail,expiresIn: Math.max(0, Math.floor((stored.expires - Date.now())/1000))
+            });
         }
 
         await User.findByIdAndUpdate(userId, { email: stored.newEmail });
 
         delete otpStore[userId]; 
-        res.send('Email changed successfully!');
-    }
+
+        return res.render("user/new-email", {   error: null,   userId });    
+
+}
     catch (err) {
+        console.error("Error verifying OTP:", err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error verifying OTP');
     }
 };
+
+const saveNewEmail = async (req, res) => {
+  try {
+    const { newEmail, confirmEmail } = req.body;
+    const userId = req.user._id;   
+
+    if (!newEmail || !confirmEmail) {
+      return res.render("user/new-email", { 
+        error: "Both fields are required!", 
+        newEmail 
+      });
+    }
+
+    if (newEmail !== confirmEmail) {
+      return res.render("user/new-email", { 
+        error: "Emails do not match!", 
+        newEmail 
+      });
+    }
+
+    await User.findByIdAndUpdate(userId, { email: newEmail });
+
+    delete otpStore[userId];
+
+    return res.render("user/change-email", { 
+      error: null, 
+      success: "Email changed successfully!" 
+    });
+
+  } catch (err) {
+    console.error("Error saving new email:", err);
+    return res.render("user/new-email", { 
+      error: "Something went wrong. Try again.", 
+      newEmail: req.body.newEmail 
+    });
+  }
+};
+
+
 
 
 module.exports = {
@@ -838,7 +931,8 @@ module.exports = {
   verifyChangeEmailOtp,
   sendChangeEmailOtp,
   getChangeEmailPage,
-  getVerifyEmailOtpPage
+  getVerifyEmailOtpPage,
+  saveNewEmail
 };
 
 

@@ -52,6 +52,7 @@ router.post('/toggle-product-block', productController.toggleProductBlock);
 router.get('/order-list', orderController.getAllOrders);
 router.get('/order-list/:id', orderController.getOrderDetails);
 router.post('/order-list/:id/status', orderController.updateOrderStatus);
-router.post('/order-list/:id/verify-return', orderController.verifyReturnRequest);
+router.get('/order-list/:id/verify-return', orderController.verifyReturnRequest);
+
 
 module.exports = router;

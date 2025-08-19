@@ -41,6 +41,33 @@ const customerInfo = async (req,res) =>{
     }
 }
 
+const customerListPage = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const totalCustomers = await User.countDocuments();
+
+    const customers = await User.find({})
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalCustomers / limit);
+
+    res.render('admin/customers', {
+      customers,
+      currentPage: page,
+      totalPages,
+      totalCustomers
+    });
+  } catch (error) {
+    console.error('Failed to load customers:', error);
+    res.status(500).send('Failed to load customers');
+  }
+};
+
 const toggleUserBlock = async (req, res) => {
     try {
         const { id } = req.body;
@@ -66,5 +93,6 @@ const toggleUserBlock = async (req, res) => {
 
 module.exports = {
     customerInfo,
-    toggleUserBlock
+    toggleUserBlock,
+    
 };
