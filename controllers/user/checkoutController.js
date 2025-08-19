@@ -4,7 +4,7 @@ const Order = require("../../models/orderModel");
 const Product = require("../../models/productModel");
 const STATUS_CODES = require('../../constants/statusCodes');
 const { v4: uuidv4 } = require('uuid');
-
+const shipping = 50;
 
 const  getCheckoutPage = async (req, res) => {
     try {
@@ -25,8 +25,7 @@ const  getCheckoutPage = async (req, res) => {
       });
 
       const tax = subtotal * 0.05;
-      const discount = 0; 
-      const shipping = 50; 
+      const discount = 0;  
       const finalTotal = subtotal + tax + shipping - discount;
 
       res.render("user/checkout", {

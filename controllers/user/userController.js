@@ -124,7 +124,7 @@ const postVerifyOtp = async (req, res) => {
 
   await TempUser.deleteOne({ email });
 
-res.redirect("/login?signupSuccess=1");
+res.redirect("/login?signupSuccess=1",);
 };
 
 const resendOtp = async (req, res) => {
@@ -539,6 +539,7 @@ return res.render("user/resetPassword", {
 const getProfilePage = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
+        const success = req.query.success || null;
 
         res.render('user/profile', {
             user,
@@ -881,10 +882,7 @@ const saveNewEmail = async (req, res) => {
 
     delete otpStore[userId];
 
-    return res.render("user/change-email", { 
-      error: null, 
-      success: "Email changed successfully!" 
-    });
+    return res.redirect("/profile?success=Email changed successfully!");
 
   } catch (err) {
     console.error("Error saving new email:", err);
