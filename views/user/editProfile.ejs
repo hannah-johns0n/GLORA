@@ -4,19 +4,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
-        /* Overall scale reduction */
         html {
             transform: scale(0.9);
             transform-origin: top center;
         }
 
-        /* Navbar height tweak */
         .navbar {
             padding-top: 0.3rem !important;
             padding-bottom: 0.3rem !important;
         }
 
-        /* Sidebar menu styles */
         .nav.flex-column .nav-link {
             font-weight: bold;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,7 +28,6 @@
             font-size: 1.1rem;
         }
 
-        /* Dark red buttons */
         .btn-dark-red {
             background-color: #450808;
             color: white !important;
@@ -44,17 +40,14 @@
             color: white !important;
         }
 
-        /* Labels */
         .form-label {
             font-weight: bold;
         }
 
-        /* Content wrapper */
         .content-wrapper {
             margin-top: 80px;
         }
 
-        /* Form button style */
         .btn-save {
             background-color: darkred;
             border: none;
@@ -67,7 +60,6 @@
             color: white;
         }
 
-        /* Error message styles */
         .error-message {
             color: #dc3545;
             font-size: 0.875rem;
@@ -82,13 +74,11 @@
             border-color: #198754;
         }
 
-        /* Loading spinner */
         .spinner-border-sm {
             width: 1rem;
             height: 1rem;
         }
 
-        /* Success message */
         .alert-success {
             background-color: #d1edff;
             border-color: #bee5eb;
@@ -98,7 +88,6 @@
 
     <div class="container-fluid content-wrapper">
         <div class="row">
-            <!-- Sidebar -->
             <div class="col-md-3 col-lg-2 bg-light border-end p-3">
                 <h5 class="mb-4"><%= user?.name || 'User' %></h5>
                 <ul class="nav flex-column">
@@ -135,7 +124,6 @@
                     <div class="col-md-9 col-lg-10 p-4">
                         <h2 class="fw-bold mb-4 text-center" style="color: #333;">Edit Personal Information</h2>
                         
-                        <!-- Alert Messages -->
                         <div id="alertContainer" class="mb-3" style="display: none;"></div>
 
                         <form id="profileForm" style="max-width: 600px; margin: 0 auto;" novalidate>
@@ -173,21 +161,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        // User data from EJS rendering
         const userData = {
             name: '<%= user?.name || "" %>',
             phoneNumber: '<%= user?.phoneNumber || "" %>',
             email: '<%= user?.email || "" %>'
         };
 
-        // Initialize form with user data
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('name').value = userData.name;
             document.getElementById('phoneNumber').value = userData.phoneNumber;
             document.getElementById('email').value = userData.email;
         });
 
-        // Validation functions
         function validateName(name) {
             if (!name || name.trim().length === 0) {
                 return 'Name is required';
@@ -205,7 +190,6 @@
             if (!phone || phone.trim().length === 0) {
                 return 'Mobile number is required';
             }
-            // Remove all non-digit characters for validation
             const cleanPhone = phone.replace(/\D/g, '');
             if (cleanPhone.length < 10) {
                 return 'Mobile number must be at least 10 digits';
@@ -227,7 +211,6 @@
             return null;
         }
 
-        // Show error message
         function showError(fieldId, message) {
             const field = document.getElementById(fieldId);
             
@@ -235,7 +218,6 @@
             field.classList.remove('is-valid');
         }
 
-        // Show success (clear error)
         function showSuccess(fieldId) {
             const field = document.getElementById(fieldId);
             
@@ -243,7 +225,6 @@
             field.classList.add('is-valid');
         }
 
-        // Clear all validations
         function clearValidations() {
             const fields = ['name', 'phoneNumber', 'email'];
             fields.forEach(fieldId => {
@@ -255,7 +236,6 @@
             });
         }
 
-        // Show alert message
         function showAlert(message, type = 'success') {
             const alertContainer = document.getElementById('alertContainer');
             const alertClass = type === 'danger' ? 'alert-danger' : `alert-${type}`;
@@ -268,10 +248,8 @@
             `;
             alertContainer.style.display = 'block';
             
-            // Scroll to alert if not visible
             alertContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Auto-hide success messages after 5 seconds, keep error messages until manually dismissed
             if (type === 'success') {
                 setTimeout(() => {
                     const alert = alertContainer.querySelector('.alert');
@@ -287,7 +265,6 @@
             }
         }
 
-        // Real-time validation
         document.getElementById('name').addEventListener('input', function() {
             const error = validateName(this.value);
             if (error) {
@@ -306,18 +283,15 @@
             }
         });
 
-        // Form submission
         document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Get form data
             const formData = {
                 name: document.getElementById('name').value.trim(),
                 phoneNumber: document.getElementById('phoneNumber').value.trim(),
                 email: document.getElementById('email').value.trim()
             };
 
-            // Validate all fields
             const nameError = validateName(formData.name);
             const phoneError = validatePhoneNumber(formData.phoneNumber);
             const emailError = validateEmail(formData.email);
@@ -350,7 +324,6 @@
                 return;
             }
 
-            // Show loading state
             const saveBtn = document.getElementById('saveBtn');
             const saveText = document.getElementById('saveText');
             const saveSpinner = document.getElementById('saveSpinner');
@@ -360,7 +333,6 @@
             saveSpinner.style.display = 'inline-block';
 
             try {
-                // Make fetch request
                 const response = await fetch('/profile/edit', {
                     method: 'POST',
                     headers: {
@@ -376,19 +348,15 @@
                         window.location.href = '/profile';
                     }, 2000);
                 } else {
-                    // Handle different status codes
                     let errorMessage = 'Failed to update profile. Please try again.';
                     
                     try {
                         const errorResult = await response.json();
                         
-                        // Handle validation errors from server
                         if (errorResult.errors && Array.isArray(errorResult.errors)) {
-                            // Display multiple validation errors
                             const errorMessages = errorResult.errors.map(err => err.message || err).join('<br>');
                             showAlert(errorMessages, 'danger');
                             
-                            // Highlight specific fields if field info is provided
                             errorResult.errors.forEach(err => {
                                 if (err.field) {
                                     showError(err.field, err.message);
@@ -403,7 +371,6 @@
                         }
                         
                     } catch (parseError) {
-                        // If JSON parsing fails, handle based on status code
                         switch (response.status) {
                             case 400:
                                 errorMessage = 'Invalid data provided. Please check your inputs.';
@@ -433,7 +400,6 @@
             } catch (error) {
                 console.error('Error:', error);
                 
-                // Check if it's a network error
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
                     showAlert('Network error: Please check your internet connection and try again.', 'danger');
                 } else if (error.name === 'AbortError') {
@@ -442,7 +408,6 @@
                     showAlert('An unexpected error occurred while updating your profile. Please try again later.', 'danger');
                 }
             } finally {
-                // Reset loading state
                 saveBtn.disabled = false;
                 saveText.style.display = 'inline';
                 saveSpinner.style.display = 'none';

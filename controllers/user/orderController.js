@@ -60,7 +60,7 @@ const cancelOrder = async (req, res) => {
         }
 
         const order = await Order.findOne({
-        orderId: orderId, // use your UUID field
+        orderId: orderId, 
         userId: req.user.id,
         })
 
@@ -112,10 +112,8 @@ const cancelProduct = async (req, res) => {
             return res.status(STATUS_CODES.BAD_REQUEST).send("This item cannot be cancelled");
         }
 
-        // restore stock
         await Product.findByIdAndUpdate(productId, { $inc: { stock: item.quantity } });
 
-        // update status and reason
         item.status = "Cancelled";
         item.cancelReason = reason || "No reason provided";
 
@@ -193,14 +191,12 @@ const downloadInvoice = async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename=invoice-${order.orderId}.pdf`);
     doc.pipe(res);
 
-    // ---------- HEADER ----------
     doc
       .fontSize(28)
       .font("Helvetica-Bold")
       .text("INVOICE", { align: "center" });
     doc.moveDown();
 
-    // ---------- ORDER DETAILS ----------
     doc
       .fontSize(12)
       .font("Helvetica")
@@ -219,13 +215,11 @@ const downloadInvoice = async (req, res) => {
       .text(order.status);
     doc.moveDown(2);
 
-    // ---------- BILLING INFO ----------
     doc.font("Helvetica-Bold").text("Billed To:");
     doc.font("Helvetica").text(`${order.userId?.name || "N/A"}`);
     doc.text(`${order.userId?.email || "N/A"}`);
     doc.moveDown();
 
-    // ---------- SHIPPING INFO ----------
     doc.font("Helvetica-Bold").text("Shipping Address:");
     doc.font("Helvetica").text(
       `${order.addressId?.city || "N/A"}, ${order.addressId?.state || "N/A"}`
@@ -234,7 +228,6 @@ const downloadInvoice = async (req, res) => {
     doc.text(`Phone: ${order.addressId?.phoneNumber || "N/A"}`);
     doc.moveDown(2);
 
-    // ---------- ORDER ITEMS TABLE ----------
     let grandTotal = 0;
     const table = {
       headers: ["Product", "Price", "Qty", "Subtotal"],
@@ -266,7 +259,6 @@ const downloadInvoice = async (req, res) => {
 
     doc.moveDown(2);
 
-    // ---------- TOTAL ----------
     doc
       .font("Helvetica-Bold")
       .fontSize(14)
@@ -276,7 +268,6 @@ const downloadInvoice = async (req, res) => {
 
     doc.moveDown(3);
 
-    // ---------- FOOTER ----------
     doc
       .font("Helvetica-Oblique")
       .fontSize(10)

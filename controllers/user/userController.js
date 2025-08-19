@@ -124,7 +124,7 @@ const postVerifyOtp = async (req, res) => {
 
   await TempUser.deleteOne({ email });
 
-res.redirect("/login?signupSuccess=1");
+res.redirect("/login?signupSuccess=1",);
 };
 
 const resendOtp = async (req, res) => {
@@ -506,7 +506,6 @@ const postResetPassword = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // Try updating a real User first; if not found, try TempUser
     let updated = await User.updateOne({ email }, { $set: { password: hash } });
     if (!updated.matchedCount) {
       updated = await TempUser.updateOne({ email }, { $set: { password: hash } });
@@ -518,7 +517,6 @@ const postResetPassword = async (req, res) => {
       }
     }
 
-    // Cleanup (optional)
     await PasswordReset.deleteOne({ email }).catch(() => {});
     res.clearCookie("allowResetToken");
     res.clearCookie("resetToken");
@@ -541,6 +539,7 @@ return res.render("user/resetPassword", {
 const getProfilePage = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
+        const success = req.query.success || null;
 
         res.render('user/profile', {
             user,
@@ -883,10 +882,7 @@ const saveNewEmail = async (req, res) => {
 
     delete otpStore[userId];
 
-    return res.render("user/change-email", { 
-      error: null, 
-      success: "Email changed successfully!" 
-    });
+    return res.redirect("/profile?success=Email changed successfully!");
 
   } catch (err) {
     console.error("Error saving new email:", err);
@@ -896,8 +892,6 @@ const saveNewEmail = async (req, res) => {
     });
   }
 };
-
-
 
 
 module.exports = {

@@ -118,21 +118,17 @@
 
   <%- include('../partials/user/footer') %>
 
-  <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <script>
-    // Make sure Swal is available globally
     window.Swal = Swal;
     
-    // Simple image thumbnail click handler
     document.addEventListener('DOMContentLoaded', function() {
       const thumbnails = document.querySelectorAll('.thumbnail');
       const mainImage = document.getElementById('mainImage');
       
-      // Handle thumbnail clicks
       thumbnails.forEach(thumb => {
         thumb.addEventListener('click', function() {
           mainImage.src = this.src;
@@ -141,19 +137,16 @@
         });
       });
 
-      // Handle add to cart button
       const addToCartBtn = document.getElementById('addToCartBtn');
       if (addToCartBtn) {
         addToCartBtn.addEventListener('click', async function(e) {
           console.log('Add to cart button clicked');
-          // Prevent default form submission
           e.preventDefault();
           e.stopPropagation();
           const productId = this.getAttribute('data-id');
           const btnText = this.textContent;
           console.log('Product ID:', productId);
           
-          // Disable button and show loading
           this.disabled = true;
           this.textContent = 'Adding...';
           
@@ -172,7 +165,6 @@
                           console.log(result)
             
             if (response.ok) {
-              // Show success message - basic version
               Swal.fire({
                 title: 'Success!',
                 text: 'Product added to cart',
@@ -180,7 +172,6 @@
                 confirmButtonText: 'OK'
               });
               
-              // Update cart count if element exists
               const cartCountElement = document.querySelector('.cart-count');
               if (cartCountElement) {
                 cartCountElement.textContent = result.cartCount || 0;
@@ -197,7 +188,6 @@
               showConfirmButton: true
             });
           } finally {
-            // Re-enable button
             addToCartBtn.disabled = false;
             addToCartBtn.textContent = btnText;
           }
