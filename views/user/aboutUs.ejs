@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About GLORA - Premium Skincare & Beauty</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2c2c2c;
+            --secondary: #f8f7f4;
+            --accent: #c9a96e;
+            --text-primary: #2c2c2c;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #f8f7f4 0%, #ffffff 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--white);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* Header Styles */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link {
+            color: var(--text-primary) !important;
+            font-weight: 400;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--accent) !important;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=1200&auto=format&fit=crop') center/cover;
+            opacity: 0.1;
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease 0.3s forwards;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeInUp 1s ease 0.6s forwards;
+        }
+
+        .brand-pill {
+            background: var(--accent);
+            color: var(--white);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: var(--primary);
+            color: var(--white);
+            border: 2px solid var(--primary);
+            padding: 1rem 2rem;
+            font-weight: 500;
+            border-radius: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background: transparent;
+            color: var(--primary);
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 1rem 2rem;
+            font-weight: 500;
+            border-radius: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-custom:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 6rem 0;
+            background: var(--white);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 300;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mission Section */
+        .mission {
+            padding: 6rem 0;
+            background: var(--secondary);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .mission-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        /* Values Grid */
+        .values {
+            padding: 6rem 0;
+            background: var(--white);
+        }
+
+        .value-card {
+            padding: 3rem 2rem;
+            text-align: center;
+            height: 100%;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .value-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .value-icon {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .value-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .value-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Timeline */
+        .timeline-section {
+            padding: 6rem 0;
+            background: var(--secondary);
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: var(--accent);
+            top: 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: 0;
+            margin-right: auto;
+            text-align: right;
+            padding-right: 3rem;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: auto;
+            margin-right: 0;
+            text-align: left;
+            padding-left: 3rem;
+        }
+
+        .timeline-content {
+            width: 45%;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: 2rem;
+            border: 4px solid var(--white);
+        }
+
+        .timeline-year {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-description {
+            color: var(--text-secondary);
+        }
+
+        /* Team Section */
+        .team {
+            padding: 6rem 0;
+            background: var(--white);
+        }
+
+        .team-card {
+            border: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-radius: 0;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .team-card img {
+            height: 300px;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover img {
+            filter: grayscale(0%);
+        }
+
+        .team-info {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .team-role {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* FAQ Section */
+        .faq {
+            padding: 6rem 0;
+            background: var(--secondary);
+        }
+
+        .accordion {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .accordion-item {
+            border: none;
+            background: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .accordion-button {
+            background: var(--white);
+            border: none;
+            padding: 1.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            box-shadow: none;
+            border-radius: 0 !important;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+        }
+
+        .accordion-body {
+            background: var(--white);
+            padding: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 6rem 0;
+            background: var(--primary);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .cta .section-title {
+            color: var(--white);
+        }
+
+        .cta p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-cta {
+            background: var(--accent);
+            color: var(--primary);
+            border: 2px solid var(--accent);
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border-radius: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cta:hover {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2rem 0;
+                min-height: 80vh;
+            }
+            
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-left: 60px !important;
+                text-align: left !important;
+                padding-left: 2rem !important;
+                padding-right: 2rem !important;
+            }
+            
+            .timeline-dot {
+                left: 20px;
+                transform: none;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <%- include('../partials/user/header') %>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="brand-pill">About GLORA</span>
+                <h1 class="serif">Elevating beauty through pure, thoughtful skincare</h1>
+                <p>From carefully sourced ingredients to sustainable practices — our journey has been about creating products that honor both your skin and the earth.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="/shop" class="btn btn-primary-custom">Explore Products</a>
+                    <a href="/contact" class="btn btn-outline-custom">Get in Touch</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="container">
+            <div class="row">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-item fade-in">
+                        <div class="stat-number">50k+</div>
+                        <div class="stat-label">Happy Customers</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-item fade-in">
+                        <div class="stat-number">4.9/5</div>
+                        <div class="stat-label">Customer Rating</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-item fade-in">
+                        <div class="stat-number">120+</div>
+                        <div class="stat-label">Premium Products</div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <div class="stat-item fade-in">
+                        <div class="stat-number">18</div>
+                        <div class="stat-label">Beauty Experts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission">
+        <div class="container">
+            <h2 class="section-title serif">Our Mission</h2>
+            <div class="mission-content fade-in">
+                <p>We believe that exceptional skincare should be accessible to everyone. Our mission is to create a trusted destination for premium beauty essentials where quality ingredients, ethical sourcing, and transformative results come together seamlessly. We partner with conscious suppliers and obsess over every detail, from formulation to packaging, so you can focus on feeling confident in your own skin.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values">
+        <div class="container">
+            <h2 class="section-title serif">Our Values</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="value-card fade-in">
+                        <div class="value-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3 class="value-title">Pure Ingredients</h3>
+                        <p class="value-description">We source only the finest natural and scientifically-proven ingredients for maximum efficacy and safety.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="value-card fade-in">
+                        <div class="value-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3 class="value-title">Customer First</h3>
+                        <p class="value-description">Your skin's health and happiness are our priority. We provide personalized support every step of the way.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="value-card fade-in">
+                        <div class="value-icon">
+                            <i class="fas fa-recycle"></i>
+                        </div>
+                        <h3 class="value-title">Sustainability</h3>
+                        <p class="value-description">Eco-conscious packaging and ethical practices that respect both your skin and our planet.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="value-card fade-in">
+                        <div class="value-icon">
+                            <i class="fas fa-microscope"></i>
+                        </div>
+                        <h3 class="value-title">Innovation</h3>
+                        <p class="value-description">Cutting-edge formulations backed by science and enhanced by nature's wisdom.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section class="timeline-section">
+        <div class="container">
+            <h2 class="section-title serif">Our Journey</h2>
+            <div class="timeline">
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2022 — The Beginning</div>
+                        <p class="timeline-description">Founded with a vision to make premium skincare accessible. Launched our first 10 carefully curated products.</p>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2023 — Growing Trust</div>
+                        <p class="timeline-description">Established our quality lab and expanded our product line based on customer feedback and skin science research.</p>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2024 — Community Focus</div>
+                        <p class="timeline-description">Introduced our loyalty program and reached 25k+ satisfied customers who trust GLORA for their daily skincare rituals.</p>
+                    </div>
+                </div>
+                <div class="timeline-item fade-in">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-year">2025 — Future Forward</div>
+                        <p class="timeline-description">Expanding our sustainable packaging initiative and launching personalized skincare consultations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team">
+        <div class="container">
+            <h2 class="section-title serif">Meet Our Team</h2>
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card team-card fade-in">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop" class="card-img-top" alt="Aarav Sharma">
+                        <div class="team-info">
+                            <h5 class="team-name">Aarav Sharma</h5>
+                            <p class="team-role">Founder & CEO</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card team-card fade-in">
+                        <img src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=800&auto=format&fit=crop" class="card-img-top" alt="Neha Patil">
+                        <div class="team-info">
+                            <h5 class="team-name">Neha Patil</h5>
+                            <p class="team-role">Head of Operations</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card team-card fade-in">
+                        <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=800&auto=format&fit=crop" class="card-img-top" alt="Rahul Verma">
+                        <div class="team-info">
+                            <h5 class="team-name">Rahul Verma</h5>
+                            <p class="team-role">Product Development</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="card team-card fade-in">
+                        <img src="https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=800&auto=format&fit=crop" class="card-img-top" alt="Sana Khan">
+                        <div class="team-info">
+                            <h5 class="team-name">Sana Khan</h5>
+                            <p class="team-role">Customer Success</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <div class="container">
+            <h2 class="section-title serif">Frequently Asked Questions</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item fade-in">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Where do you source your ingredients?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We partner with certified organic farms and ethical suppliers worldwide to source the highest quality natural ingredients for our formulations.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item fade-in">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            What's your return policy?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            We offer a 30-day satisfaction guarantee. If you're not completely happy with your purchase, we'll provide a full refund or exchange.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item fade-in">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Are your products cruelty-free?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Absolutely. GLORA is proudly cruelty-free and we never test on animals. We're committed to ethical beauty practices.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item fade-in">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Do you offer personalized skincare advice?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! Our skincare experts are available for personalized consultations to help you build the perfect routine for your unique skin needs.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="section-title serif">Ready to Transform Your Skin?</h2>
+                    <p>Join thousands of satisfied customers who trust GLORA for their daily skincare rituals. Experience the difference that pure, thoughtful beauty can make.</p>
+                    <a href="/contact" class="btn btn-cta">Start Your Journey</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Fade in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Header background on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+    </script>
+</body>
+  <%- include('../partials/user/footer') %>
+</html>

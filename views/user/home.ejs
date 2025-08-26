@@ -4,6 +4,18 @@
     window.location.href = "/login?blocked=1";
   </script>
 <% } %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLORA - Professional Beauty</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="styles/bootstrap4/bootstrap.min.css" rel="stylesheet">
+  <link href="plugins/OwlCarousel2-2.2.1/owl.carousel.css" rel="stylesheet">
+  <link href="plugins/OwlCarousel2-2.2.1/owl.theme.default.css" rel="stylesheet">
+</head>
 <body>
 
 <div class="super_container">
@@ -11,64 +23,458 @@
  <%- include('../partials/user/header', { userName: userName }) %>
 
  <style>
-    body {
-      background: #fafafa;
-      font-family: 'Poppins', sans-serif;
+    
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .section_title {
-      font-size: 28px; 
-      font-weight: 700;
+    body {
+      background: var(--bg-light);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--dark-text);
+      overflow-x: hidden;
+    }
+
+    /* Hero Section Enhancements */
+    .home {
+      position: relative;
+      height: 100vh;
+      min-height: 600px;
+      overflow: hidden;
+    }
+
+    .home_slider_container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .home_slider {
+      height: 100%;
+    }
+
+    .home_slider .owl-item {
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    .owl-item > div {
+      height: 100%;
+      position: relative;
+    }
+
+    .owl-item-inner {
+      height: 100vh;
+      min-height: 600px;
+      position: relative;
+      width: 100%;
+    }
+
+    .home_slider_background {
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      flex-shrink: 0;
+    }
+
+    .home_slider_background::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--gradient-overlay);
+      z-index: 1;
+    }
+
+    .home_slider_content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .home_slider_content_inner {
+      text-align: center;
+      color: white;
+      max-width: 600px;
+      padding: 0 20px;
+      animation: fadeInUp 1.2s ease-out;
+      background: none;   
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .home_slider_subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0.9;
+      text-shadow: 0px 3px 6px rgba(0,0,0,0.6);
+    }
+
+    .home_slider_title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 600;
       letter-spacing: 1px;
+      line-height: 1.2;
+      margin-bottom: 30px;
+      color: white;
+      text-shadow: 0px 3px 6px rgba(0,0,0,0.6);
+      justify-content: center;  /* ✅ centers text horizontally */
+  align-items: center; 
+  width: 100% !important;
+    }
+
+    /* Navigation Dots */
+    .home_slider_dots_container {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+    }
+
+    .home_slider_custom_dots {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .home_slider_custom_dot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .home_slider_custom_dot div {
+      width: 30px;
+      height: 2px;
+      background: rgba(255,255,255,0.4);
+      transition: all 0.3s ease;
+    }
+
+    .home_slider_custom_dot.active {
+      color: white;
+    }
+
+    .home_slider_custom_dot.active div {
+      background: white;
+      width: 40px;
+    }
+
+    /* Next Arrow */
+    .home_slider_next {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 3;
+    }
+
+    .home_slider_next:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    /* Section Styling */
+    .section-spacing {
+      padding: 100px 0;
+    }
+
+    .section_title_container {
+      margin-bottom: 60px;
+      position: relative;
     }
 
     .section_subtitle {
-      color: #b88f3b;
+      font-family: 'Inter', sans-serif;
+      color: var(--primary-gold);
       font-size: 12px;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 2px;
+      margin-bottom: 15px;
+      position: relative;
     }
 
-    .card {
-      border: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      border-radius: 8px;
-      background: #fff;
+    .section_subtitle::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 2px;
+      background: var(--primary-gold);
     }
 
-    .card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    .card-title {
-      font-size: 15px;
+    .section_title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 40px);
       font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--dark-text);
+      line-height: 1.3;
     }
 
-    .card img {
-      transition: transform 0.3s ease;
+    /* Product Cards */
+    .arrivals {
+      background: var(--bg-white);
+      padding: 100px 0;
     }
 
-    .card:hover img {
-      transform: scale(1.05);
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 60px;
     }
 
-    .btn {
+    .product-card {
+      background: var(--bg-white);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-light);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      height: 100%;
+    }
+
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(201,168,118,0.03) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    .product-image-container {
+      height: 250px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .product-card img {
+      max-width: 85%;
+      max-height: 85%;
+      object-fit: contain;
+      transition: transform 0.4s ease;
+    }
+
+    .product-card:hover img {
+      transform: scale(1.08);
+    }
+
+    .product-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #adb5bd;
+      font-size: 2.5rem;
+      background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    }
+
+    .product-info {
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    .product-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark-text);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .product-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary-gold);
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Gallery Section */
+    .gallery {
+      position: relative;
+      padding: 100px 0;
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      min-height: 400px;
+    }
+
+    .gallery::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(44, 44, 44, 0.8);
+      z-index: 1;
+    }
+
+    .gallery .container {
+      position: relative;
+      z-index: 2;
+    }
+
+    .gallery_title {
+      margin-bottom: 30px;
+    }
+
+    .gallery_title ul {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .gallery_title a {
+      color: var(--primary-gold-light);
+      font-size: 18px;
+      font-weight: 500;
+      text-decoration: none;
       transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
     }
 
-    .btn:hover {
-      background: #b88f3b;
-      color: #fff;
+    .gallery_title a:hover {
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .gallery_text {
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+      font-weight: 300;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .home {
+        height: 70vh;
+        min-height: 500px;
+      }
+      
+      .home_slider_next {
+        right: 20px;
+      }
+      
+      .home_slider_dots_container {
+        bottom: 20px;
+      }
+      
+      .product-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+      
+      .section-spacing {
+        padding: 60px 0;
+      }
+      
+      .gallery_title ul {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+
+    /* Loading Animation */
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Scroll Reveal Animation */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease-out;
+    }
+
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
     }
   </style>
 
+    <!-- Hero Section -->
     <div class="home">
         <div class="home_slider_container">
             <div class="owl-carousel owl-theme home_slider">
-                <div class="owl-item">
+                <div class="owl-item-inner">
                     <div class="home_slider_background" style="background-image:url(images/home_slider_1.jpg)"></div>
                     <div class="home_slider_content">
                         <div class="home_slider_content_inner">
@@ -77,8 +483,28 @@
                         </div>    
                     </div>
                 </div>
+                <div class="owl-item-inner">
+                    <div class="home_slider_background" style="background-image:url(images/home_slider_2.jpg)"></div>
+                    <div class="home_slider_content">
+                        <div class="home_slider_content_inner">
+                            <div class="home_slider_subtitle">BEAUTY</div>
+                            <div class="home_slider_title">DISCOVER YOUR RADIANCE</div>
+                        </div>    
+                    </div>
+                </div>
+                <div class="owl-item-inner">
+                    <div class="home_slider_background" style="background-image:url(images/home_slider_3.jpg)"></div>
+                    <div class="home_slider_content">
+                        <div class="home_slider_content_inner">
+                            <div class="home_slider_subtitle">ELEGANCE</div>
+                            <div class="home_slider_title">TIMELESS BEAUTY</div>
+                        </div>    
+                    </div>
+                </div>
             </div>
-            <div class="home_slider_next d-flex flex-column align-items-center justify-content-center"><img src="images/arrow_r.png" alt=""></div>
+            <div class="home_slider_next d-flex flex-column align-items-center justify-content-center">
+                <img src="images/arrow_r.png" alt="">
+            </div>
             <div class="home_slider_dots_container">
                 <div class="container">
                     <div class="row">
@@ -97,55 +523,73 @@
         </div>
     </div>
 
-    <div class="promo">
-    </div>
-
+    <!-- Best Sellers Section -->
     <div class="arrivals">
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <div class="section_title_container text-center">
+                    <div class="section_title_container text-center scroll-reveal">
                         <div class="section_subtitle">only the best</div>
                         <div class="section_title">OUR BEST SELLERS</div>
                     </div>
                 </div>
             </div>
-            <div class="row justify-content-center">
+            
+            <div class="product-grid scroll-reveal">
               <% if (products && products.length) { %>
-                <% products.forEach(function(product) { %>
+                <% products.forEach(function(product, index) { %>
                   <% if (!product.isBlocked) { %>
-                  <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="card h-100">
-                      <div class="p-2" style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; overflow: hidden;">
-                        <% if (product.images && product.images[0]) { %>
-                          <img src="/uploads/products/<%= product.images[0] %>" 
-                               alt="<%= product.productName %>" 
-                               style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                        <% } else { %>
-                          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 2rem;">
-                            <i class="fas fa-image"></i>
-                          </div>
-                        <% } %>
-                      </div>
-                      <div class="card-body text-center">
-                        <h5 class="card-title mb-2"><%= product.productName %></h5>
-                        <div class="mb-1">₹<%= product.salesPrice ? product.salesPrice.toLocaleString('en-IN') : 'N/A' %></div>
-                      </div>
+                  <div class="product-card fade-in" style="animation-delay: <%= index * 0.1 %>s;">
+                    <div class="product-image-container">
+                      <% if (product.images && product.images[0]) { %>
+                        <img src="/uploads/products/<%= product.images[0] %>" 
+                             alt="<%= product.productName %>">
+                      <% } else { %>
+                        <div class="product-placeholder">
+                          <i class="fas fa-image"></i>
+                        </div>
+                      <% } %>
+                    </div>
+                    <div class="product-info">
+                      <h5 class="product-title"><%= product.productName %></h5>
+                      <div class="product-price">₹<%= product.salesPrice ? product.salesPrice.toLocaleString('en-IN') : 'N/A' %></div>
                     </div>
                   </div>
                   <% } %>
                 <% }); %>
               <% } else { %>
-                <div class="col-12 text-center text-muted">No products available.</div>
+                <div class="col-12 text-center" style="grid-column: 1 / -1; padding: 60px 20px; color: var(--light-text);">
+                  <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;"></i>
+                  <p style="font-size: 18px; margin: 0;">No products available at the moment.</p>
+                </div>
               <% } %>
             </div>
         </div>
     </div>
 
-    <div class="extra clearfix">
+    <!-- Gallery Section -->
+    <div class="gallery" style="background-image:url(images/gallery.jpg)">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="gallery_title text-center scroll-reveal">
+                        <ul>
+                            <li><a href="#">#GLORA</a></li>
+                            <li><a href="#">#glorainstagram</a></li>
+                        </ul>
+                    </div>
+                    <div class="gallery_text text-center scroll-reveal">
+                      We've designed this site with care so sit back, explore, and enjoy your time here
+                    </div>
+              </div> 
+            </div>
+        </div>    
     </div>
 
+<%- include('../partials/user/footer')  %>
+</div>
 
+<!-- Success Message -->
 <% if (typeof loginSuccess !== 'undefined' && loginSuccess) { %>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
@@ -153,35 +597,14 @@
       icon: 'success',
       title: 'Logged in successfully!',
       showConfirmButton: false,
-      timer: 1500
+      timer: 1500,
+      toast: true,
+      position: 'top-end'
     });
   </script>
 <% } %>
-    <div class="gallery">
-        <div class="gallery_image" style="background-image:url(images/gallery.jpg)"></div>
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                    <div class="gallery_title text-center">
-                        <ul>
-                            <li><a href="#">#GLORA</a></li>
-                            <li><a href="#">#glorainstagram</a></li>
-                        </ul>
-                    </div>
-                    <div class="gallery_text text-center">
-                      We’ve designed this site with care so sit back, explore, and enjoy your time here
-                    </div>
-              </div> 
-            </div>
-        </div>    
-    </div>
 
-    <div class="newsletter">
-    </div>
-
-<%- include('../partials/user/footer')  %>
-</div>
-
+<!-- Scripts -->
 <script src="js/jquery-3.2.1.min.js"></script>
 <script src="styles/bootstrap4/popper.js"></script>
 <script src="styles/bootstrap4/bootstrap.min.js"></script>
@@ -190,7 +613,9 @@
 <script src="plugins/parallax-js-master/parallax.min.js"></script>
 <script src="plugins/colorbox/jquery.colorbox-min.js"></script>
 <script src="js/custom.js"></script>
+
 <script>
+  // Block check functionality (unchanged)
   setInterval(async function() {
     try {
       const res = await fetch('/user/check-blocked', { credentials: 'same-origin' });
@@ -198,19 +623,68 @@
         window.location.href = '/login?blocked=1';
       }
     } catch (e) {
+      // Silent fail
     }
   }, 30000);
 
+  // Carousel initialization
   $(document).ready(function(){
+    // Initialize Owl Carousel with proper settings
     $('.home_slider').owlCarousel({
       items: 1,
       loop: true,
       autoplay: true,
       autoplayTimeout: 5000,
-      dots: true,
-      nav: false
+      dots: false,
+      nav: false,
+      animateOut: 'fadeOut',
+      animateIn: 'fadeIn',
+      smartSpeed: 1000,
+      autoHeight: false,
+      responsive: {
+        0: {
+          items: 1
+        },
+        768: {
+          items: 1
+        },
+        1024: {
+          items: 1
+        }
+      }
+    });
+
+    // Fix carousel height after initialization
+    setTimeout(function() {
+      $('.home_slider').trigger('refresh.owl.carousel');
+    }, 100);
+
+    // Scroll reveal animation
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Parallax effect for gallery
+    $(window).scroll(function() {
+      const scrolled = $(this).scrollTop();
+      $('.gallery').css('background-position', 'center ' + (scrolled * 0.5) + 'px');
     });
   });
+
 </script>
+
 </body>
 </html>

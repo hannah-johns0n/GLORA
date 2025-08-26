@@ -23,26 +23,41 @@
         <% if (orders && orders.length > 0) { %>
             <div class="orders-list">
                 <% orders.forEach(order => { 
-                    let statusClass = 'pending';
-                    let statusText = 'Pending';
-                    
-                    if (order.status === 'Processing') {
-                        statusClass = 'processing';
-                        statusText = 'Processing';
-                    } else if (order.status === 'Shipped') {
-                        statusClass = 'shipped';
-                        statusText = 'Shipped';
-                    } else if (order.status === 'Delivered') {
-                        statusClass = 'delivered';
-                        statusText = 'Delivered';
-                    } else if (order.status === 'Cancelled') {
-                        statusClass = 'cancelled';
-                        statusText = 'Cancelled';
-                    } else if (order.status === 'Returned') {
-                        statusClass = 'returned';
-                        statusText = 'Returned';
-                    }
-                %>
+    let statusClass = 'pending';
+    let statusText = 'Pending';
+
+    switch(order.status) {
+        case 'Processing':
+            statusClass = 'processing';
+            statusText = 'Processing';
+            break;
+        case 'Shipped':
+            statusClass = 'shipped';
+            statusText = 'Shipped';
+            break;
+        case 'Delivered':
+            statusClass = 'delivered';
+            statusText = 'Delivered';
+            break;
+        case 'Cancelled':
+            statusClass = 'cancelled';
+            statusText = 'Cancelled';
+            break;
+        case 'Returned':
+            statusClass = 'returned';
+            statusText = 'Returned';
+            break;
+        case 'Return-Request':
+            statusClass = 'return-request';
+            statusText = 'Return Request';
+            break;
+        case 'Return-Rejected':
+            statusClass = 'return-rejected';
+            statusText = 'Return Rejected';
+            break;
+    }
+%>
+
                     <div class="order-card">
                         <div class="order-header">
                             <div class="order-id">Order #<%= order.orderId %></div>
@@ -228,6 +243,18 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+
+        .status-badge.return-rejected {
+    background-color: #f8d7da;  
+    color: #721c24;             
+}
+
+
+.status-badge.return-request {
+    background-color: #fff3cd;  
+    color: #856404;           
+}
+
         
         .status-date {
             color: #666;
@@ -427,7 +454,9 @@
             .order-actions {
                 flex-wrap: wrap;
             }
+
         }
+        
     </style>
 
 <script>

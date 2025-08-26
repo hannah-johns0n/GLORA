@@ -16,6 +16,13 @@ const getCart = async (req, res) => {
       return res.render('user/cart', { cart: [], userName: req.user.name });
     }
 
+    const originalLength = cart.items.length;
+    cart.items = cart.items.filter(item => item.productId && !item.productId.isBlocked);
+    
+    if (cart.items.length !== originalLength) {
+      await cart.save();
+    }
+
     res.render('user/cart', {
       cart: cart.items, 
       userName: req.user.name
@@ -46,8 +53,8 @@ const addToCart = async (req, res) => {
       return res.json({ success: false, message: 'Product is out of stock' });
     }
 
-    await Wishlist.updateOne({ userId }, { $pull: { products: productId } });
-
+ await Wishlist.deleteOne({ userId: userId, productId: productId })
+ 
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = new Cart({ userId, items: [] });

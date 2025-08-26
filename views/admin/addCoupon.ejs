@@ -1,0 +1,227 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+    .page-container {
+        background-color: #f8f9fa; 
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .card.shadow-form {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+    
+    .card.shadow-form:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px);
+    }
+
+    .card-header.form-header {
+        background: linear-gradient(135deg, #6c0d0d, #470404);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .card-header.form-header h4 {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-label.fw-bold {
+        color: #343a40; 
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border-right: 0;
+        color: #6c757d;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-switch .form-check-input {
+        width: 3.5em;
+        height: 1.75em;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280,0,0,0.25%29'/%3e%3c/svg%3e");
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: #198754; 
+        border-color: #198754;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+
+    .form-switch .form-check-label {
+        padding-left: 0.5em;
+        font-weight: 500;
+    }
+
+    #statusLabel.text-success {
+        color: #198754 !important;
+    }
+
+    #statusLabel.text-danger {
+        color: #dc3545 !important;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+</style>
+<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+<div class="page-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-form">
+                    <div class="card-header form-header">
+                        <h4><i class="fas fa-ticket-alt me-2"></i>Create New Coupon</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="/admin/coupons/add" method="POST" id="addCouponForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="couponCode" class="form-label fw-bold">Coupon Code</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-barcode"></i></span>
+                                            <input type="text" name="couponCode" id="couponCode" class="form-control" placeholder="e.g., SUMMER25" required style="text-transform:uppercase">
+                                            <button type="button" class="btn btn-outline-secondary" id="generateCodeBtn">Generate</button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="description" class="form-label fw-bold">Description</label>
+                                        <textarea name="description" id="description" class="form-control" rows="3" placeholder="Describe the offer, e.g., 'Special discount for summer season'" required></textarea>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="discountType" class="form-label fw-bold">Discount Type</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                            <select name="discountType" id="discountType" class="form-select" required>
+                                                <option value="Percentage">Percentage (%)</option>
+                                                <option value="Fixed Amount">Fixed Amount (₹)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="discountValue" class="form-label fw-bold">Discount Value</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text" id="discount-symbol">%</span>
+                                            <input type="number" name="discountValue" id="discountValue" class="form-control" placeholder="e.g., 15 or 500" required step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="mb-4">
+                                        <label for="minimumPurchaseAmount" class="form-label fw-bold">Minimum Purchase</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">₹</span>
+                                            <input type="number" name="minimumPurchaseAmount" id="minimumPurchaseAmount" class="form-control" placeholder="e.g., 1000" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="expiryDate" class="form-label fw-bold">Expiry Date</label>
+                                        <input type="date" name="expiryDate" id="expiryDate" class="form-control" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6 mb-4">
+                                            <label for="perUserLimit" class="form-label fw-bold">Limit Per User</label>
+                                            <input type="number" name="perUserLimit" id="perUserLimit" class="form-control" value="1" required>
+                                        </div>
+                                        <div class="col-6 mb-4">
+                                            <label for="maxUses" class="form-label fw-bold">Total Uses</label>
+                                            <input type="number" name="maxUses" id="maxUses" class="form-control" placeholder="e.g., 100" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Status</label>
+                                        <div class="form-check form-switch fs-5">
+                                            <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                            <label class="form-check-label" for="isActive" id="statusLabel">Active</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            <div class="text-end">
+                                <a href="/admin/coupons" class="btn btn-secondary btn-action me-2">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-action">
+                                    <i class="fas fa-save me-1"></i>Save Coupon
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Generate Random Coupon Code
+        const generateCodeBtn = document.getElementById('generateCodeBtn');
+        const couponCodeInput = document.getElementById('couponCode');
+
+        generateCodeBtn.addEventListener('click', () => {
+            const randomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+            couponCodeInput.value = randomCode;
+        });
+
+        // Update Discount Symbol
+        const discountTypeSelect = document.getElementById('discountType');
+        const discountSymbol = document.getElementById('discount-symbol');
+
+        discountTypeSelect.addEventListener('change', (e) => {
+            discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
+        });
+
+        // Set minimum date for expiry to today
+        const expiryDateInput = document.getElementById('expiryDate');
+        const today = new Date().toISOString().split('T')[0];
+        expiryDateInput.setAttribute('min', today);
+
+        // Toggle switch label
+        const isActiveSwitch = document.getElementById('isActive');
+        const statusLabel = document.getElementById('statusLabel');
+
+        const updateStatusLabel = () => {
+            if (isActiveSwitch.checked) {
+                statusLabel.textContent = 'Active';
+                statusLabel.classList.remove('text-danger');
+                statusLabel.classList.add('text-success');
+            } else {
+                statusLabel.textContent = 'Inactive';
+                statusLabel.classList.remove('text-success');
+                statusLabel.classList.add('text-danger');
+            }
+        };
+
+        isActiveSwitch.addEventListener('change', updateStatusLabel);
+        
+        // Initial check for status label color on page load
+        updateStatusLabel();
+    });
+</script>
+
+
+<%- include('../partials/admin/footer') %>

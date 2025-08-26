@@ -7,12 +7,13 @@ const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
 const Category = require('../../models/categoryModel');
 const TempUser = require('../../models/TempUser');
-dotenv.config();
-const PasswordReset = require('../../models/passwordResetModel');
+const Wishlist = require('../../models/wishlistModel');
 const Address = require('../../models/addressModel');
 const STATUS_CODES = require('../../constants/statusCodes');
 const fs = require('fs');
 
+dotenv.config();
+const PasswordReset = require('../../models/passwordResetModel');
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
@@ -107,13 +108,23 @@ const postVerifyOtp = async (req, res) => {
 
   const tempUser = await TempUser.findOne({ email });
 
-  if (!tempUser) {
-    return res.render("user/otp", { email, error: "No OTP found for this email", expiresIn: 300 });
-  }
+ if (!tempUser) {
+  return res.render("user/otp", { 
+    email, 
+    error: "No OTP found for this email", 
+    expiresIn: 300,
+    purpose: "verify" // add this
+  });
+}
 
-  if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
-    return res.render("user/otp", { email, error: "Invalid or expired OTP", expiresIn: 300 });
-  }
+if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
+  return res.render("user/otp", { 
+    email, 
+    error: "Invalid or expired OTP", 
+    expiresIn: 300,
+    purpose: "verify" // add this
+  });
+}
 
   await User.create({
     name: tempUser.name,
@@ -124,7 +135,7 @@ const postVerifyOtp = async (req, res) => {
 
   await TempUser.deleteOne({ email });
 
-res.redirect("/login?signupSuccess=1");
+res.redirect("/login?signupSuccess=1",);
 };
 
 const resendOtp = async (req, res) => {
@@ -246,6 +257,22 @@ const loadHomePage = async (req, res) => {
   }
 };
 
+const getAbout = (req, res) => {
+   let userName = null;
+    const token = req.cookies.jwt;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userName = decoded.name || null;
+      }
+       catch (err) {
+        userName = null;
+        user = null;
+      }
+    }
+  res.render("user/aboutUs"),{userName};
+};
+
 const getShopPage = async (req, res) => {
   try {
     const search = req.query.search || '';
@@ -256,7 +283,6 @@ const getShopPage = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
-
     const filter = {
       salesPrice: { $gte: minPrice, $lte: maxPrice }, 
       isBlocked: { $ne: true } 
@@ -270,33 +296,63 @@ const getShopPage = async (req, res) => {
       filter.productName = { $regex: search, $options: 'i' };
     }
 
-      const sortOption = {};
-        
-      if (sort === 'az') {
-        sortOption.productName = 1; 
-      } else if (sort === 'za') {
-        sortOption.productName = -1; 
-      } else if (sort === 'priceLowHigh') {
-        sortOption.salesPrice = 1; 
-      } else if (sort === 'priceHighLow') {
-        sortOption.salesPrice = -1; 
-      }
-
-
+    const sortOption = {};
+      
+    if (sort === 'az') {
+      sortOption.productName = 1; 
+    } else if (sort === 'za') {
+      sortOption.productName = -1; 
+    } else if (sort === 'priceLowHigh') {
+      sortOption.salesPrice = 1; 
+    } else if (sort === 'priceHighLow') {
+      sortOption.salesPrice = -1; 
+    }
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = await Product.find(filter)
+    let products = await Product.find(filter)
       .sort(sortOption)
       .skip(skip)
       .limit(limit);
-
+    products = products.map(product => product.toObject());
+    if (req.user) {
+      const wishlistItems = await Wishlist.find({ 
+        userId: req.user._id,
+        productId: { $in: products.map(p => p._id) }
+      });
+      const wishlistProductIds = new Set(wishlistItems.map(item => item.productId.toString()));
+      products = products.map(product => ({
+        ...product,
+        inWishlist: wishlistProductIds.has(product._id.toString())
+      }));
+    } else {
+      products = products.map(product => ({
+        ...product,
+        inWishlist: false
+      }));
+    }
     const categories = await Category.find({ isBlocked: false });
-
     const userName = req.user ? req.user.name : null;
-
     const url = req.originalUrl;
 
+    if (req.user) {
+  const wishlistItems = await Wishlist.find({ 
+    userId: req.user._id,
+    productId: { $in: products.map(p => p._id) }
+  });
+  const wishlistProductIds = new Set(
+    wishlistItems.map(item => item.productId.toString())
+  );
+  products = products.map(product => ({
+    ...product,
+    inWishlist: wishlistProductIds.has(product._id.toString())
+  }));
+} else {
+  products = products.map(product => ({
+    ...product,
+    inWishlist: false
+  }));
+}
     res.render('user/shop', {
       products,
       categories,
@@ -465,7 +521,6 @@ const postVerifyPasswordOtp = async (req, res) => {
   }
 };
 
-
 const getResetPassword = (req, res) => {
   try {
     const token = req.cookies.allowResetToken;
@@ -507,7 +562,6 @@ const postResetPassword = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // Try updating a real User first; if not found, try TempUser
     let updated = await User.updateOne({ email }, { $set: { password: hash } });
     if (!updated.matchedCount) {
       updated = await TempUser.updateOne({ email }, { $set: { password: hash } });
@@ -519,7 +573,6 @@ const postResetPassword = async (req, res) => {
       }
     }
 
-    // Cleanup (optional)
     await PasswordReset.deleteOne({ email }).catch(() => {});
     res.clearCookie("allowResetToken");
     res.clearCookie("resetToken");
@@ -539,10 +592,10 @@ return res.render("user/resetPassword", {
   }
 };
 
-
 const getProfilePage = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
+        const success = req.query.success || null;
 
         res.render('user/profile', {
             user,
@@ -553,21 +606,21 @@ const getProfilePage = async (req, res) => {
     }
 };
 
-const getEditProfilePage = (req, res) => {
+const getEditProfilePage = async (req, res) => {
 try {
 if (!req.user) {
    return res.redirect('/login');
  }
+
+ const user = await User.findById(req.user._id);
 res.render('user/editProfile', { 
- user: req.user, 
- userName: req.user.name 
+ user
  });
  } catch (error) {
  console.error('Error in getEditProfilePage:', error);
  res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
  }
 };
-
 
 const updateProfile = async (req, res) => {
   try {
@@ -587,14 +640,11 @@ const updateProfile = async (req, res) => {
     user.phoneNumber = phoneNumber;
     await user.save();
 
-    return res.send({ success: true, message: "Profile updated successfully!" });
-  } 
-  catch (error) {
-    console.log("Update profile error:", error.message);
-    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send({ success: false, message: "Something went wrong!" });
+    return res.json({ success: true, message: "Profile updated successfully!" });
+  } catch (error) {
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
   }
 };
-
 
 const getManageAddressPage = async (req, res) => {
     try {
@@ -616,12 +666,17 @@ const getManageAddressPage = async (req, res) => {
 };
 
 const getAddAddressPage = (req, res) => {
-    const fromCheckout = req.query.fromCheckout === "true";  // ✅ capture flag
+    const fromCheckout = req.query.fromCheckout === "true";  
     res.render('user/add-address', { userName: req.user.name, fromCheckout });
 };
 
 const postAddAddress = async (req, res) => {
   try {
+const user = await User.findById(req.user._id);
+const addresses = await Address.find({ userId: req.user._id });
+
+        const fromCheckout = req.body.fromCheckout === "true"; 
+
     if (!req.user.id) {
       return res.redirect('/login');
     }
@@ -671,16 +726,16 @@ const postAddAddress = async (req, res) => {
       phoneNumber
     });
 
-if (fromCheckout === "true") {
+if (fromCheckout) {
       return res.redirect('/checkout');
     }
 
-    // otherwise → stay in profile flow
-    return res.render('user/manage-address', { 
-      userName: req.user.name, 
-      success: 'Address added successfully!' 
-    });
-
+  return res.render('user/manage-address', { 
+  user,
+  userName: user.name,
+  addresses,
+  success: 'Address added successfully!'
+});
 
 
   } catch (err) {
@@ -883,10 +938,7 @@ const saveNewEmail = async (req, res) => {
 
     delete otpStore[userId];
 
-    return res.render("user/change-email", { 
-      error: null, 
-      success: "Email changed successfully!" 
-    });
+    return res.redirect("/profile?success=Email changed successfully!");
 
   } catch (err) {
     console.error("Error saving new email:", err);
@@ -898,8 +950,6 @@ const saveNewEmail = async (req, res) => {
 };
 
 
-
-
 module.exports = {
   signup,
   getVerifyOtp,
@@ -908,6 +958,7 @@ module.exports = {
   login,
   logout,
   loadHomePage,
+  getAbout,
   getSignup,
   getLogin,
   getShopPage,

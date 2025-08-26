@@ -4,6 +4,8 @@ const userController = require("../../controllers/user/userController");
 const cartController = require("../../controllers/user/cartController");
 const checkoutController = require("../../controllers/user/checkoutController");
 const orderController = require("../../controllers/user/orderController")
+const wishlistController = require("../../controllers/user/wishlistController")
+const walletController = require("../../controllers/user/walletController")
 const {requireAuth, isUserLoggedIn} = require('../../middileware/userAuth');
 const cartModel = require('../../models/cartModel');
 const jwt = require('jsonwebtoken');
@@ -71,6 +73,7 @@ router.get('/shop',requireAuth, userController.getShopPage);
 router.get('/product/:id', userController.getProductDetails);
 
 router.get('/', userController.loadHomePage);
+router.get('/aboutUs', userController.getAbout)
 
 router.get('/forgot-password', userController.getForgotPassword);
 router.post('/forgot-password', userController.postForgotPassword);
@@ -110,6 +113,8 @@ router.post('/cart/validate-checkout', requireAuth, cartController.validateCheck
 
 router.get("/checkout", requireAuth, checkoutController.getCheckoutPage);
 router.post("/place-order", requireAuth, checkoutController.placeOrder);
+router.post("/create-razorpay-order", requireAuth, checkoutController.createRazorpayOrder);
+router.post('/verify-razorpay-payment', requireAuth, checkoutController.verifyRazorpayOrder)
 router.get("/order-success/:orderId", requireAuth, checkoutController.orderSuccess);
 
 router.get('/my-orders', requireAuth, orderController.getMyOrders);
@@ -120,7 +125,17 @@ router.get('/my-orders/:orderId/return-request', requireAuth, orderController.ge
 router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
 router.get('/my-orders/:orderId/invoice', requireAuth, orderController.downloadInvoice);
 
-router.get('/check-blocked', requireAuth, (req, res) => {
+router.post("/wishlist/toggle/:productId", requireAuth, wishlistController.toggleWishlist);
+router.get("/wishlist/add/:id", requireAuth, wishlistController.addToWishlist);
+router.get("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
+router.get("/wishlist", requireAuth, wishlistController.getWishlist);
+router.post("/cart/add/:productId", requireAuth, cartController.addToCart);
+
+router.get("/wallet",requireAuth, walletController.getWallet);
+router.post("/wallet/add", requireAuth, walletController.addMoney);
+
+
+router.get('/wishlist/check-blocked', requireAuth, (req, res) => {
     res.sendStatus(200); 
 });
 

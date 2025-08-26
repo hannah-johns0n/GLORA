@@ -1,32 +1,59 @@
+// models/couponModel.js
+
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
-const coupensSchema = new mongoose.Schema({
-    offerPrice : {
-        type : Number,
-        required : true,
+const couponSchema = new mongoose.Schema({
+    couponCode: {
+        type: String,
+        required: true,
+        unique: true,
+        uppercase: true // Converts coupon code to uppercase automatically
     },
-    minimumPurchaseAmount : {
-        type : Number,
-        required : true,
+    description: {
+        type: String,
+        required: true,
     },
-    userId : {
-        type : Schema.Types.ObjectId,
-        ref : "User",
-        required : true,
+    discountType: {
+        type: String,
+        enum: ['Percentage', 'Fixed Amount'], // Type of discount
+        required: true,
     },
-    isActive : {
-        type : Boolean,
-        required : true,
+    discountValue: { // Replaces 'offerPrice' for clarity
+        type: Number,
+        required: true,
     },
-    perUseLimit : {
-        type : Number,
-        required : true,
+    minimumPurchaseAmount: {
+        type: Number,
+        required: true,
     },
-    description : {
-        type : String,
-        required : true,
-    }
-}, { timestamps : true});
+    perUserLimit: { // Max times a single user can use this coupon
+        type: Number,
+        required: true,
+        default: 1
+    },
+    maxUses: { // Max times the coupon can be used in total by all users
+        type: Number,
+        required: true,
+    },
+    expiryDate: {
+        type: Date,
+        required: true,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
+    // To track who has used the coupon and how many times
+    usedBy: [{
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        useCount: {
+            type: Number,
+            default: 1
+        }
+    }]
+}, { timestamps: true });
 
-module.exports = mongoose.model("Coupens", coupensSchema);
+module.exports = mongoose.model("Coupon", couponSchema); // Renamed for convention

@@ -1,0 +1,314 @@
+<%- include('../partials/user/header', {userName:userName}) %>
+
+<style>
+  .wallet-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 4rem 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .wallet-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  
+  .wallet-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
+  }
+  
+  .welcome-text {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+  
+  .balance-section {
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .balance-label {
+    font-size: 0.9rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .balance-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c5530;
+    margin: 0;
+  }
+  
+  .add-money-section {
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    background: #fff;
+  }
+  
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .add-money-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  
+  .amount-input {
+    flex: 1;
+    max-width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+  }
+  
+  .amount-input:focus {
+    border-color: #333;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.1);
+  }
+  
+  .add-money-btn {
+    background: #350505;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .add-money-btn:hover {
+    background: #555;
+  }
+  
+  .transaction-section {
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+  
+  .transaction-header {
+    background: #f8f8f8;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  
+  .transaction-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  .transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+  }
+  
+  .transaction-table thead {
+    background: #fafafa;
+  }
+  
+  .transaction-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  
+  .transaction-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+  }
+  
+  .transaction-table tbody tr:hover {
+    background: #fafafa;
+  }
+  
+  .transaction-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .transaction-type {
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  
+  .credit {
+    background: #e8f5e8;
+    color: #2c5530;
+  }
+  
+  .debit {
+    background: #fdf2f2;
+    color: #9b2c2c;
+  }
+  
+  .amount-credit {
+    color: #2c5530;
+    font-weight: 600;
+  }
+  
+  .amount-debit {
+    color: #9b2c2c;
+    font-weight: 600;
+  }
+  
+  .no-transactions {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #999;
+  }
+  
+  .date-column {
+    font-weight: 500;
+    color: #555;
+  }
+  
+  @media (max-width: 768px) {
+    .wallet-container {
+      padding: 1rem 0.5rem;
+    }
+    
+    .wallet-card {
+      padding: 1.5rem;
+    }
+    
+    .add-money-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .amount-input {
+      max-width: none;
+    }
+    
+    .balance-amount {
+      font-size: 1.75rem;
+    }
+    
+    .transaction-table {
+      font-size: 0.9rem;
+    }
+    
+    .transaction-table th,
+    .transaction-table td {
+      padding: 0.75rem 0.5rem;
+    }
+  }
+</style>
+
+<div class="wallet-container">
+  <div class="wallet-card">
+    <!-- Header -->
+    <h1 class="wallet-title">My Wallet</h1>
+    <p class="welcome-text">Welcome, <strong><%= userName %></strong></p>
+
+    <!-- Balance Section -->
+    <div class="balance-section">
+      <div class="balance-label">Current Balance</div>
+      <div class="balance-amount">₹ <%= wallet.balance.toLocaleString('en-IN') %></div>
+    </div>
+
+    <!-- Add Money Section -->
+    <div class="add-money-section">
+      <h3 class="section-title">Add Money</h3>
+      <form action="/wallet/add" method="POST" class="add-money-form">
+        <input 
+          type="number" 
+          name="amount" 
+          class="amount-input" 
+          placeholder="Enter amount" 
+          min="1"
+          required
+        >
+        <button type="submit" class="add-money-btn">Add Money</button>
+      </form>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="transaction-section">
+      <div class="transaction-header">
+        <h3 class="transaction-title">Transaction History</h3>
+      </div>
+      
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if(wallet.transactions.length === 0) { %>
+            <tr>
+              <td colspan="4" class="no-transactions">
+                No transactions found
+              </td>
+            </tr>
+          <% } else { %>
+            <% wallet.transactions.slice().reverse().forEach(t => { %>
+              <tr>
+                <td class="date-column"><%= t.date.toLocaleDateString('en-IN') %></td>
+                <td>
+                  <% if(t.type === "credit"){ %>
+                    <span class="transaction-type credit">Credit</span>
+                  <% } else { %>
+                    <span class="transaction-type debit">Debit</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if(t.type === "credit"){ %>
+                    <span class="amount-credit">+₹ <%= t.amount.toLocaleString('en-IN') %></span>
+                  <% } else { %>
+                    <span class="amount-debit">-₹ <%= t.amount.toLocaleString('en-IN') %></span>
+                  <% } %>
+                </td>
+                <td><%= t.description %></td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/user/footer') %>

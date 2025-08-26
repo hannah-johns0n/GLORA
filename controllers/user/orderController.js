@@ -18,7 +18,7 @@ const getMyOrders = async (req, res) => {
         })
         .populate('orderItems.productId')
         .sort({ createdAt: -1 });
-
+    
         res.render('user/my-orders', { orders, search,  userName });
     } catch (err) {
         console.error(err);
@@ -38,7 +38,8 @@ const getOrderDetails = async (req, res) => {
         .populate('addressId');
 
         if (!order) return res.status(404).send("Order not found");
-
+    console.log('============',order);
+    
         res.render('user/order-details', { order, userName });
     } catch (err) {
         console.error(err);
@@ -163,9 +164,19 @@ const returnOrder = async (req, res) => {
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
         if (order.status !== "Delivered") return res.status(STATUS_CODES.BAD_REQUEST).send("Only delivered orders can be returned");
-
+            console.log(order.status);
+            
         order.status = "Return-Request";
+           console.log(order.status);
         order.returnReason = reason; 
+console.log("after save",order)
+
+order.orderItems.forEach(item => {
+    item.status = "Return-Request";
+});
+console.log("after save",order)
+
+
         await order.save();
 
         res.redirect('/my-orders');
@@ -174,6 +185,7 @@ const returnOrder = async (req, res) => {
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
     }
 };
+
 
 const downloadInvoice = async (req, res) => {
   try {

@@ -43,8 +43,10 @@
                                 </div>
                                 <div class="item-quantity">Qty: <%= item.quantity %>
                                 </div>
-                                <h4>Status: <%= item.status || order.status %>
-                                </h4>
+                            <h4>Status: 
+  <%= order.status === "Return-Rejected" ? "Return Rejected" : (item.status || order.status) %>
+</h4>
+
                             </div>
                             <% if(order.status !=="Cancelled" && order.status !=="Delivered" ){ %>
                                 <div class="item-actions">

@@ -119,7 +119,12 @@ const verifyReturnRequest = async (req, res) => {
             actionTaken = "accept";
         } else if (req.query.action === "reject") {
             order.status = "Return-Rejected"; 
-            actionTaken = "reject";
+            order.orderItems.forEach(item => {
+        if(item.status === "Return-Request") {
+            item.status = "Return-Rejected";
+        }
+    });
+    actionTaken = "reject";
         } else {
             return res.status(STATUS_CODES.BAD_REQUEST).send("Invalid action");
         }

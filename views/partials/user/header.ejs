@@ -1,217 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>GLORA</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="description" content="Wish shop project" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GLORA</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Wish shop project" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" type="text/css" href="/styles/bootstrap4/bootstrap.min.css" />
-  <link href="/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.carousel.css" />
-  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.theme.default.css" />
-  <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/animate.css" />
-  <link href="/plugins/colorbox/colorbox.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" type="text/css" href="/styles/main_styles.css" />
-  <link rel="stylesheet" type="text/css" href="/styles/responsive.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/bootstrap4/bootstrap.min.css" />
+    <link href="/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.carousel.css" />
+    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.theme.default.css" />
+    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/animate.css" />
+    <link href="/plugins/colorbox/colorbox.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/styles/main_styles.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/responsive.css" />
 
-  <style>
-    .header_inner {
-      padding: 8px;
-      background: #ffffff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      height: 65px;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 2px;
-    }
+    <style>
+        .header_inner {
+            padding: 8px;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            height: 65px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2px;
+        }
 
-    .logo a {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: #222 !important;
-      text-decoration: none;
-    }
 
-    .main_nav {
-      flex-shrink: 0;
-      margin: 0 1px;
-    }
+        .logo a {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #222 !important;
+            text-decoration: none;
+        }
 
-    .main_nav ul {
-      display: flex;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      white-space: nowrap;
-      flex-wrap: nowrap;
-    }
+        .main_nav {
+            flex-shrink: 0;
+            margin: 0 1px;
+        }
 
-    .main_nav ul li a {
-      color: #444;
-      font-weight: 500;
-      text-transform: uppercase;
-      font-size: 12px;
-      transition: color 0.3s ease;
-      text-decoration: none;
-    }
+        .main_nav ul {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            white-space: nowrap;
+            flex-wrap: nowrap;
+        }
 
-    .main_nav ul li a:hover {
-      color: #850101;
-    }
+        .main_nav ul li a {
+            color: #444;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 12px;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
 
-    .main_nav ul li a.active {
-      color: #7c1818;
-      font-weight: 700;
-    }
+        .main_nav ul li a:hover {
+            color: #850101;
+        }
 
-    .shopping img,
-    .avatar img {
-      width: 18px;
-      height: 18px;
-      transition: transform 0.2s ease;
-    }
+        .main_nav ul li a.active {
+            color: #7c1818;
+            font-weight: 700;
+        }
 
-    .shopping img:hover,
-    .avatar img:hover {
-      transform: scale(1.1);
-    }
+        .shopping img,
+        .avatar img {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.2s ease;
+        }
 
-    .avatar span {
-      color: #333;
-      font-weight: 600;
-      font-size: 12px;
-    }
+        .shopping img:hover,
+        .avatar img:hover {
+            transform: scale(1.1);
+        }
 
-    .btn-sm {
-      font-size: 12px;
-      padding: 2px 2px;
-    }
+        .avatar span {
+            color: #333;
+            font-weight: 600;
+            font-size: 12px;
+        }
 
-    .btn-outline-dark {
-      border: 1px solid #444;
-      color: #444;
-      transition: all 0.3s ease;
-    }
+        .btn-sm {
+            font-size: 12px;
+            padding: 2px 2px;
+        }
 
-    .btn-outline-dark:hover {
-      background: #6b2c22;
-      color: #fff !important;
-      border-color: #6b2c22;
-    }
+        .btn-outline-dark {
+            border: 1px solid #444;
+            color: #444;
+            transition: all 0.3s ease;
+        }
 
-    .btn-outline-primary {
-      border: 1px solid #620000;
-      color: #720606;
-    }
+        .btn-outline-dark:hover {
+            background: #6b2c22;
+            color: #fff !important;
+            border-color: #6b2c22;
+        }
 
-    .btn-outline-primary:hover {
-      background: #720404;
-      color: #fff;
-    }
+        .btn-outline-primary {
+            border: 1px solid #620000;
+            color: #720606;
+        }
 
-    .header_content {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: nowrap;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+        .btn-outline-primary:hover {
+            background: #720404;
+            color: #fff;
+        }
 
-    .cart-count {
-      background: #b71c1c;
-      color: white;
-      font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 50%;
-      position: relative;
-      top: -8px;
-      left: -8px;
-    }
-  </style>
+        .header_content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .cart-count {
+            background: #b71c1c;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 50%;
+            position: relative;
+            top: -8px;
+            left: -8px;
+        }
+    </style>
 </head>
 
 <body>
-  <header class="header">
-    <div class="header_inner">
-      <div class="logo">
-        <a href="/">GLORA</a>
-      </div>
+    <header class="header">
+        <div class="header_inner">
+            <div class="logo">
+                <a href="/">GLORA</a>
+            </div>
 
-      <nav class="main_nav">
-        <ul>
-          <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
-          <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
-          <li><a href="/categories" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
-          <li><a href="/contact" class="<%= url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
-        </ul>
-      </nav>
+            <nav class="main_nav">
+                <ul>
+                    <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
+                    <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
+                    <li><a href="/aboutUs" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
+                    <li><a href="/contact" class="<%= url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
+                </ul>
+            </nav>
 
-      <div class="header_content">
-        <div class="shopping d-flex align-items-center" style="gap: 10px;">
-          <a href="/cart" style="position: relative;">
-            <img src="/images/shopping-bag.svg" alt="Bag" />
-              <span class="cart-count"><%= cartCount || 0 %></span>
-          </a>
-          <a href="#"><img src="/images/star.svg" alt="Wishlist" /></a>
+            <div class="header_content">
+                <div class="shopping d-flex align-items-center" style="gap: 10px;">
+                    <a href="/cart" style="position: relative;">
+                        <img src="/images/shopping-bag.svg" alt="Bag" />
+                        <span class="cart-count"><%= cartCount || 0 %></span>
+                    </a>
+                    <a href="/wishlist">
+                        <i class="fas fa-heart" style="font-size: 18px; color: #444;"></i>
+                    </a>
+                </div>
+
+                <div class="avatar d-flex align-items-center" style="gap: 6px;">
+                    <% if (typeof userName !== 'undefined' && userName) { %>
+                        <a href="/profile" class="d-flex align-items-center" style="gap: 6px; text-decoration: none; color: inherit;">
+                            <img src="/images/avatar.svg" alt="Avatar" />
+                            <span><%= userName %></span>
+                        </a>
+                        <form action="/logout" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
+                        </form>
+                    <% } else { %>
+                        <img src="/images/avatar.svg" alt="Avatar" />
+                        <span style="color: #777;">Guest</span>
+                        <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
+                    <% } %>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <div class="avatar d-flex align-items-center" style="gap: 6px;">
-          <% if (typeof userName !== 'undefined' && userName) { %>
-            <a href="/profile" class="d-flex align-items-center" style="gap: 6px; text-decoration: none; color: inherit;">
-              <img src="/images/avatar.svg" alt="Avatar" />
-              <span><%= userName %></span>
-            </a>
-            <form action="/logout" method="POST" style="margin: 0;">
-              <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
-            </form>
-          <% } else { %>
-            <img src="/images/avatar.svg" alt="Avatar" />
-            <span style="color: #777;">Guest</span>
-            <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
-          <% } %>
-        </div>
-      </div>
-    </div>
-  </header>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
 
-  <!-- SweetAlert script for Add to Cart -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const productId = this.dataset.id;
 
-      addToCartButtons.forEach(button => {
-        button.addEventListener('click', function () {
-          const productId = this.dataset.id;
-
-          fetch(`/cart/add/${productId}`, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'Added to Cart',
-                  text: 'Product added successfully!',
-                  timer: 1500,
-                  showConfirmButton: false
+                    fetch(`/cart/add/${productId}`, { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Added to Cart',
+                                    text: 'Product added successfully!',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops!',
+                                    text: data.message || 'Could not add to cart'
+                                });
+                            }
+                        });
                 });
-              } else {
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Oops!',
-                  text: data.message || 'Could not add to cart'
-                });
-              }
             });
         });
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>

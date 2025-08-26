@@ -1,0 +1,507 @@
+<%- include('../partials/admin/header') %>
+
+<style>
+    .page-container {
+        background-color: #f8f9fa;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .card.shadow-form {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card.shadow-form:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px);
+    }
+
+    .card-header.form-header {
+        background: linear-gradient(135deg, #6c0d0d, #470404);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .card-header.form-header h4 {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-label.fw-bold {
+        color: #343a40;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border-right: 0;
+        color: #6c757d;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+    <div class="page-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow-form">
+                        <div class="card-header form-header">
+                            <h4><i class="fas fa-tags me-2"></i>Create New Offer</h4>
+                        </div>
+                        <div class="card-body">
+                            <form action="/admin/offers/add" method="POST" id="offerForm">
+                                <div class="row">
+                                    <!-- LEFT COLUMN -->
+                                    <div class="col-md-6">
+                                        <!-- Offer Title -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Offer Title</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                                <input type="text" name="title" class="form-control" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Description</label>
+                                            <textarea name="description" class="form-control" rows="3" required></textarea>
+                                        </div>
+
+                                        <!-- Discount Type -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Discount Type</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                                <select name="discountType" id="discountType" class="form-select" required>
+                                                    <option value="Percentage">Percentage (%)</option>
+                                                    <option value="Fixed Amount">Fixed Amount (₹)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Discount Value -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Discount Value</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text" id="discount-symbol">%</span>
+                                                <input type="number" name="discountValue" class="form-control" required step="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- RIGHT COLUMN -->
+                                    <div class="col-md-6">
+                                        <!-- Minimum Purchase -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Minimum Purchase</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" name="minPurchase" class="form-control" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Expiry Date -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Expiry Date</label>
+                                            <input type="date" name="endDate" id="endDate" class="form-control" required>
+                                        </div>
+
+                                        <!-- Total Uses -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Total Uses</label>
+                                            <input type="number" name="totalUses" class="form-control" required>
+                                        </div>
+
+                                        <!-- Offer Type -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Offer Type</label>
+                                            <select name="offerType" id="offerType" class="form-select" required>
+                                                <option value="" disabled selected>Select offer scope</option>
+                                                <option value="Global">Global (All Products)</option>
+                                                <option value="Category">Category Specific</option>
+                                                <option value="Product">Product Specific</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Target Selection -->
+                                        <div class="mb-4" id="targetSelection"></div>
+
+                                        <!-- Status -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Status</label>
+                                            <div class="form-check form-switch fs-5">
+                                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                                <label class="form-check-label" for="isActive" id="statusLabel">Active</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <div class="text-end">
+                                    <a href="/admin/offers" class="btn btn-secondary btn-action me-2">
+                                        <i class="fas fa-times me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-action">
+                                        <i class="fas fa-save me-1"></i> Save Offer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set minimum date for expiry
+        const endDate = document.getElementById('endDate');
+        endDate.min = new Date().toISOString().split('T')[0];
+
+        // Update Discount Symbol
+        const discountType = document.getElementById('discountType');
+        const discountSymbol = document.getElementById('discount-symbol');
+        discountType.addEventListener('change', (e) => {
+            discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
+        });
+
+        // Offer Type dynamic selection
+        document.getElementById('offerType').addEventListener('change', function () {
+            const targetSelection = document.getElementById('targetSelection');
+            if (this.value === 'Product') {
+                targetSelection.innerHTML = `
+                    <label class="form-label fw-bold">Select Product</label>
+                    <select name="product" class="form-select" required>
+                        <option value="" disabled selected>Choose a product</option>
+                        <% products.forEach(product => { %>
+                            <option value="<%= product._id %>"><%= product.productName %></option>
+                        <% }) %>
+                    </select>`;
+            } else if (this.value === 'Category') {
+                targetSelection.innerHTML = `
+                    <label class="form-label fw-bold">Select Category</label>
+                    <select name="category" class="form-select" required>
+                        <option value="" disabled selected>Choose a category</option>
+                        <% categories.forEach(category => { %>
+                            <option value="<%= category._id %>"><%= category.categoryName %></option>
+                        <% }) %>
+                    </select>`;
+            } else {
+                targetSelection.innerHTML = '';
+            }
+        });
+
+        // Status toggle label
+        const isActiveSwitch = document.getElementById('isActive');
+        const statusLabel = document.getElementById('statusLabel');
+        isActiveSwitch.addEventListener('change', () => {
+            if (isActiveSwitch.checked) {
+                statusLabel.textContent = 'Active';
+                statusLabel.classList.remove('text-danger');
+                statusLabel.classList.add('text-success');
+            } else {
+                statusLabel.textContent = 'Inactive';
+                statusLabel.classList.remove('text-success');
+                statusLabel.classList.add('text-danger');
+            }
+        });
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>
+<%- include('../partials/admin/header') %>
+
+<style>
+    .page-container {
+        background-color: #f8f9fa;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .card.shadow-form {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .card.shadow-form:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px);
+    }
+
+    .card-header.form-header {
+        background: linear-gradient(135deg, #6c0d0d, #470404);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .card-header.form-header h4 {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-label.fw-bold {
+        color: #343a40;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border-right: 0;
+        color: #6c757d;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+</style>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+    <div class="page-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow-form">
+                        <div class="card-header form-header">
+                            <h4><i class="fas fa-tags me-2"></i>Create New Offer</h4>
+                        </div>
+                        <div class="card-body">
+                            <form action="/admin/offers/add" method="POST" id="offerForm">
+                                <div class="row">
+                                    <!-- LEFT COLUMN -->
+                                    <div class="col-md-6">
+                                        <!-- Offer Title -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Offer Title</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                                <input type="text" name="title" class="form-control" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Description -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Description</label>
+                                            <textarea name="description" class="form-control" rows="3" required></textarea>
+                                        </div>
+
+                                        <!-- Discount Type -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Discount Type</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
+                                                <select name="discountType" id="discountType" class="form-select" required>
+                                                    <option value="Percentage">Percentage (%)</option>
+                                                    <option value="Fixed Amount">Fixed Amount (₹)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Discount Value -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Discount Value</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text" id="discount-symbol">%</span>
+                                                <input type="number" name="discountValue" class="form-control" required step="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- RIGHT COLUMN -->
+                                    <div class="col-md-6">
+                                        <!-- Minimum Purchase -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Minimum Purchase</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₹</span>
+                                                <input type="number" name="minPurchase" class="form-control" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Expiry Date -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Expiry Date</label>
+                                            <input type="date" name="endDate" id="endDate" class="form-control" required>
+                                        </div>
+
+                                        <!-- Total Uses -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Total Uses</label>
+                                            <input type="number" name="totalUses" class="form-control" required>
+                                        </div>
+
+                                        <!-- Offer Type -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Offer Type</label>
+                                            <select name="offerType" id="offerType" class="form-select" required>
+                                                <option value="" disabled selected>Select offer scope</option>
+                                                <option value="Global">Global (All Products)</option>
+                                                <option value="Category">Category Specific</option>
+                                                <option value="Product">Product Specific</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Target Selection -->
+                                        <div class="mb-4" id="targetSelection"></div>
+
+                                        <!-- Status -->
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold">Status</label>
+                                            <div class="form-check form-switch fs-5">
+                                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" checked>
+                                                <label class="form-check-label" for="isActive" id="statusLabel">Active</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <div class="text-end">
+                                    <a href="/admin/offers" class="btn btn-secondary btn-action me-2">
+                                        <i class="fas fa-times me-1"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-action">
+                                        <i class="fas fa-save me-1"></i> Save Offer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Set minimum date for expiry
+        const endDate = document.getElementById('endDate');
+        endDate.min = new Date().toISOString().split('T')[0];
+
+        // Update Discount Symbol
+        const discountType = document.getElementById('discountType');
+        const discountSymbol = document.getElementById('discount-symbol');
+        discountType.addEventListener('change', (e) => {
+            discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
+        });
+
+        // Offer Type dynamic selection
+        document.getElementById('offerType').addEventListener('change', function () {
+            const targetSelection = document.getElementById('targetSelection');
+            if (this.value === 'Product') {
+                targetSelection.innerHTML = `
+                    <label class="form-label fw-bold">Select Product</label>
+                    <select name="product" class="form-select" required>
+                        <option value="" disabled selected>Choose a product</option>
+                        <% products.forEach(product => { %>
+                            <option value="<%= product._id %>"><%= product.productName %></option>
+                        <% }) %>
+                    </select>`;
+            } else if (this.value === 'Category') {
+                targetSelection.innerHTML = `
+                    <label class="form-label fw-bold">Select Category</label>
+                    <select name="category" class="form-select" required>
+                        <option value="" disabled selected>Choose a category</option>
+                        <% categories.forEach(category => { %>
+                            <option value="<%= category._id %>"><%= category.categoryName %></option>
+                        <% }) %>
+                    </select>`;
+            } else {
+                targetSelection.innerHTML = '';
+            }
+        });
+
+        // Status toggle label
+        const isActiveSwitch = document.getElementById('isActive');
+        const statusLabel = document.getElementById('statusLabel');
+        isActiveSwitch.addEventListener('change', () => {
+            if (isActiveSwitch.checked) {
+                statusLabel.textContent = 'Active';
+                statusLabel.classList.remove('text-danger');
+                statusLabel.classList.add('text-success');
+            } else {
+                statusLabel.textContent = 'Inactive';
+                statusLabel.classList.remove('text-success');
+                statusLabel.classList.add('text-danger');
+            }
+        });
+
+        // SweetAlert validation
+        document.getElementById('offerForm').addEventListener('submit', function (e) {
+            const title = this.querySelector('[name="title"]').value.trim();
+            const description = this.querySelector('[name="description"]').value.trim();
+            const discountValue = this.querySelector('[name="discountValue"]').value.trim();
+            const minPurchase = this.querySelector('[name="minPurchase"]').value.trim();
+            const endDateValue = this.querySelector('[name="endDate"]').value.trim();
+            const totalUses = this.querySelector('[name="totalUses"]').value.trim();
+            const offerType = this.querySelector('[name="offerType"]').value.trim();
+
+            if (!title || !description || !discountValue || !minPurchase || !endDateValue || !totalUses || !offerType) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Missing Fields',
+                    text: 'Please fill in all required fields before submitting.',
+                    icon: 'error',
+                    confirmButtonColor: '#6c0d0d'
+                });
+            }
+        });
+    });
+</script>
+
+<%- include('../partials/admin/footer') %>

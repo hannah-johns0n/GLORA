@@ -9,14 +9,9 @@ const wishlistSchema = new mongoose.Schema({
     },
     productId : {
         type : Schema.Types.ObjectId,
-        ref: "Products",
+        ref: "Product",
         required : true,
     },
-    varientsId : {
-        type : Schema.Types.ObjectId,
-        ref : "Varients",
-        required : true,
-    }
 }, { timestamps : true });
 
 module.exports = mongoose.model("Wishlist", wishlistSchema );
