@@ -12,7 +12,7 @@ const offerSchema = new mongoose.Schema({
   },
   offerType: {
     type: String,
-    enum: ["Product", "Category", "Global"], // applies to single product, category, or all products
+    enum: ["Product", "Category", "Global"], 
     required: true,
   },
   discountType: {

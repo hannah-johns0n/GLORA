@@ -11,9 +11,17 @@ const adminRouter = require('./routes/admin/adminAuthRoutes');
 
 const app = express();
 
+// Make messages available to all views
+app.use((req, res, next) => {
+    // Initialize empty messages
+    res.locals.success_msg = null;
+    res.locals.error_msg = null;
+    next();
+});
+
 app.use(nocache())
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

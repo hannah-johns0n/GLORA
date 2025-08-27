@@ -1,4 +1,3 @@
-// config/razorpay.js
 const Razorpay = require("razorpay");
 require("dotenv").config();
 

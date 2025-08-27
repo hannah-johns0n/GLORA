@@ -25,6 +25,12 @@
                 <% orders.forEach(order => { 
     let statusClass = 'pending';
     let statusText = 'Pending';
+    let showStatus = true;
+
+    // Hide the status badge if it's a return request
+    if (order.status === 'Return-Requested' || order.status === 'Return-Request') {
+        showStatus = false;
+    }
 
     switch(order.status) {
         case 'Processing':
@@ -47,13 +53,14 @@
             statusClass = 'returned';
             statusText = 'Returned';
             break;
+        case 'Return-Requested':
         case 'Return-Request':
-            statusClass = 'return-request';
-            statusText = 'Return Request';
+            statusClass = 'delivered'; // Show as delivered while return is requested
+            statusText = 'Delivered';
             break;
         case 'Return-Rejected':
-            statusClass = 'return-rejected';
-            statusText = 'Return Rejected';
+            statusClass = 'delivered'; // Show as delivered if return is rejected
+            statusText = 'Delivered';
             break;
     }
 %>
@@ -65,17 +72,25 @@
                         </div>
                         
                         <div class="order-status d-flex align-items-center">
-                            <span class="status-badge <%= statusClass %>"><%= statusText %></span>
+                            <% if (showStatus) { %>
+                                <div class="order-status">
+                                    <% if (order.status === 'Return-Requested' || order.status === 'Return-Request') { %>
+                                        <span class="status-badge delivered">Delivered</span>
+                                    <% } else { %>
+                                        <span class="status-badge <%= statusClass %>"><%= statusText %></span>
+                                    <% } %>
+                                    <% if (order.updatedAt) { %>
+                                        <span class="status-date ms-auto">
+                                            Updated on <%= new Date(order.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                                        </span>
+                                    <% } %>
+                                </div>
+                            <% } %>
                             <% if (order.status === 'Cancelled' && order.cancellationReason) { %>
                                 <span class="ms-2 text-muted">
                                     <i class="fas fa-info-circle"></i> Reason: <%= order.cancellationReason %>
                                 </span>
                             <% } %>
-                            <span class="status-date ms-auto">
-                                <% if (order.updatedAt) { %>
-                                    Updated on <%= new Date(order.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
-                                <% } %>
-                            </span>
                         </div>
                         
                         <div class="order-details">
@@ -124,7 +139,12 @@
 
                             <% } %>
                             
+
+                            <% if(order.paymentStatus === "Paid") { %>
                             <a href="/my-orders/<%= order.orderId %>/invoice" class="btn-invoice">Download Invoice</a>
+                            <% } else if (order.paymentStatus === "Failed") { %>
+                                <button onclick="retryPayment('<%= order.orderId %>', '<%= order.finalTotal %>', this)" class="btn-invoice">Retry Payment</button>
+                           <% } %>
                         </div>
                     </div>
                     
@@ -167,6 +187,121 @@
             </div>
         <% } %>
     </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+    async function retryPayment(orderId, amount, buttonElement) {
+        const button = buttonElement || event?.target?.closest('button');
+        
+        try {
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            }
+
+            const response = await fetch('/create-razorpay-order', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ 
+                    orderId: orderId,
+                    amount: amount,
+                    paymentMethod: 'razorpay' 
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to create payment order');
+            }
+
+            const order = await response.json();
+
+            const options = {
+                key: '<%= process.env.RAZORPAY_KEY_ID %>',
+                amount: order.amount,
+                currency: order.currency || 'INR',
+                name: 'GLORA',
+                description: 'Order Payment',
+                order_id: order.id || order.razorpayOrderId,
+                handler: async function (response) {
+                    try {
+                        const updateResponse = await fetch(`/update-payment-status`, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        if (updateResponse.ok) {
+                            window.location.href = `/my-orders/${orderId}/invoice`;
+                        } else {
+                            throw new Error('Failed to update payment status');
+                        }
+                    } catch (error) {
+                        console.error('Error updating payment status:', error);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Payment Successful',
+                            text: 'Your payment was successful, but there was an issue updating the order status. Please contact support.',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '/my-orders';
+                        });
+                    }
+                },
+                prefill: {
+                    name: '<%= userName %>'
+                },
+                theme: {
+                    color: '#3399cc'
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            
+            rzp.on('payment.failed', function (response) {
+                // Handle failed payment
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: response.error.description || 'Your payment could not be processed. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = 'Retry Payment';
+                }
+            });
+
+            rzp.open();
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while processing your payment. Please try again.',
+                confirmButtonText: 'OK'
+            });
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = 'Retry Payment';
+            }
+        }
+    }
+    </script>
 
     <%- include('../partials/user/footer') %>
 

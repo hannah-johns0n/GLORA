@@ -23,15 +23,19 @@ const orderSchema = new mongoose.Schema ({
         type : Number,
         required : true,
     },
-    status: {
-            type: String,
-            enum: ['Pending', 'Cancelled', 'Returned', 'Delivered', 'Return-Request', 'Return-Rejected'],
-            default: 'Pending'
-        },
+    itemStatus: {
+        type: String,
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return-Requested', 'Returned', 'Return-Rejected'],
+        default: 'Pending'
+    },
     cancelReason: {
-            type: String,
-            default: null
-        },
+        type: String,
+        default: null
+    },
+    returnReason: {
+        type: String,
+        default: null
+    }
     }],
     totalPrice : {
         type : Number,
@@ -56,7 +60,7 @@ const orderSchema = new mongoose.Schema ({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned', 'Return-Request', 'Return-Rejected'],
+        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return-Requested', 'Returned', 'Return-Rejected'],
         default: 'Pending'
     },
      razorpayOrderId: {
@@ -66,7 +70,7 @@ const orderSchema = new mongoose.Schema ({
         type: String,
         default: null
     },
-    cancellationReason: {   // <-- add this at order level
+    cancellationReason: {  
         type: String,
         default: null
     }

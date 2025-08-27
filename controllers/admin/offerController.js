@@ -2,7 +2,6 @@ const Offer = require("../../models/offerModel");
 const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 
-// 📌 GET all offers
 const getOffers = async (req, res) => {
   try {
     const offers = await Offer.find()
@@ -16,7 +15,6 @@ const getOffers = async (req, res) => {
   }
 };
 
-// 📌 GET add offer page
 const getAddOffer = async (req, res) => {
   try {
     const products = await Product.find({ isBlocked: false });
@@ -57,7 +55,6 @@ const postAddOffer = async (req, res) => {
   }
 };
 
-// 📌 GET edit offer page
 const getEditOffer = async (req, res) => {
   try {
     const offer = await Offer.findById(req.params.id);
@@ -71,10 +68,9 @@ const getEditOffer = async (req, res) => {
   }
 };
 
-// 📌 POST update offer
 const postEditOffer = async (req, res) => {
   try {
-    const { title, description, offerType, discountType, discountValue, product, category, startDate, endDate } = req.body;
+    const { title, description, offerType, discountType, discountValue, product, category, totalUses, minPurchase } = req.body;
 
     await Offer.findByIdAndUpdate(req.params.id, {
       title,

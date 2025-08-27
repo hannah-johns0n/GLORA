@@ -2,12 +2,13 @@ const Order = require("../../models/orderModel");
 const ExcelJS = require("exceljs");
 const PDFDocument = require("pdfkit");
 
-// GET Sales Report Page
 const getSalesReport = async (req, res) => {
   try {
     let { startDate, endDate, paymentMethod, orderStatus } = req.query;
 
-    let filter = {};
+    let filter = {
+      status: { $in: ["Delivered", "Return Rejected"] }   
+    };
 
     if (startDate && endDate) {
       filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -22,10 +23,9 @@ const getSalesReport = async (req, res) => {
     }
 
     const orders = await Order.find(filter)
-  .populate("orderItems.productId") 
-  .populate("userId") 
-  .sort({ createdAt: -1 });
-
+      .populate("orderItems.productId") 
+      .populate("userId") 
+      .sort({ createdAt: -1 });
 
     let totalSales = orders.reduce((sum, o) => sum + o.totalPrice, 0);
     let totalOrders = orders.length;
@@ -49,7 +49,6 @@ const getSalesReport = async (req, res) => {
   }
 };
 
-// DOWNLOAD Excel
 const downloadExcel = async (req, res) => {
   try {
     const workbook = new ExcelJS.Workbook();
@@ -64,7 +63,8 @@ const downloadExcel = async (req, res) => {
       { header: "Status", key: "status", width: 15 }
     ];
 
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find({ status: { $in: ["Delivered", "Return Rejected"] } })  // ✅ Only Delivered & Return Rejected
+      .sort({ createdAt: -1 });
 
     orders.forEach(order => {
       worksheet.addRow({
@@ -95,10 +95,11 @@ const downloadExcel = async (req, res) => {
   }
 };
 
-// DOWNLOAD PDF
 const downloadPDF = async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find({ status: { $in: ["Delivered", "Return Rejected"] } })  
+      .sort({ createdAt: -1 });
+
     const doc = new PDFDocument();
 
     res.setHeader("Content-Type", "application/pdf");
@@ -125,6 +126,7 @@ const downloadPDF = async (req, res) => {
 };
 
 module.exports = { 
-    getSalesReport, 
-    downloadExcel, 
-    downloadPDF };
+  getSalesReport, 
+  downloadExcel, 
+  downloadPDF 
+};

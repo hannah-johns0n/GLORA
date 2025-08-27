@@ -59,30 +59,36 @@ module.exports = {
   }
 },
 
-  addToWishlist: async (req, res) => {
-    if (!req.user) {
-      return res.redirect('/login?redirect=' + req.originalUrl);
-    }
-    
-    try {
-      const { productId } = req.params;
-      const exists = await Wishlist.findOne({
-        userId: req.user._id,
-        productId
-      });
+ addToWishlist: async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Login required' });
+  }
 
-      if (!exists) {
-        await Wishlist.create({
-          userId: req.user._id,
-          productId
-        });
-      }
-      res.redirect("/wishlist");
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
+  try {
+    const productId = req.params.id;
+
+    const exists = await Wishlist.findOne({
+      userId: req.user._id,
+      productId
+    });
+
+    if (exists) {
+      return res.status(200).json({ success: true, message: 'Product already in wishlist' });
     }
-  },
+
+    await Wishlist.create({
+      userId: req.user._id,
+      productId
+    });
+
+    res.status(200).json({ success: true, message: 'Product added to wishlist' });
+
+  } catch (err) {
+    console.error('Wishlist add error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+},
+
 
   removeFromWishlist: async (req, res) => {
     try {

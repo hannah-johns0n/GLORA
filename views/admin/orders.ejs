@@ -52,7 +52,7 @@
         else if (order.status === 'Delivered') statusClass = 'bg-success';
         else if (order.status === 'Cancelled') statusClass = 'bg-danger';
         else if (order.status === 'Returned') statusClass = 'bg-dark';
-        else if (order.status === 'Return-Request') statusClass = 'bg-warning text-dark';
+        else if (order.status === 'Return-Request' || order.status === 'Return-Requested') statusClass = 'bg-warning text-dark';
         else if (order.status === 'Return-Rejected') statusClass = 'bg-danger';
 
     %>

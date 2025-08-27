@@ -233,24 +233,23 @@
   }
 </style>
 
+
 <div class="wallet-container">
   <div class="wallet-card">
-    <!-- Header -->
     <h1 class="wallet-title">My Wallet</h1>
     <p class="welcome-text">Welcome, <strong><%= userName %></strong></p>
 
-    <!-- Balance Section -->
     <div class="balance-section">
       <div class="balance-label">Current Balance</div>
       <div class="balance-amount">₹ <%= wallet.balance.toLocaleString('en-IN') %></div>
     </div>
 
-    <!-- Add Money Section -->
     <div class="add-money-section">
       <h3 class="section-title">Add Money</h3>
-      <form action="/wallet/add" method="POST" class="add-money-form">
+      <form id="addMoneyForm" class="add-money-form">
         <input 
           type="number" 
+          id="amount"
           name="amount" 
           class="amount-input" 
           placeholder="Enter amount" 
@@ -261,7 +260,6 @@
       </form>
     </div>
 
-    <!-- Transaction History -->
     <div class="transaction-section">
       <div class="transaction-header">
         <h3 class="transaction-title">Transaction History</h3>
@@ -312,3 +310,55 @@
 </div>
 
 <%- include('../partials/user/footer') %>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById("addMoneyForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const amount = document.getElementById("amount").value;
+
+  if (!amount || amount <= 0) {
+    return alert("Please enter a valid amount");
+  }
+
+  const res = await fetch("/wallet/create-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount }),
+  });
+
+  const data = await res.json();
+  if (!data.success) {
+    return alert("Failed to create payment. Try again.");
+  }
+
+  const options = {
+    key: data.key_id,
+    amount: data.order.amount,
+    currency: "INR",
+    name: "My Wallet",
+    description: "Add money to wallet",
+    order_id: data.order.id,
+    handler: async function (response) {
+      const verifyRes = await fetch("/wallet/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+          amount: amount,
+        }),
+      });
+
+      const result = await verifyRes.json();
+      window.location.href = result.redirectUrl;
+    },
+    theme: { color: "#350505" },
+  };
+
+  const rzp1 = new Razorpay(options);
+  rzp1.open();
+});
+</script>

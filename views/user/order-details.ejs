@@ -1,10 +1,23 @@
 <%- include('../partials/user/header', { userName: userName }) %>
 
     <div class="container py-4 mt-3">
+        <% if (success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= success_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+        
+        <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <%= error_msg %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
         <div class="order-container">
             <div class="order-summary-card mb-4">
                 <div class="order-header">
-                    <h2 class="order-title">Order #<%= order.orderId %>
+                    <h2 class="order-title">OrderId: #<%= order.orderId %>
                     </h2>
                     <div class="order-status-badge <%= order.status.toLowerCase() %>">
                         <%= order.status %>
@@ -17,10 +30,7 @@
                         <span>Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric' ,
                                 month: 'long' , year: 'numeric' }) %></span>
                     </div>
-                    <div class="meta-item">
-                        <i class="fas fa-wallet me-2"></i>
-                        <span>Total: <strong>₹<%= order.totalPrice.toFixed(2) %></strong></span>
-                    </div>
+
                 </div>
             </div>
 
@@ -41,11 +51,15 @@
                                 <div class="item-price">₹<%= (item.productId.salesPrice ||
                                         item.productId.regularPrice).toFixed(2) %>
                                 </div>
-                                <div class="item-quantity">Qty: <%= item.quantity %>
-                                </div>
-                            <h4>Status: 
-  <%= order.status === "Return-Rejected" ? "Return Rejected" : (item.status || order.status) %>
-</h4>
+                                <div class="item-quantity">Qty: <%= item.quantity %></div>
+                                <h4>Status:
+                                    <%= order.status==="Return-Rejected" ? "Return Rejected" : (item.status ||
+                                        order.status) %>
+                                </h4>
+                                <h4>Status:
+                                    <%= order.status==="Return-Rejected" ? "Return Rejected" : (item.status ||
+                                        order.status) %>
+                                </h4>
 
                             </div>
                             <% if(order.status !=="Cancelled" && order.status !=="Delivered" ){ %>
@@ -68,21 +82,46 @@
                 </div>
             </div>
 
-            <div class="shipping-address">
-                <p class="address-type">
-                    <%= order.addressId?.addressType || 'N/A' %>
-                </p>
-                <p class="address-city">
-                    <%= order.addressId?.city || 'N/A' %>, <%= order.addressId?.state || 'N/A' %> - <%=
-                                order.addressId?.pincode || 'N/A' %>
-                </p>
-                <p class="address-landmark">
-                    <%= order.addressId?.landmark || 'N/A' %>
-                </p>
-                <p class="address-phone">
-                    <i class="fas fa-phone-alt me-2"></i>+91 <%= order.addressId?.phoneNumber || 'N/A' %>
-                </p>
-            </div>
+
+                    <div class="shipping-address">
+                        <p class="address-type">Address Type:
+                            <%= order.addressId?.addressType || 'N/A' %>
+                        </p>
+                        <H5>Shipped To: </H5>
+                        <p class="address-city">
+                            <%= order.addressId?.city || 'N/A' %>, <%= order.addressId?.state || 'N/A' %> - <%=
+                                        order.addressId?.pincode || 'N/A' %>
+                        </p>
+                        <p class="address-landmark">
+                            <%= order.addressId?.landmark || 'N/A' %>
+                        </p>
+                        <p class="address-phone">
+                            <i class="fas fa-phone-alt me-2"></i>+91 <%= order.addressId?.phoneNumber || 'N/A' %>
+                        </p>
+                    </div>
+
+                    <% if(order.paymentMethod) { %>
+    <div class="meta-item">
+        <i class="fas fa-credit-card me-2"> </i>
+        <span> Payment Method: <strong><%= order.paymentMethod %></strong></span>
+    </div>
+<% } %>
+
+<% if(order.paymentStatus) { %>
+    <div class="meta-item">
+        <i class="fas fa-check-circle me-2"></i>
+        <span>Payment Status: 
+            <strong class="payment-status <%= order.paymentStatus.toLowerCase() %>">
+                <%= order.paymentStatus %>
+            </strong>
+        </span>
+    </div>
+<% } else { %>
+    <div class="meta-item">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span>Payment Status: <strong class="text-muted">N/A</strong></span>
+    </div>
+<% } %>
 
         </div>
 
@@ -111,7 +150,19 @@
     </div>
     </div>
 
+    <div class="order-actions mt-4 mb-4">
+        <a href="/my-orders" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Orders
+        </a>
+        <% if (order.status === 'Delivered' && !order.returnRequest) { %>
+            <button class="btn btn-outline-primary ms-2 btn-return" data-order-id="<%= order.orderId %>">
+                <i class="fas fa-undo me-2"></i>Return Order
+            </button>
+        <% } %>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/user/orders.js"></script>
     <script>
         async function cancelItem(productId) {
             const { value: reason } = await Swal.fire({
@@ -170,6 +221,7 @@
             padding: 16px;
             max-width: 800px;
             margin: 0 auto;
+            padding-top: 50px;
         }
 
         .order-header {
@@ -381,6 +433,29 @@
 
         .discount {
             color: #28a745;
+        }
+
+        .payment-status {
+            text-transform: capitalize;
+            font-weight: 500;
+            margin-left: 2px;
+        }
+
+        .payment-status.paid,
+        .payment-status.completed,
+        .payment-status.successful {
+            color: #28a745;
+        }
+
+        .payment-status.pending,
+        .payment-status.processing {
+            color: #ffc107;
+        }
+
+        .payment-status.failed,
+        .payment-status.cancelled,
+        .payment-status.refunded {
+            color: #dc3545;
         }
 
         @media (max-width: 768px) {

@@ -124,6 +124,7 @@ router.post('/my-orders/:orderId/cancel-product/:productId', requireAuth, orderC
 router.get('/my-orders/:orderId/return-request', requireAuth, orderController.getReturnRequestPage);
 router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
 router.get('/my-orders/:orderId/invoice', requireAuth, orderController.downloadInvoice);
+router.post("/update-payment-status", requireAuth, orderController.updatePaymentStatus);
 
 router.post("/wishlist/toggle/:productId", requireAuth, wishlistController.toggleWishlist);
 router.get("/wishlist/add/:id", requireAuth, wishlistController.addToWishlist);
@@ -132,7 +133,9 @@ router.get("/wishlist", requireAuth, wishlistController.getWishlist);
 router.post("/cart/add/:productId", requireAuth, cartController.addToCart);
 
 router.get("/wallet",requireAuth, walletController.getWallet);
-router.post("/wallet/add", requireAuth, walletController.addMoney);
+router.post("/wallet/create-order", requireAuth,walletController.createOrder);
+router.post("/wallet/verify-payment", requireAuth,walletController.verifyPayment);
+
 
 
 router.get('/wishlist/check-blocked', requireAuth, (req, res) => {

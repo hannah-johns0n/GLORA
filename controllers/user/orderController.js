@@ -1,17 +1,34 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Address = require('../../models/addressModel');
-const PDFDocument = require('pdfkit');
+const User = require('../../models/userModel');
 const STATUS_CODES = require('../../constants/statusCodes');
-
+const PDFDocument = require('pdfkit');
 
 const getMyOrders = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const userName = req.user.name;
-        const search = req.query.search || "";
+        const token = req.cookies.jwt;
+        if (!token) {
+            return res.redirect('/login');
+        }
 
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id || decoded.userId;
+        
+        if (!userId) {
+            res.clearCookie('jwt');
+            return res.redirect('/login');
+        }
+
+        const user = await User.findById(userId).select('name');
+        if (!user) {
+            res.clearCookie('jwt');
+            return res.redirect('/login');
+        }
+
+        const search = req.query.search || "";
         const orders = await Order.find({
             userId,
             orderId: { $regex: search, $options: 'i' }
@@ -19,7 +36,11 @@ const getMyOrders = async (req, res) => {
         .populate('orderItems.productId')
         .sort({ createdAt: -1 });
     
-        res.render('user/my-orders', { orders, search,  userName });
+        res.render('user/my-orders', { 
+            orders, 
+            search,  
+            userName: user.name 
+        });
     } catch (err) {
         console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
@@ -38,7 +59,6 @@ const getOrderDetails = async (req, res) => {
         .populate('addressId');
 
         if (!order) return res.status(404).send("Order not found");
-    console.log('============',order);
     
         res.render('user/order-details', { order, userName });
     } catch (err) {
@@ -51,26 +71,77 @@ const getOrderDetails = async (req, res) => {
 const cancelOrder = async (req, res) => {
     try {
         const { reason } = req.body;
-        const userId = req.user.id; 
+        const userId = req.session.user?._id; 
         const orderId = req.params.orderId;
 
            console.log(orderId);
 
-        if (!req.user || !req.user.id) {
+        if (!req.session.user || !req.session.user.id) {
             return res.status(401).json({ message: "User not authenticated." });
         }
 
         const order = await Order.findOne({
-        orderId: orderId, // use your UUID field
-        userId: req.user.id,
-        })
+            orderId: orderId,
+            userId: req.session.user.id,
+        }).populate('userId');
 
         if (!order) {
-            return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Order not found or you do not have permission to cancel it." });
+            return res.status(404).json({ message: "Order not found." });
         }
 
-        if (order.status === "Delivered" || order.status === "Cancelled" || order.status === "Returned") {
-            return res.status(STATUS_CODES.BAD_REQUEST).json({ message: `This order is already ${order.status} and cannot be cancelled.` });
+        if (order.couponInfo) {
+            return res.status(400).json({ 
+                message: "Orders with applied coupons cannot be cancelled." 
+            });
+        }
+
+        if (order.status !== "Pending" && order.status !== "Processing") {
+            return res.status(400).json({ 
+                message: "Order cannot be cancelled at this stage." 
+            });
+        }
+
+        if (order.paymentMethod === 'Online' && order.paymentStatus === 'Paid') {
+            const refundAmount = Number(order.totalPrice);
+            if (isNaN(refundAmount) || refundAmount <= 0) {
+                console.error('Invalid refund amount:', order.totalAmount);
+                return res.status(400).json({ 
+                    message: 'Invalid refund amount. Please contact support.' 
+                });
+            }
+            
+            let wallet = await Wallet.findOne({ user: userId });
+            
+            if (!wallet) {
+                wallet = new Wallet({
+                    user: userId,
+                    balance: 0,
+                    transactions: []
+                });
+            }
+            
+            if (isNaN(wallet.balance)) {
+                wallet.balance = 0;
+            }
+            
+            try {
+                wallet.transactions.push({
+                    amount: refundAmount,
+                    type: 'credit',
+                    description: `Refund for cancelled order #${order.orderId}`,
+                    date: new Date()
+                });
+                
+                wallet.balance = Number((wallet.balance + refundAmount).toFixed(2));
+                await wallet.save();
+                
+                console.log(`Successfully processed refund of ${refundAmount} to wallet for user ${userId}`);
+            } catch (walletError) {
+                console.error('Error updating wallet:', walletError);
+                return res.status(500).json({ 
+                    message: 'Error processing wallet refund. Please contact support.' 
+                });
+            }
         }
 
         for (const item of order.orderItems) {
@@ -82,10 +153,13 @@ const cancelOrder = async (req, res) => {
         }
         
         order.status = "Cancelled";
-order.cancellationReason = req.body.reason || "No reason provided";
-await order.save();
+        order.cancellationReason = reason || "No reason provided";
+        await order.save();
 
-        res.status(STATUS_CODES.SUCCESS).json({ message: "Order cancelled successfully!" });
+        res.status(STATUS_CODES.SUCCESS).json({ 
+            message: "Order cancelled successfully!" + 
+                    (order.paymentMethod === 'Online' ? ' Refund has been processed to your wallet.' : '') 
+        });
     } catch (err) {
         console.error("Error during order cancellation:", err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server Error. Failed to cancel the order." });
@@ -100,7 +174,7 @@ const cancelProduct = async (req, res) => {
 
         const order = await Order.findOne({
             orderId: orderId,
-            userId: req.user.id
+            userId: req.session.user.id
         }).populate("orderItems.productId");
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
@@ -133,56 +207,283 @@ const cancelProduct = async (req, res) => {
 
 const getReturnRequestPage = async (req, res) => {
     try {
-        const orderId = req.params.orderId;
-        const userName = req.user.name;
+        const token = req.cookies.jwt;
+        if (!token) {
+            return res.redirect('/login');
+        }
 
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id || decoded.userId;
+        
+        if (!userId) {
+            res.clearCookie('jwt');
+            return res.redirect('/login');
+        }
+
+        const user = await User.findById(userId).select('name');
+        if (!user) {
+            res.clearCookie('jwt');
+            return res.redirect('/login');
+        }
+
+        const orderId = req.params.orderId;
         const order = await Order.findOne({
             orderId: orderId,
-            userId: req.user.id
+            userId: userId
         });
 
         if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
         if (order.status !== "Delivered") return res.status(400).send("Only delivered orders can be returned");
 
-        res.render('user/return-request', { order, userName });
+        res.render('user/return-request', { 
+            order, 
+            userName: user.name 
+        });
     } catch (err) {
         console.error(err);
         res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
     }
 };
 
-
 const returnOrder = async (req, res) => {
     try {
+        const { orderId } = req.params;
         const { reason } = req.body;
-        if (!reason) return res.status(STATUS_CODES.BAD_REQUEST).send("Return reason is required");
+        
+        // Get user ID from JWT token
+        const token = req.cookies.jwt;
+        if (!token) {
+            return res.status(401).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Login Required</title>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                </head>
+                <body>
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Login Required',
+                            text: 'Please log in to request a return',
+                            confirmButtonText: 'Go to Login',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+        }
+        
+        // Verify JWT token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id || decoded.userId;
 
-        const order = await Order.findOne({
-            orderId: req.params.orderId,
-            userId: req.user.id
+        if (!userId) {
+            return res.status(401).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Invalid Token</title>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                </head>
+                <body>
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Invalid Session',
+                            text: 'Your session is invalid. Please log in again.',
+                            confirmButtonText: 'Go to Login',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+        }
+
+        // Find the order using orderId (UUID) instead of _id
+        const order = await Order.findOne({ 
+            orderId: orderId, 
+            userId: new mongoose.Types.ObjectId(userId) 
         });
 
-        if (!order) return res.status(STATUS_CODES.NOT_FOUND).send("Order not found");
-        if (order.status !== "Delivered") return res.status(STATUS_CODES.BAD_REQUEST).send("Only delivered orders can be returned");
-            console.log(order.status);
-            
-        order.status = "Return-Request";
-           console.log(order.status);
-        order.returnReason = reason; 
-console.log("after save",order)
+        if (!order) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Order Not Found</title>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                </head>
+                <body>
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Order Not Found',
+                            text: 'The requested order could not be found',
+                            confirmButtonText: 'View My Orders',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/my-orders';
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+        }
 
-order.orderItems.forEach(item => {
-    item.status = "Return-Request";
-});
-console.log("after save",order)
+        // Check if a return has already been requested
+        if (order.returnRequest) {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Return Already Requested</title>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                </head>
+                <body>
+                    <script>
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Return Already Requested',
+                            text: 'A return has already been requested for this order',
+                            confirmButtonText: 'View My Orders',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/my-orders';
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+        }
 
+        // Check if coupon was used
+        if (order.couponInfo) {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Return Not Allowed</title>
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                </head>
+                <body>
+                    <script>
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Return Not Allowed',
+                            text: 'Orders with applied coupons cannot be returned',
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.history.back();
+                        });
+                    </script>
+                </body>
+                </html>
+            `);
+        }
+
+        // Update order status to indicate return request
+        order.status = 'Return-Requested';
+        order.returnRequest = {
+            requestedAt: new Date(),
+            status: 'pending',
+            reason: reason || 'No reason provided',
+            refundProcessed: false
+        };
 
         await order.save();
-
-        res.redirect('/my-orders');
+        
+        // Return HTML response with SweetAlert
+        return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Return Request Submitted</title>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            </head>
+            <body>
+                <script>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Return Request Submitted',
+                        text: 'Your return request has been submitted successfully! Our team will review it shortly.',
+                        confirmButtonText: 'View My Orders',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = '/my-orders';
+                    });
+                </script>
+            </body>
+            </html>
+        `);
+            
+            if (!wallet) {
+                wallet = new Wallet({
+                    user: userId,
+                    balance: 0,
+                    transactions: []
+                });
+            }
+            
+            // Ensure balance is a valid number
+            if (isNaN(wallet.balance)) {
+                wallet.balance = 0;
+            }
+            
+            try {
+                // Add transaction to wallet
+                wallet.transactions.push({
+                    amount: refundAmount,
+                    type: 'credit',
+                    description: `Refund for returned order #${order.orderId}`,
+                    date: new Date()
+                });
+                
+                // Update wallet balance
+                wallet.balance = Number((wallet.balance + refundAmount).toFixed(2));
+                await wallet.save();
+                
+                console.log(`Successfully processed return refund of ${refundAmount} to wallet for user ${userId}`);
+                
+            } catch (walletError) {
+                console.error('Error updating wallet for return:', walletError);
+                return res.status(500).json({ 
+                    success: false,
+                    message: 'Error processing return refund. Please contact support.'
+                });
+            }
+        
     } catch (err) {
-        console.error(err);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
+        console.error('Error in returnOrder:', err);
+        return res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Error</title>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            </head>
+            <body>
+                <script>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to process return request. Please try again later.',
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.history.back();
+                    });
+                </script>
+            </body>
+            </html>
+        `);
     }
 };
 
@@ -191,7 +492,7 @@ const downloadInvoice = async (req, res) => {
   try {
     const order = await Order.findOne({
       orderId: req.params.orderId,
-      userId: req.user.id
+      userId: req.session.user.id
     })
       .populate("orderItems.productId")
       .populate("addressId")
@@ -229,6 +530,16 @@ const downloadInvoice = async (req, res) => {
       .text(`Status: `, { continued: true })
       .font("Helvetica-Bold")
       .text(order.status);
+    doc
+      .font("Helvetica")
+      .text(`Payment Method: `, { continued: true })
+      .font("Helvetica-Bold")
+      .text(order.paymentMethod || "N/A");
+    doc
+      .font("Helvetica")
+      .text(`Payment Status: `, { continued: true })
+      .font("Helvetica-Bold")
+      .text(order.paymentStatus || "N/A");
     doc.moveDown(2);
 
     // ---------- BILLING INFO ----------
@@ -301,7 +612,48 @@ const downloadInvoice = async (req, res) => {
   }
 };
 
-module.exports = { downloadInvoice };
+// Update payment status after successful retry payment
+const updatePaymentStatus = async (req, res) => {
+    try {
+        const { orderId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        const userId = req.session.user?._id;
+
+        // Find the order and verify it belongs to the user
+        const order = await Order.findOne({ orderId, userId });
+        
+        if (!order) {
+            return res.status(STATUS_CODES.NOT_FOUND).json({ 
+                success: false, 
+                message: 'Order not found' 
+            });
+        }
+
+        // Update the order with payment details
+        order.paymentStatus = 'Paid';
+        order.paymentDetails = {
+            razorpay_payment_id,
+            razorpay_order_id,
+            razorpay_signature,
+            paymentDate: new Date()
+        };
+        order.status = 'Processing'; // Update order status to processing
+        
+        await order.save();
+
+        res.json({ 
+            success: true, 
+            message: 'Payment status updated successfully',
+            orderId: order.orderId
+        });
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Failed to update payment status',
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     getMyOrders,
@@ -310,5 +662,6 @@ module.exports = {
     cancelProduct,
     getReturnRequestPage,
     returnOrder,
-    downloadInvoice
+    downloadInvoice,
+    updatePaymentStatus
 }

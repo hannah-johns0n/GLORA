@@ -3,6 +3,18 @@
 <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
     <h2>Order Details</h2>
 
+<% if (req.query.action === 'accepted') { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> Return request has been accepted and processed successfully!
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } else if (req.query.action === 'rejected') { %>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> Return request has been rejected.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
+
     <div class="card p-3 mb-3">
         <h5>Order ID: <%= order.orderId %></h5>
         <p>Date: <%= order.createdAt.toDateString() %></p>
@@ -20,8 +32,8 @@
                             <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
                             <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
                             <option value="Returned" <%= order.status === 'Returned' ? 'selected' : '' %>>Returned</option>
-                            <option value="Return-Request" <%= order.status === 'Return-Request' ? 'selected' : '' %>>Return-Request</option>
-                            <option value="Return-Rejected" <%= order.status === 'Return-Rejected' ? 'selected' : '' %>>Return-Rejected</option>
+                            <option value="Return-Request" <%= order.status === 'Return-Request' || order.status === 'Return-Requested' ? 'selected' : '' %>>Return Requested</option>
+                            <option value="Return-Rejected" <%= order.status === 'Return-Rejected' ? 'selected' : '' %>>Return Rejected</option>
                         </select>
                         <button class="btn btn-sm btn-primary" type="submit" id="status-update-btn">
                             <i class="fas fa-save me-1"></i> Update
@@ -31,7 +43,7 @@
             </form>
         </div>
 
-       <% if (order.status === 'Return-Request' || order.status === 'Returned' || order.status === 'Delivered' || order.status === 'Cancelled') { %>
+       <% if (order.status === 'Return-Request' || order.status === 'Return-Requested' || order.status === 'Returned' || order.status === 'Delivered' || order.status === 'Cancelled') { %>
     <% if (order.status === 'Cancelled' && order.cancelReason) { %>
         <div class="alert alert-danger mt-3">
             <strong>Cancellation Reason:</strong> <%= order.cancelReason %>
@@ -39,14 +51,18 @@
     <% } %>
 
     <div class="alert alert-warning d-flex align-items-center justify-content-between mt-3 mb-0" role="alert">
-        <% if (order.status === 'Return-Request') { %>
+        <% if (order.status === 'Return-Request' || order.status === 'Return-Requested') { %>
             <span><i class="fas fa-exclamation-triangle me-2"></i> This order has a pending return request.</span>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#returnReasonModal">
                     View Reason
                 </button>
-                <a href="/admin/order-list/<%= order._id %>/verify-return?action=accept" class="btn btn-sm btn-success">Accept Return</a>
-                <a href="/admin/order-list/<%= order._id %>/verify-return?action=reject" class="btn btn-sm btn-danger">Reject Return</a>
+                <button type="button" class="btn btn-sm btn-success" onclick="handleReturnAction('<%= order._id %>', 'accept')">
+                    Accept Return
+                </button>
+                <button type="button" class="btn btn-sm btn-danger" onclick="handleReturnAction('<%= order._id %>', 'reject')">
+                    Reject Return
+                </button>
             </div>
         <% } else if (order.status === 'Returned') { %>
             <span>Return accepted</span>
@@ -154,7 +170,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modal-reason-content">
-        <!-- Reason will be injected here -->
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -175,6 +190,39 @@ function showReasonModal(reason) {
 
 
 <script>
+    async function handleReturnAction(orderId, action) {
+        try {
+            const response = await fetch(`/admin/order-list/${orderId}/verify-return?action=${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: action === 'accept' ? 'Return request accepted successfully!' : 'Return request rejected.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error(result.message || 'Failed to process return request');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while processing your request',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
     document.getElementById('status-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         
