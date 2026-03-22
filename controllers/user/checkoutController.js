@@ -8,8 +8,12 @@ const Coupon = require("../../models/coupensModel")
 const razorpay = require("../../config/razorpay")
 const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
+<<<<<<< HEAD
 const mongoose = require('mongoose');
 
+=======
+const shipping = 50;
+>>>>>>> 17aca863d17e949cb7ec03296b69f2813f377bfe
 
 const getCheckoutPage = async (req, res) => {
   try {
@@ -105,7 +109,43 @@ const placeOrder = async (req, res) => {
         invalidItems.push(item._id);
         continue;
       }
+ HEAD
       subtotal += item.productId.salesPrice * item.quantity;
+
+
+      let subtotal = 0;
+      cart.items.forEach(item => {
+        subtotal += item.productId.price * item.quantity;
+      });
+
+      const tax = subtotal * 0.05;
+      const discount = 0;  
+      const finalTotal = subtotal + tax + shipping - discount;
+
+      res.render("user/checkout", {
+        userName,
+        addresses,
+        cartItems: cart.items,
+        subtotal,
+        tax,
+        discount,
+        shipping,
+        finalTotal
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server Error");
+    }
+  };
+  
+  const placeOrder = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { addressId } = req.body;
+
+        if (!addressId) {
+      return res.status(STATUS_CODES.BAD_REQUEST).send("Please select a shipping address");
+ 17aca863d17e949cb7ec03296b69f2813f377bfe
     }
 
     if (invalidItems.length > 0) {

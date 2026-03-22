@@ -97,6 +97,7 @@
 
 <%- include('../partials/user/footer') %>
 
+ HEAD
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -154,6 +155,83 @@ document.getElementById('addToCartBtn').addEventListener('click', async function
       body: JSON.stringify({
         variantIndex: selectedVariantIndex
       })
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <script>
+    window.Swal = Swal;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      const mainImage = document.getElementById('mainImage');
+      
+      thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+          mainImage.src = this.src;
+          thumbnails.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      const addToCartBtn = document.getElementById('addToCartBtn');
+      if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', async function(e) {
+          console.log('Add to cart button clicked');
+          e.preventDefault();
+          e.stopPropagation();
+          const productId = this.getAttribute('data-id');
+          const btnText = this.textContent;
+          console.log('Product ID:', productId);
+          
+          this.disabled = true;
+          this.textContent = 'Adding...';
+          
+          try {
+            const response = await fetch(`/cart/add/${productId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({})
+            });
+            
+            const result = await response.json();
+            
+                          console.log(result)
+            
+            if (response.ok) {
+              Swal.fire({
+                title: 'Success!',
+                text: 'Product added to cart',
+                icon: 'success',
+                confirmButtonText: 'OK'
+              });
+              
+              const cartCountElement = document.querySelector('.cart-count');
+              if (cartCountElement) {
+                cartCountElement.textContent = result.cartCount || 0;
+              }
+            } else {
+              throw new Error(result.message || 'Failed to add to cart');
+            }
+          } catch (error) {
+            window.Swal.fire({
+              position: 'center',
+              icon: 'error',
+              title: 'Error',
+              text: error.message || 'Failed to add to cart. Please try again.',
+              showConfirmButton: true
+            });
+          } finally {
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = btnText;
+          }
+        });
+      }
+ 17aca863d17e949cb7ec03296b69f2813f377bfe
     });
 
     const data = await res.json();

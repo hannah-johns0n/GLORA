@@ -134,7 +134,7 @@
             </div>
             <div class="summary-row">
                 <span>Shipping</span>
-                <span>₹<%= (order.shippingPrice || 0).toFixed(2) %></span>
+                <span>₹<%= (50 || 0).toFixed(2) %></span>
             </div>
             <% if(order.discountAmount && order.discountAmount> 0) { %>
                 <div class="summary-row discount">
@@ -189,7 +189,6 @@
                 });
 
                 if (response.ok) {
-                    // Update UI without page reload
                     const btn = document.querySelector(`#cancel-form-${productId} ~ .btn-cancel-item`);
                     btn.innerHTML = '<i class="fas fa-check me-1"></i> Item Cancelled';
                     btn.disabled = true;
