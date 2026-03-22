@@ -37,18 +37,132 @@ exports.getHome = async (req,res) => {
 
 exports.getDashboard = async (req, res) => {
   try {
+    const filter = req.query.filter || 'yearly';
+
+    const totalCustomers = await User.countDocuments({ role: 'user' });
+    const totalOrders = await Order.countDocuments();
+    const totalProducts = await Product.countDocuments();
+    const totalSales = await Order.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+    ]);
+
+    const recentOrders = await Order.find()
+      .populate("userId", "name")
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    let chartData;
+    if (filter === 'yearly') {
+      chartData = await Order.aggregate([
+        {
+          $group: {
+            _id: { $year: "$createdAt" },
+            total: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id": 1 } }
+      ]);
+    } else {
+      chartData = await Order.aggregate([
+        {
+          $group: {
+            _id: { $month: "$createdAt" },
+            total: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id": 1 } }
+      ]);
+    }
+
+    const labels = chartData.map(item => filter === 'yearly' ? item._id : `Month ${item._id}`);
+    const data = chartData.map(item => item.total);
+
+    const bestProducts = await Order.aggregate([
+      { $unwind: "$orderItems" },
+      {
+        $group: {
+          _id: "$orderItems.productId",
+          totalSold: { $sum: "$orderItems.quantity" }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $project: {
+          productName: "$product.name",
+          totalSold: 1
+        }
+      }
+    ]);
+
+    const bestCategories = await Order.aggregate([
+      { $unwind: "$orderItems" },
+      {
+        $lookup: {
+          from: "products",
+          localField: "orderItems.productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" },
+      {
+        $group: {
+          _id: "$product.categoryId",
+          totalSold: { $sum: "$orderItems.quantity" }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "category"
+        }
+      },
+      { $unwind: "$category" },
+      {
+        $project: {
+          categoryName: "$category.name",
+          totalSold: 1
+        }
+      }
+    ]);
+
     res.render('admin/dashboard', {
-      totalCustomers: 0,
-      totalOrders: 0,
-      totalProducts: 0,
-      totalSales: 0,
-      recentOrders: []
+      totalCustomers,
+      totalOrders,
+      totalProducts,
+      totalSales: totalSales.length > 0 ? totalSales[0].total : 0,
+      recentOrders: recentOrders.map(order => ({
+        _id: order._id,
+        customerName: order.userId?.name || "Unknown",
+        date: order.createdAt.toDateString(),
+        status: order.status,
+        total: order.totalPrice
+      })),
+      chartData: { labels, data },
+      bestProducts,
+      bestCategories
     });
-  } 
-  catch (error) {
+  } catch (error) {
+    console.log(error);
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Failed to load dashboard');
   }
-}
+};
+
+
 
 exports.listCustomers = async (req, res) => {
   try {

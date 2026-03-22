@@ -28,17 +28,16 @@
       <textarea class="form-control" id="description" name="description" rows="3" required><%= product.description %></textarea>
     </div>
     <div class="mb-3">
-      <label for="regularPrice" class="form-label">Regular Price</label>
-      <input type="number" class="form-control" id="regularPrice" name="regularPrice" value="<%= product.regularPrice %>" required>
-    </div>
-    <div class="mb-3">
-      <label for="salesPrice" class="form-label">Sales Price</label>
-      <input type="number" class="form-control" id="salesPrice" name="salesPrice" value="<%= product.salesPrice %>" required>
-    </div>
-    <div class="mb-3">
-      <label for="quantity" class="form-label">Quantity</label>
-      <input type="number" class="form-control" id="quantity" name="quantity" value="<%= product.quantity %>" required>
-    </div>
+  <label class="form-label">Variants (ml / g)</label>
+
+  <div id="variantContainer"></div>
+
+  <button type="button" class="btn btn-outline-primary mt-2" onclick="addVariant()">
+    + Add Variant
+  </button>
+</div>
+
+<input type="hidden" name="variants" id="variantsInput">
     <!-- Cropper Modal -->
     <div class="modal fade" id="cropImageModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
@@ -419,6 +418,82 @@
       alert(message);
     }
   }
+</script>
+<script>
+let variants = <%- JSON.stringify(product.variants || []) %>;
+
+function renderVariants() {
+
+  const container = document.getElementById("variantContainer");
+  container.innerHTML = "";
+
+  variants.forEach((v, index) => {
+
+    container.insertAdjacentHTML("beforeend", `
+      <div class="border p-3 mb-2 rounded">
+
+        <input class="form-control mb-2"
+          placeholder="Unit (eg: 50ml)"
+          value="${v.unit || ''}"
+          oninput="variants[${index}].unit=this.value">
+
+        <input type="number"
+          class="form-control mb-2"
+          placeholder="Regular Price"
+          value="${v.regularPrice || ''}"
+          oninput="variants[${index}].regularPrice=this.value">
+
+        <input type="number"
+          class="form-control mb-2"
+          placeholder="Sales Price"
+          value="${v.salesPrice || ''}"
+          oninput="variants[${index}].salesPrice=this.value">
+
+        <input type="number"
+          class="form-control mb-2"
+          placeholder="Quantity"
+          value="${v.quantity || ''}"
+          oninput="variants[${index}].quantity=this.value">
+
+        <button type="button"
+          class="btn btn-sm btn-danger"
+          onclick="removeVariant(${index})">
+          Remove
+        </button>
+
+      </div>
+    `);
+
+  });
+
+}
+
+function addVariant(){
+
+  variants.push({
+    unit:"",
+    regularPrice:"",
+    salesPrice:"",
+    quantity:""
+  });
+
+  renderVariants();
+}
+
+function removeVariant(index){
+
+  variants.splice(index,1);
+
+  renderVariants();
+}
+
+renderVariants();
+
+document.querySelector("form").addEventListener("submit", ()=>{
+
+  document.getElementById("variantsInput").value = JSON.stringify(variants);
+
+});
 </script>
 
 </main>

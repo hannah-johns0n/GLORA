@@ -113,7 +113,7 @@ const postVerifyOtp = async (req, res) => {
     email, 
     error: "No OTP found for this email", 
     expiresIn: 300,
-    purpose: "verify" // add this
+    purpose: "verify" 
   });
 }
 
@@ -122,7 +122,7 @@ if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
     email, 
     error: "Invalid or expired OTP", 
     expiresIn: 300,
-    purpose: "verify" // add this
+    purpose: "verify" 
   });
 }
 

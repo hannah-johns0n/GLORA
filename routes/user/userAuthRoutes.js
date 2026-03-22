@@ -1,5 +1,9 @@
 const express = require('express');
 const router = express.Router();
+
+// Parse JSON and URL-encoded request bodies
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 const userController = require("../../controllers/user/userController");
 const cartController = require("../../controllers/user/cartController");
 const checkoutController = require("../../controllers/user/checkoutController");
@@ -68,7 +72,7 @@ router.get('/auth/google/callback',
 
 router.post('/logout', userController.logout);
 
-router.get('/shop',requireAuth, userController.getShopPage);
+router.get('/shop', userController.getShopPage);
 
 router.get('/product/:id', userController.getProductDetails);
 
@@ -123,6 +127,10 @@ router.post('/my-orders/:orderId/cancel', requireAuth, orderController.cancelOrd
 router.post('/my-orders/:orderId/cancel-product/:productId', requireAuth, orderController.cancelProduct);
 router.get('/my-orders/:orderId/return-request', requireAuth, orderController.getReturnRequestPage);
 router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
+
+// Wallet routes
+router.get('/wallet/balance', requireAuth, walletController.getWalletBalance);
+
 router.get('/my-orders/:orderId/invoice', requireAuth, orderController.downloadInvoice);
 router.post("/update-payment-status", requireAuth, orderController.updatePaymentStatus);
 

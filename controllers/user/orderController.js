@@ -187,10 +187,8 @@ const cancelProduct = async (req, res) => {
             return res.status(STATUS_CODES.BAD_REQUEST).send("This item cannot be cancelled");
         }
 
-        // restore stock
         await Product.findByIdAndUpdate(productId, { $inc: { stock: item.quantity } });
 
-        // update status and reason
         item.status = "Cancelled";
         item.cancelReason = reason || "No reason provided";
 
@@ -250,7 +248,6 @@ const returnOrder = async (req, res) => {
         const { orderId } = req.params;
         const { reason } = req.body;
         
-        // Get user ID from JWT token
         const token = req.cookies.jwt;
         if (!token) {
             return res.status(401).send(`
@@ -277,119 +274,31 @@ const returnOrder = async (req, res) => {
             `);
         }
         
-        // Verify JWT token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id || decoded.userId;
 
         if (!userId) {
-            return res.status(401).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Invalid Token</title>
-                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                </head>
-                <body>
-                    <script>
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Invalid Session',
-                            text: 'Your session is invalid. Please log in again.',
-                            confirmButtonText: 'Go to Login',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = '/login';
-                        });
-                    </script>
-                </body>
-                </html>
-            `);
+            return res.status(401).send(`User not found`);
         }
 
-        // Find the order using orderId (UUID) instead of _id
         const order = await Order.findOne({ 
             orderId: orderId, 
             userId: new mongoose.Types.ObjectId(userId) 
         });
 
         if (!order) {
-            return res.status(404).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Order Not Found</title>
-                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                </head>
-                <body>
-                    <script>
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Order Not Found',
-                            text: 'The requested order could not be found',
-                            confirmButtonText: 'View My Orders',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = '/my-orders';
-                        });
-                    </script>
-                </body>
-                </html>
-            `);
+            return res.status(404).send(`order not found`);
         }
 
-        // Check if a return has already been requested
         if (order.returnRequest) {
-            return res.status(400).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Return Already Requested</title>
-                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                </head>
-                <body>
-                    <script>
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Return Already Requested',
-                            text: 'A return has already been requested for this order',
-                            confirmButtonText: 'View My Orders',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.location.href = '/my-orders';
-                        });
-                    </script>
-                </body>
-                </html>
-            `);
+            return res.status(400).send(`Return Already Requested`);
         }
 
-        // Check if coupon was used
         if (order.couponInfo) {
-            return res.status(400).send(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Return Not Allowed</title>
-                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                </head>
-                <body>
-                    <script>
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Return Not Allowed',
-                            text: 'Orders with applied coupons cannot be returned',
-                            confirmButtonText: 'OK',
-                            allowOutsideClick: false
-                        }).then(() => {
-                            window.history.back();
-                        });
-                    </script>
-                </body>
-                </html>
-            `);
+            return res.status(400).send(``);
         }
 
-        // Update order status to indicate return request
+        
         order.status = 'Return-Requested';
         order.returnRequest = {
             requestedAt: new Date(),
@@ -400,9 +309,7 @@ const returnOrder = async (req, res) => {
 
         await order.save();
         
-        // Return HTML response with SweetAlert
-        return res.send(`
-            <!DOCTYPE html>
+        return res.send(`<!DOCTYPE html>
             <html>
             <head>
                 <title>Return Request Submitted</title>
@@ -421,10 +328,8 @@ const returnOrder = async (req, res) => {
                     });
                 </script>
             </body>
-            </html>
-        `);
-            
-            if (!wallet) {
+            </html>`);
+        if (!wallet) {
                 wallet = new Wallet({
                     user: userId,
                     balance: 0,
@@ -432,13 +337,11 @@ const returnOrder = async (req, res) => {
                 });
             }
             
-            // Ensure balance is a valid number
             if (isNaN(wallet.balance)) {
                 wallet.balance = 0;
             }
             
             try {
-                // Add transaction to wallet
                 wallet.transactions.push({
                     amount: refundAmount,
                     type: 'credit',
@@ -446,7 +349,6 @@ const returnOrder = async (req, res) => {
                     date: new Date()
                 });
                 
-                // Update wallet balance
                 wallet.balance = Number((wallet.balance + refundAmount).toFixed(2));
                 await wallet.save();
                 
@@ -492,7 +394,7 @@ const downloadInvoice = async (req, res) => {
   try {
     const order = await Order.findOne({
       orderId: req.params.orderId,
-      userId: req.session.user.id
+      userId: req.user._id
     })
       .populate("orderItems.productId")
       .populate("addressId")
@@ -506,14 +408,12 @@ const downloadInvoice = async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename=invoice-${order.orderId}.pdf`);
     doc.pipe(res);
 
-    // ---------- HEADER ----------
     doc
       .fontSize(28)
       .font("Helvetica-Bold")
       .text("INVOICE", { align: "center" });
     doc.moveDown();
 
-    // ---------- ORDER DETAILS ----------
     doc
       .fontSize(12)
       .font("Helvetica")
@@ -542,13 +442,11 @@ const downloadInvoice = async (req, res) => {
       .text(order.paymentStatus || "N/A");
     doc.moveDown(2);
 
-    // ---------- BILLING INFO ----------
     doc.font("Helvetica-Bold").text("Billed To:");
     doc.font("Helvetica").text(`${order.userId?.name || "N/A"}`);
     doc.text(`${order.userId?.email || "N/A"}`);
     doc.moveDown();
 
-    // ---------- SHIPPING INFO ----------
     doc.font("Helvetica-Bold").text("Shipping Address:");
     doc.font("Helvetica").text(
       `${order.addressId?.city || "N/A"}, ${order.addressId?.state || "N/A"}`
@@ -557,7 +455,6 @@ const downloadInvoice = async (req, res) => {
     doc.text(`Phone: ${order.addressId?.phoneNumber || "N/A"}`);
     doc.moveDown(2);
 
-    // ---------- ORDER ITEMS TABLE ----------
     let grandTotal = 0;
     const table = {
       headers: ["Product", "Price", "Qty", "Subtotal"],
@@ -589,7 +486,6 @@ const downloadInvoice = async (req, res) => {
 
     doc.moveDown(2);
 
-    // ---------- TOTAL ----------
     doc
       .font("Helvetica-Bold")
       .fontSize(14)
@@ -599,7 +495,6 @@ const downloadInvoice = async (req, res) => {
 
     doc.moveDown(3);
 
-    // ---------- FOOTER ----------
     doc
       .font("Helvetica-Oblique")
       .fontSize(10)
@@ -612,13 +507,11 @@ const downloadInvoice = async (req, res) => {
   }
 };
 
-// Update payment status after successful retry payment
 const updatePaymentStatus = async (req, res) => {
     try {
         const { orderId, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
         const userId = req.session.user?._id;
 
-        // Find the order and verify it belongs to the user
         const order = await Order.findOne({ orderId, userId });
         
         if (!order) {
@@ -628,7 +521,6 @@ const updatePaymentStatus = async (req, res) => {
             });
         }
 
-        // Update the order with payment details
         order.paymentStatus = 'Paid';
         order.paymentDetails = {
             razorpay_payment_id,
@@ -636,7 +528,7 @@ const updatePaymentStatus = async (req, res) => {
             razorpay_signature,
             paymentDate: new Date()
         };
-        order.status = 'Processing'; // Update order status to processing
+        order.status = 'Processing'; 
         
         await order.save();
 

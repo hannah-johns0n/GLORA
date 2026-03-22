@@ -79,6 +79,62 @@
             <% } else { %>
               <p>No recent orders found.</p>
             <% } %>
+            <div class="row mt-5">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header bg-secondary text-white d-flex justify-content-between">
+        <h5 class="mb-0">Sales Overview</h5>
+        <select id="salesFilter" class="form-select w-auto">
+          <option value="yearly">Yearly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="card-body">
+        <canvas id="salesChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col-md-6">
+  <div class="card">
+    <div class="card-header bg-info text-white">Top 10 Best-Selling Products</div>
+    <div class="card-body">
+      <canvas id="productChart"></canvas>
+    </div>
+  </div>
+</div>
+<div class="col-md-6">
+  <div class="card">
+    <div class="card-header bg-warning text-white">Best-Selling Categories</div>
+    <div class="card-body">
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  const ctx = document.getElementById('salesChart').getContext('2d');
+  let salesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(chartData.labels) %>,
+      datasets: [{
+        label: 'Sales',
+        data: <%- JSON.stringify(chartData.data) %>,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }]
+    }
+  });
+
+  document.getElementById('salesFilter').addEventListener('change', function() {
+    window.location.href = '/admin/dashboard?filter=' + this.value;
+  });
+</script>
+
           </div>
         </div>
       </div>
@@ -87,3 +143,43 @@
   </main>
 </body>
 </html>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Product Chart (Bar)
+  new Chart(document.getElementById('productChart'), {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(bestProducts.map(p => p.productName)) %>,
+      datasets: [{
+        label: 'Units Sold',
+        data: <%- JSON.stringify(bestProducts.map(p => p.totalSold)) %>,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  // Category Chart (Pie)
+  new Chart(document.getElementById('categoryChart'), {
+    type: 'pie',
+    data: {
+      labels: <%- JSON.stringify(bestCategories.map(c => c.categoryName)) %>,
+      datasets: [{
+        label: 'Units Sold',
+        data: <%- JSON.stringify(bestCategories.map(c => c.totalSold)) %>,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(75, 192, 192, 0.7)',
+          'rgba(153, 102, 255, 0.7)'
+        ]
+      }]
+    },
+    options: { responsive: true }
+  });
+</script>

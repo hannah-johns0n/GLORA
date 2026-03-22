@@ -2,11 +2,13 @@ const Address = require("../../models/addressModel");
 const Cart = require("../../models/cartModel");
 const Order = require("../../models/orderModel");
 const Product = require("../../models/productModel");
+const Wallet = require("../../models/walletModel");
 const STATUS_CODES = require('../../constants/statusCodes');
 const Coupon = require("../../models/coupensModel")
 const razorpay = require("../../config/razorpay")
 const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 
 
 const getCheckoutPage = async (req, res) => {
@@ -56,7 +58,29 @@ const getCheckoutPage = async (req, res) => {
 const placeOrder = async (req, res) => {
   try {
     const userId = req.user.id;
+    
+    if (!req.body) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Request body is missing"
+      });
+    }
+    
     const { addressId, couponCode, paymentMethod } = req.body;
+    
+    if (!paymentMethod) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Payment method is required"
+      });
+    }
+    
+    if (paymentMethod !== 'wallet' && !addressId) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Shipping address is required"
+      });
+    }
 
     if (!addressId) {
       return res.status(STATUS_CODES.BAD_REQUEST).json({
@@ -121,7 +145,93 @@ const placeOrder = async (req, res) => {
     const finalTotal = subtotal + shipping - discount;
     const orderId = uuidv4();
 
-    if (paymentMethod === "razorpay") {
+    if (paymentMethod === "wallet") {
+      try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+          const wallet = await Wallet.findOne({ user: userId }).session(session);
+          
+          if (!wallet) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(STATUS_CODES.BAD_REQUEST).json({
+              success: false,
+              message: "Wallet not found"
+            });
+          }
+          
+          if (wallet.balance < finalTotal) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(STATUS_CODES.BAD_REQUEST).json({
+              success: false,
+              message: "Insufficient wallet balance"
+            });
+          }
+          
+          wallet.balance -= finalTotal;
+          wallet.transactions.push({
+            type: 'debit',
+            amount: finalTotal,
+            description: `Order payment for #${orderId}`,
+            orderId: orderId,
+            date: new Date()
+          });
+          
+          await wallet.save({ session });
+          
+          const order = new Order({
+            orderId,
+            userId,
+            addressId,
+            orderItems: cart.items.map(i => ({
+              productId: i.productId._id,
+              quantity: i.quantity,
+              price: i.productId.salesPrice,
+              name: i.productId.name,
+              image: i.productId.images[0] || '',
+              status: 'Confirmed',
+              cancelReason: null
+            })),
+            subtotal,
+            discount,
+            shipping,
+            totalPrice: finalTotal,
+            paymentMethod: "Wallet",
+            paymentStatus: "Paid",
+            status: "Processing"
+          });
+          
+          await order.save({ session });
+          
+          cart.items = [];
+          await cart.save({ session });
+          
+          await session.commitTransaction();
+          session.endSession();
+          
+          return res.json({
+            success: true,
+            orderId: order.orderId,
+            message: "Order placed successfully with wallet payment"
+          });
+          
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          throw error;
+        }
+        
+      } catch (walletError) {
+        console.error("Wallet error:", walletError);
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+          success: false,
+          message: "Error processing wallet payment: " + walletError.message
+        });
+      }
+    } else if (paymentMethod === "razorpay") {
       try {
         const razorpayOrder = await razorpay.orders.create({
           amount: Math.round(finalTotal * 100), 
@@ -163,8 +273,8 @@ const placeOrder = async (req, res) => {
         discount,
         shipping,
         totalPrice: finalTotal,
-        paymentMethod: "Cod",
-        paymentStatus: "Pending",
+        paymentMethod: paymentMethod === "wallet" ? "Wallet" : "Cod",
+        paymentStatus: paymentMethod === "wallet" ? "Paid" : "Pending",
         status: "Pending"  
       });
 
@@ -367,7 +477,6 @@ const verifyRazorpayOrder = async (req, res) => {
     });
   }
 };
-
 
 const orderSuccess = async (req, res) => {
   try {

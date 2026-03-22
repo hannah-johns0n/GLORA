@@ -6,12 +6,15 @@ const getSalesReport = async (req, res) => {
   try {
     let { startDate, endDate, paymentMethod, orderStatus } = req.query;
 
-    let filter = {
-      status: { $in: ["Delivered", "Return Rejected"] }   
-    };
+    let filter = {};
+
+    filter.status = { $in: ["Delivered", "Returned"] };
 
     if (startDate && endDate) {
-      filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      filter.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
     }
 
     if (paymentMethod && paymentMethod !== "all") {
@@ -23,15 +26,16 @@ const getSalesReport = async (req, res) => {
     }
 
     const orders = await Order.find(filter)
-      .populate("orderItems.productId") 
-      .populate("userId") 
-      .sort({ createdAt: -1 });
+      .populate("orderItems.productId")
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
 
     let totalSales = orders.reduce((sum, o) => sum + o.totalPrice, 0);
     let totalOrders = orders.length;
     let avgOrder = totalOrders > 0 ? totalSales / totalOrders : 0;
 
-    let returnedOrders = orders.filter(o => o.status === "Returned").length;
+    let returnedOrders = orders.filter((o) => o.status === "Returned").length;
     let returnRate = totalOrders > 0 ? (returnedOrders / totalOrders) * 100 : 0;
 
     res.render("admin/salesReport", {
@@ -40,9 +44,8 @@ const getSalesReport = async (req, res) => {
       totalOrders,
       avgOrder,
       returnRate,
-      filters: { startDate, endDate, paymentMethod, orderStatus }
+      filters: { startDate, endDate, paymentMethod, orderStatus },
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).send("Error generating sales report");
@@ -60,20 +63,22 @@ const downloadExcel = async (req, res) => {
       { header: "Date", key: "date", width: 20 },
       { header: "Amount", key: "amount", width: 15 },
       { header: "Payment", key: "payment", width: 20 },
-      { header: "Status", key: "status", width: 15 }
+      { header: "Status", key: "status", width: 15 },
     ];
 
-    const orders = await Order.find({ status: { $in: ["Delivered", "Return Rejected"] } })  // ✅ Only Delivered & Return Rejected
-      .sort({ createdAt: -1 });
+    const orders = await Order.find({ status: { $in: ["Delivered", "Returned"] } })
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       worksheet.addRow({
-        id: order._id,
-        customer: order.customerEmail,
-        date: order.createdAt.toDateString(),
+        id: order._id.toString(),
+        customer: order.userId ? order.userId.name : "N/A",
+        date: new Date(order.createdAt).toDateString(),
         amount: order.totalPrice,
         payment: order.paymentMethod,
-        status: order.status
+        status: order.status,
       });
     });
 
@@ -81,14 +86,10 @@ const downloadExcel = async (req, res) => {
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=sales-report.xlsx"
-    );
+    res.setHeader("Content-Disposition", "attachment; filename=sales-report.xlsx");
 
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Error downloading Excel");
@@ -97,8 +98,10 @@ const downloadExcel = async (req, res) => {
 
 const downloadPDF = async (req, res) => {
   try {
-    const orders = await Order.find({ status: { $in: ["Delivered", "Return Rejected"] } })  
-      .sort({ createdAt: -1 });
+    const orders = await Order.find({ status: { $in: ["Delivered", "Returned"] } })
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
 
     const doc = new PDFDocument();
 
@@ -110,23 +113,28 @@ const downloadPDF = async (req, res) => {
     doc.fontSize(18).text("Sales Report", { align: "center" });
     doc.moveDown();
 
-    orders.forEach(order => {
-      doc.fontSize(12).text(
-        `Order ID: ${order._id} | Customer: ${order.customerEmail} | Amount: ₹${order.totalPrice} | Status: ${order.status} | Date: ${order.createdAt.toDateString()}`
-      );
+    orders.forEach((order) => {
+      doc
+        .fontSize(12)
+        .text(
+          `Order ID: ${order._id} | Customer: ${
+            order.userId ? order.userId.name : "N/A"
+          } | Amount: ₹${order.totalPrice} | Status: ${
+            order.status
+          } | Date: ${new Date(order.createdAt).toDateString()}`
+        );
       doc.moveDown();
     });
 
     doc.end();
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Error downloading PDF");
   }
 };
 
-module.exports = { 
-  getSalesReport, 
-  downloadExcel, 
-  downloadPDF 
+module.exports = {
+  getSalesReport,
+  downloadExcel,
+  downloadPDF,
 };

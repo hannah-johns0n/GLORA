@@ -126,8 +126,38 @@ const verifyPayment = async (req, res) => {
 
 
 
+const getWalletBalance = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    let wallet = await Wallet.findOne({ user: userId });
+    
+    if (!wallet) {
+      wallet = new Wallet({ 
+        user: userId,
+        balance: 0,
+        transactions: []
+      });
+      await wallet.save();
+    }
+    
+    res.json({
+      success: true,
+      balance: wallet.balance
+    });
+    
+  } catch (err) {
+    console.error("Error fetching wallet balance:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching wallet balance"
+    });
+  }
+};
+
 module.exports = {
   getWallet,
   createOrder,
   verifyPayment,
+  getWalletBalance
 };

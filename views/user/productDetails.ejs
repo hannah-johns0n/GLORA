@@ -6,6 +6,7 @@
   <title><%= product.productName %> – GLORA</title>
   <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
   <link rel="stylesheet" href="/styles/main_styles.css">
+
   <style>
     body{background:#fafafa;font-family:'Poppins',sans-serif;}
     .product-wrapper{display:flex;flex-wrap:wrap;gap:40px;margin: 160px auto 0; max-width: 1400px; padding: 0 20px;}
@@ -15,236 +16,183 @@
     .main-img-container img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;transition:transform .3s ease;}
     .main-img-container:hover img{transform:scale(1.6);cursor:zoom-in;}
     .thumbs{display:flex;gap:10px;margin-top:15px;}
-    .thumbs img{width:70px;height:70px;object-fit:cover;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:border .2s;}
+    .thumbs img{width:70px;height:70px;object-fit:cover;border-radius:6px;border:2px solid transparent;cursor:pointer;}
     .thumbs img.active,.thumbs img:hover{border-color:#471710;}
     .rating-stars{color:#000000;font-size:1.2rem;}
     .price{font-weight:600;font-size:1.5rem;color:#a44b3e;}
     .price .original{font-size:1rem;text-decoration:line-through;color:#999;margin-left:8px;}
-    .info-column h2{font-size:1.8rem;font-weight:600;margin-bottom:10px;word-break:break-word;}
     .btn-add{background:#6b2c22;color:#fff;padding:.6rem 1.5rem;border:none;border-radius:6px;margin-top:20px;}
-    .product-card:hover {transform: translateY(-5px);box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);}
-    
-    .swal2-toast .swal2-title {
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
-    .swal2-icon.swal2-success {
-      color: #198754;
-      border-color: #198754;
-    }
-    .swal2-popup {
-      font-family: 'Poppins', sans-serif;
-    }
   </style>
 </head>
-<body>
-  <%- include('../partials/user/header',{ userName:userName, cartCount: cartCount }) %>
 
-  <div class="container">
-    <div class="product-wrapper">
-      <div class="img-column">
-        <div class="main-img-container">
-          <img id="mainImage" src="<%= product.images && product.images.length ? '/uploads/products/' + product.images[0] : '/images/placeholder-product.jpg' %>" alt="<%= product.productName %>">
-        </div>
-        <div class="thumbs">
-          <% product.images.slice(0,4).forEach(function(img,idx){ %>
-            <img class="thumbnail <%= idx===0 ? 'active' : '' %>" src="/uploads/products/<%= img %>" alt="thumbnail <%= idx+1 %>">
-          <% }); %>
-        </div>
+<body>
+
+<%- include('../partials/user/header',{ userName:userName, cartCount: cartCount }) %>
+
+<div class="container">
+  <div class="product-wrapper">
+
+    <!-- IMAGES -->
+    <div class="img-column">
+      <div class="main-img-container">
+        <img id="mainImage" src="<%= product.images && product.images.length ? '/uploads/products/' + product.images[0] : '/images/placeholder-product.jpg' %>">
       </div>
 
-      <div class="info-column">
-        <h2><%= product.productName %></h2>
-        <div class="rating-stars mb-2">
-          <% const rating=(product.rating||4); for(let i=1;i<=5;i++){ %>
-            <% if(i<=rating){ %>
-              <i class="fa fa-star"></i>
-            <% }else if(i-rating<1 && i-rating>0){ %>
-              <i class="fa fa-star-half-alt"></i>
-            <% }else{ %>
-              <i class="fa fa-star-o"></i>
-            <% } %>
-          <% } %>
-          <span class="ms-2"><%= rating.toFixed ? rating.toFixed(1) : rating %>/5</span>
-        </div>
-
-        <div class="price">
-          Rs <%= product.salesPrice>0 ? product.salesPrice : product.regularPrice %>
-          <% if(product.salesPrice>0){ %>
-            <span class="original">Rs <%= product.regularPrice %></span>
-          <% } %>
-        </div>
-
-        <p class="mt-3"><%= product.description %></p>
-
-        <button type="button" id="addToCartBtn" class="btn-add" data-id="<%= product._id %>">Add to Cart</button>
-          <button type="button" id="addToWishlistBtn" class="btn-add" style="background:#471710;">Add to Wishlist</button>
+      <div class="thumbs">
+        <% product.images.slice(0,4).forEach(function(img,idx){ %>
+          <img class="thumbnail <%= idx===0 ? 'active' : '' %>" src="/uploads/products/<%= img %>">
+        <% }); %>
       </div>
     </div>
-  </div>
 
-<div style="height: 30px; box-shadow: inset 0 4px 10px -4px rgba(0, 0, 0, 0.3); margin-top: 80px;"></div>
+    <!-- INFO -->
+    <div class="info-column">
 
-<div class="related-products" style="margin: 60px auto; max-width: 1400px; padding: 0 20px;">
-  <h3 style="font-size: 3rem; font-weight: 500; font-family: 'Playfair Display', serif; color: #3c0404; margin-bottom: 70px; text-align: left;">
-  Some products you may also like
-</h3>
+      <h2><%= product.productName %></h2>
 
-  <div class="row">
-    <% relatedProducts.forEach(related => { %>
-      <div class="col-md-3 col-sm-6 mb-4">
-        <div class="card h-100 shadow-sm border-0 product-card" style="transition: transform 0.3s ease;">
-          <div style="height: 200px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-            <img src="<%= related.images && related.images.length ? '/uploads/products/' + related.images[0] : '/images/placeholder-product.jpg' %>" 
-                 alt="<%= related.productName %>" 
-                 style="max-width: 100%; max-height: 100%; object-fit: contain;">
-          </div>
-          <div class="card-body d-flex flex-column">
-            <h6 class="card-title"><%= related.productName %></h6>
-            <p class="card-text mb-2 text-danger fw-bold">
-              Rs <%= related.salesPrice > 0 ? related.salesPrice : related.regularPrice %>
-              <% if (related.salesPrice > 0) { %>
-                <span class="text-muted text-decoration-line-through small">Rs <%= related.regularPrice %></span>
-              <% } %>
-            </p>
-            <a href="/product/<%= related._id %>" class="btn btn-outline-dark mt-auto">View Details</a>
-          </div>
-        </div>
+      <!-- RATING -->
+      <div class="rating-stars mb-2">
+        <% const rating=(product.rating||4); for(let i=1;i<=5;i++){ %>
+          <% if(i<=rating){ %>
+            <i class="fa fa-star"></i>
+          <% } else { %>
+            <i class="fa fa-star-o"></i>
+          <% } %>
+        <% } %>
       </div>
-    <% }) %>
+
+      <!-- VARIANTS -->
+      <% if (product.variants && product.variants.length > 0) { %>
+        <div class="mt-3">
+          <label><strong>Select Variant:</strong></label>
+
+          <select id="variantSelect" class="form-control mt-2">
+            <% product.variants.forEach((v, index) => { %>
+              <option value="<%= index %>">
+                <%= v.unit %> (₹<%= v.salesPrice > 0 ? v.salesPrice : v.regularPrice %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+      <% } %>
+
+      <!-- PRICE -->
+      <div class="price mt-3" id="priceBox"></div>
+
+      <!-- DESCRIPTION -->
+      <p class="mt-3"><%= product.description %></p>
+
+      <!-- BUTTONS -->
+      <button id="addToCartBtn" class="btn-add" data-id="<%= product._id %>">
+        Add to Cart
+      </button>
+
+      <button id="addToWishlistBtn" class="btn-add" style="background:#471710;">
+        Add to Wishlist
+      </button>
+
+    </div>
   </div>
 </div>
 
-  <%- include('../partials/user/footer') %>
+<%- include('../partials/user/footer') %>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-  <script>
-    window.Swal = Swal;
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      const thumbnails = document.querySelectorAll('.thumbnail');
-      const mainImage = document.getElementById('mainImage');
-      
-      thumbnails.forEach(thumb => {
-        thumb.addEventListener('click', function() {
-          mainImage.src = this.src;
-          thumbnails.forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-        });
-      });
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      const addToCartBtn = document.getElementById('addToCartBtn');
-      if (addToCartBtn) {
-        addToCartBtn.addEventListener('click', async function(e) {
-          console.log('Add to cart button clicked');
-          e.preventDefault();
-          e.stopPropagation();
-          const productId = this.getAttribute('data-id');
-          const btnText = this.textContent;
-          console.log('Product ID:', productId);
-          
-          this.disabled = true;
-          this.textContent = 'Adding...';
-          
-          try {
-            const response = await fetch(`/cart/add/${productId}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({})
-            });
-            
-            const result = await response.json();
-            
-                          console.log(result)
-            
-            if (response.ok) {
-              Swal.fire({
-                title: 'Success!',
-                text: 'Product added to cart',
-                icon: 'success',
-                confirmButtonText: 'OK'
-              });
-              
-              const cartCountElement = document.querySelector('.cart-count');
-              if (cartCountElement) {
-                cartCountElement.textContent = result.cartCount || 0;
-              }
-            } else {
-              throw new Error(result.message || 'Failed to add to cart');
-            }
-          } catch (error) {
-            window.Swal.fire({
-              position: 'center',
-              icon: 'error',
-              title: 'Error',
-              text: error.message || 'Failed to add to cart. Please try again.',
-              showConfirmButton: true
-            });
-          } finally {
-            // Re-enable button
-            addToCartBtn.disabled = false;
-            addToCartBtn.textContent = btnText;
-          }
-        });
-      }
-    });
+<script>
+/* ---------------- IMAGE SWITCH ---------------- */
+document.querySelectorAll('.thumbnail').forEach(thumb => {
+  thumb.addEventListener('click', function() {
+    document.getElementById('mainImage').src = this.src;
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
 
-    const addToWishlistBtn = document.getElementById('addToWishlistBtn');
-if (addToWishlistBtn) {
-  addToWishlistBtn.addEventListener('click', async function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const productId = '<%= product._id %>'; // current product id
-    const btnText = this.textContent;
-    
-    this.disabled = true;
-    this.textContent = 'Adding...';
-    
-    try {
-      const response = await fetch(`/wishlist/add/${productId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({})
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        Swal.fire({
-          title: 'Added!',
-          text: result.message,
-          icon: 'success',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } else {
-        throw new Error(result.message || 'Failed to add to wishlist');
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops!',
-        text: error.message || 'Something went wrong. Please try again.',
-        confirmButtonText: 'OK'
-      });
-    } finally {
-      this.disabled = false;
-      this.textContent = btnText;
-    }
+/* ---------------- VARIANT LOGIC ---------------- */
+const variants = <%- JSON.stringify(product.variants || []) %>;
+
+function updatePrice(index) {
+  const v = variants[index];
+
+  document.getElementById("priceBox").innerHTML = `
+    ₹${v.salesPrice > 0 ? v.salesPrice : v.regularPrice}
+    ${v.salesPrice > 0 ? `<span class="original">₹${v.regularPrice}</span>` : ''}
+  `;
+}
+
+// default load
+if (variants.length > 0) {
+  updatePrice(0);
+}
+
+const variantSelect = document.getElementById("variantSelect");
+
+if (variantSelect) {
+  variantSelect.addEventListener("change", function() {
+    updatePrice(this.value);
   });
 }
 
-  </script>
+/* ---------------- ADD TO CART ---------------- */
+document.getElementById('addToCartBtn').addEventListener('click', async function() {
 
+  const productId = this.getAttribute('data-id');
+  const selectedVariantIndex = document.getElementById("variantSelect")?.value || 0;
+
+  this.disabled = true;
+  this.innerText = "Adding...";
+
+  try {
+    const res = await fetch(`/cart/add/${productId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        variantIndex: selectedVariantIndex
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire("Added!", "Product added to cart", "success");
+    } else {
+      throw new Error(data.message);
+    }
+
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+
+  this.disabled = false;
+  this.innerText = "Add to Cart";
+});
+
+/* ---------------- WISHLIST ---------------- */
+document.getElementById('addToWishlistBtn').addEventListener('click', async function() {
+
+  const productId = '<%= product._id %>';
+
+  try {
+    const res = await fetch(`/wishlist/add/${productId}`, { method: "POST" });
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire("Added!", data.message, "success");
+    } else {
+      throw new Error(data.message);
+    }
+
+  } catch (err) {
+    Swal.fire("Error", err.message, "error");
+  }
+
+});
+</script>
 
 </body>
 </html>

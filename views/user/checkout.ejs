@@ -310,16 +310,30 @@
               </div>
             </label>
             <label class="address-card d-block mb-3">
-  <div class="d-flex align-items-start">
-    <input type="radio" name="paymentMethod" value="razorpay" style="margin-top: 3px;">
-    <div class="ms-3">
-      <div class="d-flex align-items-center">
-        <strong>Pay with Razorpay</strong>
-      </div>
-      <p class="mb-0 text-muted">Pay securely online using Razorpay</p>
-    </div>
-  </div>
-</label>
+              <div class="d-flex align-items-start">
+                <input type="radio" name="paymentMethod" value="razorpay" style="margin-top: 3px;">
+                <div class="ms-3">
+                  <div class="d-flex align-items-center">
+                    <strong>Pay with Razorpay</strong>
+                  </div>
+                  <p class="mb-0 text-muted">Pay securely online using Razorpay</p>
+                </div>
+              </div>
+            </label>
+            <label class="address-card d-block mb-3">
+              <div class="d-flex align-items-start">
+                <input type="radio" name="paymentMethod" value="wallet" style="margin-top: 3px;" id="walletPayment">
+                <div class="ms-3">
+                  <div class="d-flex align-items-center">
+                    <strong>Pay with Wallet</strong>
+                  </div>
+                  <p class="mb-0 text-muted" id="walletBalanceText">
+                    Available balance: ₹<span id="walletBalance">0.00</span>
+                    <span id="walletInsufficient" class="text-danger d-none"> - Insufficient balance</span>
+                  </p>
+                </div>
+              </div>
+            </label>
 
           </div>
         </div>
@@ -458,6 +472,41 @@
 
 
   <script>
+    // Fetch wallet balance when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const response = await fetch('/wallet/balance');
+        const data = await response.json();
+        if (data.success) {
+          document.getElementById('walletBalance').textContent = data.balance.toFixed(2);
+          checkWalletBalance();
+        }
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+      }
+    });
+
+    // Check wallet balance against order total
+    function checkWalletBalance() {
+      const walletBalance = parseFloat(document.getElementById('walletBalance').textContent);
+      const totalAmount = parseFloat(document.querySelector('.price-row.total span:last-child').textContent.replace('₹', ''));
+      const walletPaymentRadio = document.getElementById('walletPayment');
+      const walletInsufficient = document.getElementById('walletInsufficient');
+      
+      if (walletBalance < totalAmount) {
+        walletInsufficient.classList.remove('d-none');
+        if (walletPaymentRadio.checked) {
+          walletPaymentRadio.checked = false;
+          document.querySelector('input[value="cod"]').checked = true;
+        }
+        walletPaymentRadio.disabled = true;
+      } else {
+        walletInsufficient.classList.add('d-none');
+        walletPaymentRadio.disabled = false;
+      }
+    }
+
+    // Handle address card selection
     document.querySelectorAll('.address-card').forEach(card => {
       card.addEventListener('click', function () {
         document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
@@ -555,6 +604,7 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
     try {
       const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
       const selectedAddress = document.querySelector('input[name="addressId"]:checked');
+      const couponCode = document.querySelector("input[name='couponCode']")?.value || null;
 
       if (!selectedAddress) {
         Swal.fire({
@@ -563,10 +613,29 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
           text: 'Please select a shipping address before placing your order.',
           confirmButtonColor: '#1e1e27'
         });
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.innerHTML = 'Place Order';
         return;
       }
 
-      // Show loading state
+      // Check wallet balance if wallet payment is selected
+      if (selectedPayment === 'wallet') {
+        const walletBalance = parseFloat(document.getElementById('walletBalance').textContent);
+        const totalAmount = parseFloat(document.querySelector('.price-row.total span:last-child').textContent.replace('₹', ''));
+        
+        if (walletBalance < totalAmount) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Insufficient Balance',
+            text: 'You do not have sufficient balance in your wallet for this order.',
+            confirmButtonColor: '#1e1e27'
+          });
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.innerHTML = 'Place Order';
+          return;
+        }
+      }
+
       const loadingSwal = Swal.fire({
         title: 'Processing your order',
         html: 'Please wait while we process your order...',
@@ -576,13 +645,44 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
         }
       });
 
-      if (selectedPayment === "razorpay") {
+      // Prepare order data
+      const orderData = {
+        addressId: selectedAddress.value,
+        paymentMethod: selectedPayment
+      };
+      
+      if (couponCode) {
+        orderData.couponCode = couponCode;
+      }
+
+      // Handle different payment methods
+      if (selectedPayment === 'wallet') {
+        // Handle wallet payment
+        const response = await fetch("/place-order", {
+          method: "POST",
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          loadingSwal.close();
+          window.location.href = `/order-success/${data.orderId}`;
+        } else {
+          throw new Error(data.message || 'Failed to place order with wallet');
+        }
+      } else if (selectedPayment === 'razorpay') {
+        // Create Razorpay order
         const response = await fetch("/create-razorpay-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             addressId: selectedAddress.value,
-            couponCode: document.querySelector("input[name='couponCode']")?.value || null,
+            couponCode: couponCode,
             paymentMethod: "razorpay",
           })
         });
@@ -592,7 +692,7 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
         if (data.success) {
           loadingSwal.close();
           
-          var options = {
+          const options = {
             key: data.key,
             amount: data.amount,
             currency: data.currency,
@@ -604,9 +704,7 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
                 title: 'Verifying Payment',
                 html: 'Please wait while we verify your payment...',
                 allowOutsideClick: false,
-                didOpen: () => {
-                  Swal.showLoading();
-                }
+                didOpen: () => { Swal.showLoading(); }
               });
               
               fetch("/verify-razorpay-payment", {
@@ -654,70 +752,43 @@ document.querySelector("#checkoutForm").appendChild(hiddenInput);
             }
           };
 
-          const rzp1 = new Razorpay(options);
-          rzp1.open();
+          const rzp = new Razorpay(options);
+          rzp.open();
         } else {
-          loadingSwal.close();
           throw new Error(data.message || 'Failed to create Razorpay order');
         }
       } else {
-        const selectedAddress = document.querySelector('input[name="addressId"]:checked');
-        if (!selectedAddress) {
-          throw new Error('Please select a shipping address');
-        }
-        
-        const couponInput = document.querySelector("input[name='couponCode']");
-        const couponCode = couponInput ? couponInput.value : '';
-        
-        const orderData = {
-          addressId: selectedAddress.value,
-          paymentMethod: 'cod',
-          couponCode: couponCode
-        };
-        
+        // For wallet and COD payments
         const response = await fetch('/place-order', {
           method: 'POST',
+          body: formData,
           headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(orderData)
+            'X-Requested-With': 'XMLHttpRequest'
+          }
         });
-        
+
         const result = await response.json();
-        
-        if (response.ok && result.success) {
-          loadingSwal.close();
-          await Swal.fire({
-            icon: 'success',
-            title: 'Order Placed Successfully!',
-            html: `
-              <p>Your order has been placed successfully with Cash on Delivery.</p>
-              <p>Order ID: <strong>${result.orderId}</strong></p>
-              <p>We will contact you shortly for confirmation.</p>
-            `,
-            confirmButtonColor: '#1e1e27',
-            confirmButtonText: 'View Order',
-            allowOutsideClick: false
-          });
-          
+        loadingSwal.close();
+
+        if (result.success) {
+          // Redirect to success page for wallet and COD payments
           window.location.href = `/order-success/${result.orderId}`;
         } else {
           throw new Error(result.message || 'Failed to place order');
         }
       }
     } catch (error) {
-      console.error('Order placement error:', error);
+      console.error('Error:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Order Failed',
-        text: error.message || 'There was an error processing your order. Please try again.',
+        title: 'Error',
+        text: error.message || 'An error occurred while processing your order',
         confirmButtonColor: '#1e1e27'
       });
-    } finally {
       placeOrderBtn.disabled = false;
       placeOrderBtn.innerHTML = 'Place Order';
     }
-  });
+    });
 
 document.querySelector(".price-summary").addEventListener("click", function(e) {
   if (e.target && e.target.id === "removeCouponBtn") {
