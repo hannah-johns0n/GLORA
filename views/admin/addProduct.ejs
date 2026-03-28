@@ -90,8 +90,7 @@
   function addVariant() {
     const idx = variants.length;
     variants.push({
-  size: "",
-  colour: "",
+  unit: "",
   regularPrice: "",
   salesPrice: "",
   quantity: ""
@@ -101,9 +100,9 @@
     document.getElementById("variantContainer").insertAdjacentHTML("beforeend", `
       <div class="border p-3 mb-2 rounded">
         <input class="form-control mb-2" placeholder="Unit (eg: 50ml)" oninput="variants[${idx}].unit=this.value">
-        <input type="number" class="form-control mb-2" placeholder="Regular Price" oninput="variants[${idx}].regularPrice=this.value">
-        <input type="number" class="form-control mb-2" placeholder="Sales Price" oninput="variants[${idx}].salesPrice=this.value">
-        <input type="number" class="form-control mb-2" placeholder="Quantity" oninput="variants[${idx}].quantity=this.value">
+        <input type="number" class="form-control mb-2" placeholder="Regular Price" oninput="variants[${idx}].regularPrice=Number(this.value)">
+        <input type="number" class="form-control mb-2" placeholder="Sales Price" oninput="variants[${idx}].salesPrice=Number(this.value)">
+        <input type="number" class="form-control mb-2" placeholder="Quantity" oninput="variants[${idx}].quantity=Number(this.value)">
       </div>
     `);
   }

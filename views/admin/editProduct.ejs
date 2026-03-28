@@ -441,19 +441,19 @@ function renderVariants() {
           class="form-control mb-2"
           placeholder="Regular Price"
           value="${v.regularPrice || ''}"
-          oninput="variants[${index}].regularPrice=this.value">
+          oninput="variants[${index}].regularPrice=Number(this.value)">
 
         <input type="number"
           class="form-control mb-2"
           placeholder="Sales Price"
           value="${v.salesPrice || ''}"
-          oninput="variants[${index}].salesPrice=this.value">
+          oninput="variants[${index}].salesPrice=Number(this.value)">
 
         <input type="number"
           class="form-control mb-2"
           placeholder="Quantity"
           value="${v.quantity || ''}"
-          oninput="variants[${index}].quantity=this.value">
+          oninput="variants[${index}].quantity=Number(this.value)">
 
         <button type="button"
           class="btn btn-sm btn-danger"
@@ -489,10 +489,55 @@ function removeVariant(index){
 
 renderVariants();
 
-document.querySelector("form").addEventListener("submit", ()=>{
+document.querySelector('form[action^="/admin/products/edit/"]').addEventListener('submit', async function(e) {
+  e.preventDefault();
 
+  // ✅ SET VARIANTS FIRST (VERY IMPORTANT)
   document.getElementById("variantsInput").value = JSON.stringify(variants);
 
+  const form = this;
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body: formData
+    });
+
+    const resText = await response.text();
+
+    if (response.ok) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Product Updated!',
+        text: 'The product was updated successfully.',
+        timer: 2000
+      });
+
+      window.location.href = '/admin/products';
+
+    } else {
+      let msg = resText;
+
+      try {
+        const json = JSON.parse(resText);
+        msg = json.message || msg;
+      } catch {}
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: msg
+      });
+    }
+
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to update product.'
+    });
+  }
 });
 </script>
 

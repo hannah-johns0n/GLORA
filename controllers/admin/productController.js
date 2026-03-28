@@ -38,7 +38,6 @@ exports.productListPage = async (req, res) => {
     }
 };
 
-
 exports.editProductPage = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -53,7 +52,10 @@ exports.editProductPage = async (req, res) => {
 
 exports.editProduct = async (req, res) => {
     try {
-        const { productName, category, description, variants } = req.body;
+        const { productName, category, description, variants, removeImages } = req.body;
+        console.log("REQ BODY:", req.body);
+        console.log("VARIANTS:", req.body.variants);
+        console.log("TYPE:", typeof req.body.variants);
 
         if (!productName || !category || !description) {
             return res.status(400).json({
@@ -64,13 +66,17 @@ exports.editProduct = async (req, res) => {
 
         let parsedVariants = [];
 
-        try {
-            parsedVariants = JSON.parse(variants);
-        } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid variant data"
-            });
+        if (typeof variants === "string") {
+            try {
+                parsedVariants = JSON.parse(variants);
+            } catch (err) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid variant data"
+                });
+            }
+        } else {
+            parsedVariants = variants;
         }
 
         if (!parsedVariants.length) {
@@ -81,6 +87,9 @@ exports.editProduct = async (req, res) => {
         }
 
         for (let v of parsedVariants) {
+            const regular = Number(v.regularPrice);
+            const sale = Number(v.salesPrice);
+            const qty = Number(v.quantity);
             if (!v.unit || !v.regularPrice || !v.salesPrice || !v.quantity) {
                 return res.status(400).json({
                     success: false,
@@ -152,7 +161,7 @@ exports.editProduct = async (req, res) => {
                 productName: productName.trim(),
                 category: category.trim(),
                 description: description.trim(),
-                variants: parsedVariants, // ✅ THIS IS IMPORTANT
+                variants: parsedVariants,
                 images: updatedImages
             },
             { new: true, runValidators: true }
@@ -196,10 +205,23 @@ exports.addProduct = async (req, res) => {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
 
-        const parsedVariants = JSON.parse(variants);
+        let parsedVariants;
+
+        if (typeof variants === "string") {
+            parsedVariants = JSON.parse(variants);
+        } else {
+            parsedVariants = variants;
+        }
 
         if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
             return res.status(400).json({ success: false, message: "At least one variant is required" });
+        }
+
+        const regular = Number(v.regularPrice);
+        const sale = Number(v.salesPrice);
+
+        if (regular <= sale) {
+            throw new Error("Regular price must be greater than sales price");
         }
 
         parsedVariants.forEach(v => {
@@ -236,7 +258,6 @@ exports.addProduct = async (req, res) => {
     }
 };
 
-
 exports.addProductPage = async (req, res) => {
     try {
         const categories = await Category.find({ isBlocked: false });
@@ -250,7 +271,7 @@ exports.addProductPage = async (req, res) => {
 exports.toggleProductBlock = async (req, res) => {
     try {
         const id = req.body.id || req.query.id;
-        if (!id) return res.status(400).json({ success: false, message: 'No product ID provided' });
+        if (!id) return res.status(400).json({ success: false, message: 'No product ID provided' }); 
 
         const product = await Product.findById(id);
         if (!product) return res.status(404).json({ success: false, message: 'Product not found' });

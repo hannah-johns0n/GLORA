@@ -81,15 +81,13 @@ const cancelOrder = async (req, res) => {
         }
 
         const order = await Order.findOne({
-            HEAD
+          
             orderId: orderId,
             userId: req.session.user.id,
         }).populate('userId');
 
-        orderId: orderId,
-            userId: req.user.id,
-        })
-    17aca863d17e949cb7ec03296b69f2813f377bfe
+        
+    
 
     if (!order) {
         return res.status(404).json({ message: "Order not found." });
