@@ -47,7 +47,6 @@ const getAllOrders = async (req, res) => {
     }
 };
 
-// Get order details by ID
 const getOrderDetails = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -64,7 +63,6 @@ const getOrderDetails = async (req, res) => {
     }
 };
 
-// Update order status
 const updateOrderStatus = async (req, res) => {
     try {
         const { status } = req.body;
@@ -80,7 +78,6 @@ const updateOrderStatus = async (req, res) => {
             });
         }
 
-        // Handle stock updates for cancelled or delivered orders
         if (status === "Cancelled" && order.status !== "Cancelled") {
             for (const item of order.orderItems) {
                 await Product.findByIdAndUpdate(item.productId._id, { 

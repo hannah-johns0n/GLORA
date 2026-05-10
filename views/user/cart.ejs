@@ -133,29 +133,32 @@ button.checkout_button:hover {
 
 <%- include('../partials/user/header') %>
 
-<div class="super_container">
+<body>
+  <div class="super_container">
   <div class="super_container_inner">
     <div class="super_overlay"></div>
-    
+
     <div class="cart_section">
       <div class="container">
         <div class="row">
           <div class="col">
             <div class="cart_container">
               <div class="cart_title">Shopping Cart</div>
-              
+
               <% if (!cart || cart.length === 0) { %>
                 <div class="cart_empty">
                   <div class="cart_empty_icon">🛒</div>
                   <div class="cart_empty_text">Your cart is empty</div>
                   <a href="/shop" class="btn btn-dark">Continue Shopping</a>
                 </div>
+
               <% } else { %>
                 <div class="cart_items">
                   <table class="table cart_table">
                     <thead>
                       <tr>
                         <th class="text-center">Product</th>
+                        <th class="text-center">Variant</th>
                         <th class="text-center">Price</th>
                         <th class="text-center">Quantity</th>
                         <th class="text-center">Total</th>
@@ -163,42 +166,65 @@ button.checkout_button:hover {
                       </tr>
                     </thead>
                     <tbody>
-                      <% 
-                      let subtotal = 0;
-                      cart.forEach(item => { 
-                        const itemTotal = item.productId ? item.productId.salesPrice * item.quantity : 0;
-                        subtotal += itemTotal;
+                      <%
+                        var subtotal = 0;
+                        cart.forEach(function(item) {
+                          subtotal += item.itemTotal;
+                        });
                       %>
+                      <% cart.forEach(function(item) { %>
                         <tr>
+                          <!-- Product name + image -->
                           <td class="text-center align-middle">
-                            <%= item.productId ? item.productId.productName : 'Deleted Product' %>
-                          </td>
-                          <td class="text-center align-middle">
-                            ₹<%= item.productId ? item.productId.salesPrice.toFixed(2) : '0.00' %>
-                          </td>
-                          <td class="text-center align-middle">
-                            <div class="quantity">
-                              <button class="btn btn-sm btn-outline-secondary dec-btn" 
-                                      data-id="<%= item.productId ? item.productId._id : '' %>">-</button>
-                              <span class="mx-2"><%= item.quantity %></span>
-                              <button class="btn btn-sm btn-outline-secondary inc-btn" 
-                                      data-id="<%= item.productId ? item.productId._id : '' %>">+</button>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                              <% if (item.productId.images && item.productId.images.length > 0) { %>
+                                <!-- ✅ Cloudinary URL used directly -->
+                                <img src="<%= item.productId.images[0] %>"
+                                     alt="<%= item.productId.productName %>"
+                                     style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+                              <% } %>
+                              <span><%= item.productId.productName %></span>
                             </div>
                           </td>
+
+                          <!-- Variant unit -->
                           <td class="text-center align-middle">
-                            ₹<%= itemTotal.toFixed(2) %>
+                            <%= item.unit || '-' %>
                           </td>
+
+                          <!-- ✅ Price from resolved variant -->
                           <td class="text-center align-middle">
-                            <button class="btn btn-sm btn-outline-danger remove-btn" 
-                                    data-id="<%= item.productId ? item.productId._id : '' %>">
+                            ₹<%= item.price.toFixed(2) %>
+                          </td>
+
+                          <!-- Quantity controls -->
+                          <td class="text-center align-middle">
+                            <div class="quantity">
+                              <button class="btn btn-sm btn-outline-secondary dec-btn"
+                                data-id="<%= item.productId._id %>">-</button>
+                              <span class="mx-2"><%= item.quantity %></span>
+                              <button class="btn btn-sm btn-outline-secondary inc-btn"
+                                data-id="<%= item.productId._id %>">+</button>
+                            </div>
+                          </td>
+
+                          <!-- ✅ Item total from resolved variant -->
+                          <td class="text-center align-middle">
+                            ₹<%= item.itemTotal.toFixed(2) %>
+                          </td>
+
+                          <!-- Remove -->
+                          <td class="text-center align-middle">
+                            <button class="btn btn-sm btn-outline-danger remove-btn"
+                              data-id="<%= item.productId._id %>">
                               <i class="fa fa-trash"></i>
                             </button>
                           </td>
                         </tr>
-                      <% }) %>
+                      <% }); %>
                     </tbody>
                   </table>
-                  
+
                   <div class="cart_buttons d-flex justify-content-end mt-4">
                     <a href="/shop" class="button continue_shopping_button">Continue Shopping</a>
                     <button id="checkout-btn" class="button checkout_button">
@@ -207,6 +233,7 @@ button.checkout_button:hover {
                   </div>
                 </div>
               <% } %>
+
             </div>
           </div>
         </div>
@@ -218,117 +245,115 @@ button.checkout_button:hover {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   function updateQuantityUI(btn, newQuantity) {
-    const quantitySpan = btn.parentElement.querySelector('span');
-    const row = btn.closest('tr');
-    const price = parseFloat(row.querySelector('td:nth-child(2)').textContent.replace('₹', ''));
-    const totalCell = row.querySelector('td:nth-child(4)');
-    
-    quantitySpan.textContent = newQuantity;
+    const row       = btn.closest('tr');
+    const priceText = row.querySelector('td:nth-child(3)').textContent.replace('₹', '');
+    const price     = parseFloat(priceText);
+    const qtySpan   = btn.parentElement.querySelector('span');
+    const totalCell = row.querySelector('td:nth-child(5)');
+
+    qtySpan.textContent   = newQuantity;
     totalCell.textContent = '₹' + (price * newQuantity).toFixed(2);
     updateCheckoutTotal();
   }
 
   function updateCheckoutTotal() {
-    let subtotal = 0;
-    document.querySelectorAll('tbody tr').forEach(row => {
-      const price = parseFloat(row.querySelector('td:nth-child(2)').textContent.replace('₹', ''));
-      const quantity = parseInt(row.querySelector('.quantity span').textContent);
+    var subtotal = 0;
+    document.querySelectorAll('tbody tr').forEach(function(row) {
+      var price    = parseFloat(row.querySelector('td:nth-child(3)').textContent.replace('₹', ''));
+      var quantity = parseInt(row.querySelector('.quantity span').textContent);
       subtotal += price * quantity;
     });
-    
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (checkoutBtn) {
-      checkoutBtn.textContent = `Proceed to Checkout (₹${subtotal.toFixed(2)})`;
-    }
+    var btn = document.getElementById('checkout-btn');
+    if (btn) btn.textContent = 'Proceed to Checkout (₹' + subtotal.toFixed(2) + ')';
   }
 
   function showError(message) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: message,
-      confirmButtonText: 'OK'
-    });
+    Swal.fire({ icon: 'error', title: 'Error', text: message });
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.inc-btn').forEach(btn => {
-      btn.addEventListener('click', async function () {
+  document.addEventListener('DOMContentLoaded', function() {
+
+    // Increment
+    document.querySelectorAll('.inc-btn').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
         const id = this.dataset.id;
         try {
-          const response = await fetch(`/cart/increment/${id}`, { method: 'POST' });
-          const result = await response.json();
-          
+          const res    = await fetch('/cart/increment/' + id, { method: 'POST' });
+          const result = await res.json();
           if (result.success) {
-            const currentQty = parseInt(this.previousElementSibling.textContent);
-            updateQuantityUI(this, currentQty + 1);
+            const qty = parseInt(this.previousElementSibling.textContent);
+            updateQuantityUI(this, qty + 1);
           } else {
             showError(result.message || 'Failed to increase quantity');
           }
-        } catch (error) {
-          showError('Failed to update quantity.');
-          console.error(error);
-        }
+        } catch { showError('Failed to update quantity.'); }
       });
     });
 
-document.querySelectorAll('.dec-btn').forEach(btn => {
-  btn.addEventListener('click', async function () {
+    // Decrement
+    document.querySelectorAll('.dec-btn').forEach(function(btn) {
+  btn.addEventListener('click', async function() {
     const id = this.dataset.id;
     try {
-      const response = await fetch(`/cart/decrement/${id}`, { method: 'POST' });
-      const result = await response.json();
-      
+      const res    = await fetch('/cart/decrement/' + id, { method: 'POST' });
+      const result = await res.json();
       if (result.success) {
-        const currentQty = parseInt(this.nextElementSibling.textContent);
-        updateQuantityUI(this, currentQty - 1);
+        const qty = parseInt(this.nextElementSibling.textContent);
+        updateQuantityUI(this, qty - 1);
       } else {
-        showError(result.message || 'Failed to decrease quantity');
+        // ✅ Shows the "minimum 1" message as a toast
+        Swal.fire({
+          toast:             true,
+          position:          'top-end',
+          icon:              'warning',
+          title:             result.message,
+          showConfirmButton: false,
+          timer:             2500,
+          timerProgressBar:  true
+        });
       }
-    } catch (error) {
-      showError('Failed to update quantity.');
-      console.error(error);
-    }
+    } catch { showError('Failed to update quantity.'); }
   });
 });
 
-
-    document.querySelectorAll('.remove-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
+    // Remove
+    document.querySelectorAll('.remove-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
         const id = this.dataset.id;
         Swal.fire({
           title: 'Are you sure?',
-          text: 'This will remove the item from your cart.',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#1e1e27',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Yes, remove it!'
-        }).then((result) => {
+          text:  'This will remove the item from your cart.',
+          icon:  'warning',
+          showCancelButton:    true,
+          confirmButtonColor:  '#1e1e27',
+          cancelButtonColor:   '#6c757d',
+          confirmButtonText:   'Yes, remove it!'
+        }).then(function(result) {
           if (result.isConfirmed) {
-            fetch(`/cart/remove/${id}`, { method: 'POST' })
-              .then(() => location.reload());
+            fetch('/cart/remove/' + id, { method: 'POST' })
+              .then(function() { location.reload(); });
           }
         });
       });
     });
 
-    document.getElementById('checkout-btn')?.addEventListener('click', function () {
-      fetch(`/cart/validate-checkout`, { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            window.location.href = '/checkout';
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Cannot Proceed',
-              text: data.message
-            });
-          }
-        });
-    });
+    // Checkout
+    var checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function() {
+        fetch('/cart/validate-checkout', { method: 'POST' })
+          .then(function(res) { return res.json(); })
+          .then(function(data) {
+            if (data.success) {
+              window.location.href = '/checkout';
+            } else {
+              Swal.fire({ icon: 'error', title: 'Cannot Proceed', text: data.message });
+            }
+          });
+      });
+    }
+
   });
 </script>
-
+</body>
 <%- include('../partials/admin/footer') %>

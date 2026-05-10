@@ -52,7 +52,7 @@ exports.editProductPage = async (req, res) => {
 
 exports.editProduct = async (req, res) => {
     try {
-        const { productName, category, description, variants, removeImages } = req.body;
+        const { productName, category, description, variants, images, removeImages } = req.body;
         console.log("REQ BODY:", req.body);
         console.log("VARIANTS:", req.body.variants);
         console.log("TYPE:", typeof req.body.variants);
@@ -63,7 +63,6 @@ exports.editProduct = async (req, res) => {
                 message: "All basic fields are required"
             });
         }
-
         let parsedVariants = [];
 
         if (typeof variants === "string") {
@@ -78,17 +77,13 @@ exports.editProduct = async (req, res) => {
         } else {
             parsedVariants = variants;
         }
-
         if (!parsedVariants.length) {
             return res.status(400).json({
                 success: false,
                 message: "At least one variant is required"
             });
         }
-
         for (let v of parsedVariants) {
-            const regular = Number(v.regularPrice);
-            const sale = Number(v.salesPrice);
             const qty = Number(v.quantity);
             if (!v.unit || !v.regularPrice || !v.salesPrice || !v.quantity) {
                 return res.status(400).json({
@@ -96,7 +91,8 @@ exports.editProduct = async (req, res) => {
                     message: "All variant fields are required"
                 });
             }
-
+            const regular = Number(v.regularPrice);
+            const sale = Number(v.salesPrice);
             if (v.regularPrice <= v.salesPrice) {
                 return res.status(400).json({
                     success: false,
@@ -104,27 +100,20 @@ exports.editProduct = async (req, res) => {
                 });
             }
         }
-
-
-
         const nameRegex = /^[A-Za-z\s]+$/;
         if (!nameRegex.test(productName.trim())) {
             return res.status(400).json({ success: false, message: 'Product name should contain only letters and spaces.' });
         }
-
         const existingProduct = await Product.findOne({
             _id: { $ne: req.params.id },
             productName: { $regex: new RegExp(`^${productName}$`, 'i') }
         });
-
         if (existingProduct) {
             return res.status(400).json({
                 success: false,
                 message: 'A product with this name already exists. Please use a different name.'
             });
         }
-
-
 
         const product = await Product.findById(req.params.id);
         if (!product) {
@@ -134,25 +123,25 @@ exports.editProduct = async (req, res) => {
             });
         }
 
-        let existingImages = Array.isArray(product.images) ? [...product.images] : [];
+        let existingImages = Array.isArray(images) ? images : [images].filter(Boolean);
 
-        if (removeImages) {
-            const imagesToRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
-            existingImages = existingImages.filter(img => !imagesToRemove.includes(img));
+        if (removeImages && removeImages.length > 0) {
+            const toRemove = Array.isArray(removeImages) ? removeImages : [removeImages];
+
+            for (const url of toRemove) {
+                try {
+                    const publicId = url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '');
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (err) {
+                    console.error('Cloudinary delete failed:', err);
+                }
+            }
         }
 
-        let newImages = [];
-        if (req.files && req.files.length) {
-            newImages = req.files.map(file => file.filename);
-        }
-
-        const updatedImages = [...existingImages, ...newImages].slice(0, 4);
+        const updatedImages = existingImages.slice(0, 4);
 
         if (updatedImages.length < 3) {
-            return res.status(400).json({
-                success: false,
-                message: 'You must have at least 3 images for a product.'
-            });
+            return res.status(400).json({ success: false, message: 'At least 3 images required.' });
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -180,15 +169,6 @@ exports.editProduct = async (req, res) => {
     } catch (error) {
         console.error('Failed to update product:', error);
 
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                const filePath = path.join(__dirname, '../../public/uploads/products', file.filename);
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-            });
-        }
-
         const message = error.message || 'Failed to update product. Please try again.';
         return res.status(500).json({
             success: false,
@@ -199,14 +179,19 @@ exports.editProduct = async (req, res) => {
 
 exports.addProduct = async (req, res) => {
     try {
-        const { productName, category, description, variants } = req.body;
+        const { productName, category, description, variants, images } = req.body;
 
         if (!productName || !category || !description || !variants) {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
 
-        let parsedVariants;
+        const imageArray = Array.isArray(images) ? images : [images].filter(Boolean);
 
+        if (imageArray.length < 3) {
+            return res.status(400).json({ success: false, message: "Minimum 3 images required" });
+        }
+
+        let parsedVariants;
         if (typeof variants === "string") {
             parsedVariants = JSON.parse(variants);
         } else {
@@ -217,33 +202,20 @@ exports.addProduct = async (req, res) => {
             return res.status(400).json({ success: false, message: "At least one variant is required" });
         }
 
-        const regular = Number(v.regularPrice);
-        const sale = Number(v.salesPrice);
-
-        if (regular <= sale) {
-            throw new Error("Regular price must be greater than sales price");
-        }
-
         parsedVariants.forEach(v => {
             if (!v.unit || v.regularPrice <= 0 || v.salesPrice < 0 || v.quantity <= 0) {
                 throw new Error("Invalid variant data");
             }
-            if (v.regularPrice <= v.salesPrice) {
+            if (Number(v.regularPrice) <= Number(v.salesPrice)) {
                 throw new Error("Regular price must be greater than sales price");
             }
         });
-
-        if (!req.files || req.files.length < 3) {
-            return res.status(400).json({ success: false, message: "Minimum 3 images required" });
-        }
-
-        const images = req.files.slice(0, 4).map(file => file.filename);
 
         const product = new Product({
             productName: productName.trim(),
             category: category.trim(),
             description: description.trim(),
-            images,
+            images: imageArray.slice(0, 4),  
             variants: parsedVariants,
             isBlocked: false
         });
@@ -271,7 +243,7 @@ exports.addProductPage = async (req, res) => {
 exports.toggleProductBlock = async (req, res) => {
     try {
         const id = req.body.id || req.query.id;
-        if (!id) return res.status(400).json({ success: false, message: 'No product ID provided' }); 
+        if (!id) return res.status(400).json({ success: false, message: 'No product ID provided' });
 
         const product = await Product.findById(id);
         if (!product) return res.status(404).json({ success: false, message: 'Product not found' });

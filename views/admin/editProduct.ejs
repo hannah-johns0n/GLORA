@@ -1,8 +1,8 @@
 <%- include('../partials/admin/header') %>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Cropper.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
 <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
     <h1 class="mb-3 mb-md-0">Edit Product</h1>
@@ -10,41 +10,49 @@
       <i class="bi bi-arrow-left"></i> Back to Products
     </a>
   </div>
-  <form action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+  <form action="/admin/products/edit/<%= product._id %>" method="POST" novalidate>
+
     <div class="mb-3">
       <label for="productName" class="form-label">Product Name</label>
-      <input type="text" class="form-control" id="productName" name="productName" value="<%= product.productName %>" required>
+      <input type="text" class="form-control" id="productName" name="productName"
+        value="<%= product.productName %>" required>
     </div>
+
     <div class="mb-3">
       <label for="category" class="form-label">Category</label>
       <select class="form-select" id="category" name="category" required>
         <% categories.forEach(function(categoryItem) { %>
-          <option value="<%= categoryItem.categoryName %>" <%= product.category === categoryItem.categoryName ? 'selected' : '' %>><%= categoryItem.categoryName %></option>
+          <option value="<%= categoryItem.categoryName %>"
+            <%= product.category === categoryItem.categoryName ? 'selected' : '' %>>
+            <%= categoryItem.categoryName %>
+          </option>
         <% }); %>
       </select>
     </div>
+
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
-      <textarea class="form-control" id="description" name="description" rows="3" required><%= product.description %></textarea>
+      <textarea class="form-control" id="description" name="description"
+        rows="3" required><%= product.description %></textarea>
     </div>
+
     <div class="mb-3">
-  <label class="form-label">Variants (ml / g)</label>
+      <label class="form-label">Variants (ml / g)</label>
+      <div id="variantContainer"></div>
+      <button type="button" class="btn btn-outline-primary mt-2" onclick="addVariant()">
+        + Add Variant
+      </button>
+    </div>
+    <input type="hidden" name="variants" id="variantsInput">
 
-  <div id="variantContainer"></div>
-
-  <button type="button" class="btn btn-outline-primary mt-2" onclick="addVariant()">
-    + Add Variant
-  </button>
-</div>
-
-<input type="hidden" name="variants" id="variantsInput">
-    <!-- Cropper Modal -->
+    <!-- Crop Modal -->
     <div class="modal fade" id="cropImageModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Crop Image</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="img-container">
@@ -59,278 +67,305 @@
       </div>
     </div>
 
+    <!-- Images -->
     <div class="mb-3">
       <label class="form-label">Product Images (3 required, 4 max)</label>
       <div class="row row-cols-2 g-3" id="image-grid">
         <% for (let i = 0; i < 4; i++) { %>
           <div class="col">
-            <div class="image-upload-box position-relative border rounded d-flex align-items-center justify-content-center" style="height: 180px; cursor:pointer; background:#f9f9f9;" onclick="document.getElementById('imageInput<%= i %>').click()">
-              <input type="file" class="d-none image-upload-input" id="imageInput<%= i %>" name="images" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" data-index="<%= i %>" 
-                <% if (product.images && product.images[i]) { %>
-                  data-existing-id="<%= product.images[i]._id || '' %>"
-                <% } %>
+            <div class="image-upload-box position-relative border rounded d-flex
+                        align-items-center justify-content-center"
+                 style="height:180px; cursor:pointer; background:#f9f9f9;"
+                 onclick="document.getElementById('imageInput<%= i %>').click()">
+
+              <input type="file" class="d-none image-upload-input"
+                id="imageInput<%= i %>"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                data-index="<%= i %>"
+                data-existing="<%= (product.images && product.images[i]) ? product.images[i] : '' %>"
                 onchange="handleImageSelect(event, <%= i %>)">
+
               <% if (product.images && product.images[i]) { %>
-                <img id="previewImg<%= i %>" src="/uploads/products/<%= product.images[i] %>" alt="" style="max-width: 100%; max-height: 100%; display:block; object-fit: contain;">
-                <span id="placeholder<%= i %>" class="text-muted" style="font-size:2rem; display:none;">+</span>
-                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
-                <input type="hidden" name="existingImages" value="<%= product.images[i] %>">
-                <input type="hidden" name="existingImageIds" value="<%= product.images[i]._id || '' %>">
+                <!-- ✅ Use the URL directly — it's a full Cloudinary URL now -->
+                <img id="previewImg<%= i %>"
+                  src="<%= product.images[i] %>"
+                  alt="" style="max-width:100%; max-height:100%; object-fit:contain; display:block;">
+                <span id="placeholder<%= i %>" style="display:none; font-size:2rem;" class="text-muted">+</span>
+                <button type="button"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2"
+                  style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
               <% } else { %>
-                <img id="previewImg<%= i %>" src="" alt="" style="max-width: 100%; max-height: 100%; display:none;">
-                <span id="placeholder<%= i %>" class="text-muted" style="font-size:2rem;">+</span>
-                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 d-none" style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
+                <img id="previewImg<%= i %>" src="" alt=""
+                  style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
+                <span id="placeholder<%= i %>" style="font-size:2rem;" class="text-muted">+</span>
+                <button type="button"
+                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 d-none"
+                  style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
               <% } %>
             </div>
           </div>
         <% } %>
       </div>
-      <div class="form-text">Click a box to add/replace an image. Maximum 4 images allowed. Each image should be less than 5MB.</div>
-      <div id="imageValidationFeedback" class="invalid-feedback d-none"></div>
+      <div id="imageValidationFeedback" class="text-danger mt-1" style="display:none;"></div>
+      <div class="form-text">Click a box to add/replace. Max 4 images, 5MB each.</div>
     </div>
-    <script>
-      let uploadedImagesCount = 0;
-      const requiredImages = 3;
-      const maxImages = 4;
-      let cropper;
-      let currentImageIndex = -1;
-      let croppedImages = new Array(4).fill(null);
-      let modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
 
-      // Initialize cropper when modal is shown
-      document.getElementById('cropImageModal').addEventListener('shown.bs.modal', function () {
-        const image = document.getElementById('imageToCrop');
-        if (cropper) {
-          cropper.destroy();
-        }
-        cropper = new Cropper(image, {
-          aspectRatio: 1, // Square aspect ratio
-          viewMode: 1,
-          autoCropArea: 0.8,
-          responsive: true,
-          guides: true
-        });
-      });
-
-      // Clean up cropper when modal is hidden
-      document.getElementById('cropImageModal').addEventListener('hidden.bs.modal', function () {
-        if (cropper) {
-          cropper.destroy();
-          cropper = null;
-        }
-      });
-
-      // Handle crop button click
-      document.getElementById('cropImageBtn').addEventListener('click', function() {
-        if (cropper) {
-          // Get the cropped canvas
-          const canvas = cropper.getCroppedCanvas({
-            width: 800,
-            height: 800,
-            minWidth: 256,
-            minHeight: 256,
-            maxWidth: 2048,
-            maxHeight: 2048,
-            fillColor: '#fff',
-            imageSmoothingEnabled: true,
-            imageSmoothingQuality: 'high',
-          });
-
-          // Convert canvas to blob and update preview
-          canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            
-            // Update the preview image
-            const previewImg = document.getElementById(`previewImg${currentImageIndex}`);
-            const placeholder = document.getElementById(`placeholder${currentImageIndex}`);
-            const clearBtn = document.querySelector(`#imageInput${currentImageIndex}`).parentElement.querySelector('button');
-            
-            previewImg.src = url;
-            previewImg.style.display = 'block';
-            if (placeholder) placeholder.style.display = 'none';
-            if (clearBtn) clearBtn.classList.remove('d-none');
-            
-            // Store the cropped image data
-            croppedImages[currentImageIndex] = url;
-            
-            // Update the file input with the cropped image
-            const fileInput = document.getElementById(`imageInput${currentImageIndex}`);
-            const file = new File([blob], `cropped-image-${currentImageIndex}.jpg`, { type: 'image/jpeg' });
-            
-            // Create a new DataTransfer object and add the file to it
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            
-            // Assign the DataTransfer's files to the file input
-            fileInput.files = dataTransfer.files;
-            
-            // Hide the modal
-            modal.hide();
-            
-            // Update validation
-            updateImageValidation();
-          }, 'image/jpeg', 0.9); // 0.9 quality
-        }
-      });
-
-      function handleImageSelect(event, index) {
-        const input = event.target;
-        const file = input.files[0];
-        
-        if (!file) return;
-        
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-          showError('Only image files (JPEG, JPG, PNG, GIF, WebP) are allowed.');
-          input.value = '';
-          return;
-        }
-        
-        if (file.size > 5 * 1024 * 1024) {
-          showError('Image size should not exceed 5MB.');
-          input.value = '';
-          return;
-        }
-        
-        currentImageIndex = index;
-        
-        // Show the cropper with the selected image
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          // Show the modal with the image
-          const image = document.getElementById('imageToCrop');
-          image.src = e.target.result;
-          modal.show();
-        };
-        reader.readAsDataURL(file);
-      }
-
-      function clearImage(e, idx) {
-        e.stopPropagation();
-        e.preventDefault();
-        
-        const input = document.getElementById('imageInput' + idx);
-        if (!input) return;
-        
-        // Reset the file input
-        input.value = '';
-        croppedImages[idx] = null;
-        
-        const previewImg = document.getElementById('previewImg' + idx);
-        const placeholder = document.getElementById('placeholder' + idx);
-        const clearBtn = input.parentElement.querySelector('button');
-        
-        if (previewImg) {
-          const isExistingImage = previewImg.src.includes('/uploads/products/');
-          
-          // For existing images, we need to mark them for removal
-          if (isExistingImage) {
-            // Create a hidden input to mark this image for deletion
-            const deleteInput = document.createElement('input');
-            deleteInput.type = 'hidden';
-            deleteInput.name = 'deletedImages';
-            deleteInput.value = input.getAttribute('data-existing-id') || '';
-            input.parentNode.appendChild(deleteInput);
-            
-            // Also remove the existing image from the preview
-            previewImg.src = '';
-            previewImg.style.display = 'none';
-          } else {
-            // For new images, just clear the preview
-            previewImg.src = '';
-            previewImg.style.display = 'none';
-          }
-          
-          // Show the placeholder and hide the clear button
-          if (placeholder) placeholder.style.display = 'block';
-          if (clearBtn) clearBtn.classList.add('d-none');
-        }
-        
-        // Trigger validation update
-        updateImageValidation();
-        
-        // Dispatch change event to update any other listeners
-        const event = new Event('change');
-        input.dispatchEvent(event);
-      }
-
-      function countTotalImages() {
-        const imageInputs = document.querySelectorAll('.image-upload-input');
-        let totalImages = 0;
-        
-        imageInputs.forEach((input, index) => {
-          const previewImg = document.getElementById(`previewImg${index}`);
-          // Check if there's a new file or an existing image
-          if ((input.files && input.files.length > 0) || 
-              (previewImg && previewImg.src && previewImg.src.includes('/uploads/products/'))) {
-            totalImages++;
-          }
-        });
-        
-        return totalImages;
-      }
-
-      function updateImageValidation() {
-        const totalImages = countTotalImages();
-        const feedback = document.getElementById('imageValidationFeedback');
-        
-        if (totalImages < requiredImages) {
-          if (feedback) {
-            feedback.style.display = 'block';
-            feedback.textContent = `Please upload at least ${requiredImages - totalImages} more image(s).`;
-            feedback.className = 'invalid-feedback d-block';
-          }
-          document.getElementById('image-grid').classList.add('is-invalid');
-          return false;
-        } else {
-          if (feedback) {
-            feedback.style.display = 'none';
-          }
-          document.getElementById('image-grid').classList.remove('is-invalid');
-          return true;
-        }
-      }
-    </script>
     <button type="submit" class="btn btn-primary">Update Product</button>
   </form>
-  <script>
-    document.querySelector('form[action^="/admin/products/edit/"]').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const form = this;
-      const formData = new FormData(form);
-      try {
-        const response = await fetch(form.action, {method: 'POST',body: formData});
-        const resText = await response.text();
-        if (response.ok) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Product Updated!',
-            text: 'The product was updated successfully.',
-            confirmButtonText: 'OK',
-            timer: 2000
-          });
-          window.location.href = '/admin/products';
-        } else {
-          let msg = resText;
-          try {
-            const json = JSON.parse(resText);
-            msg = json.message || json.error || msg;
-          } catch {}
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: msg
-          });
-        }
-      } catch (err) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to update product.'
-        });
-      }
+</main>
+
+<script>
+// ── 1. STATE ─────────────────────────────────────────────────────────
+let variants      = <%- JSON.stringify(product.variants || []) %>;
+let cropper       = null;
+let currentImageIndex = -1;
+let modal;
+
+// ✅ Load existing Cloudinary URLs into the state array
+let uploadedImageUrls = [
+  <% for (let i = 0; i < 4; i++) { %>
+    "<%= (product.images && product.images[i]) ? product.images[i] : '' %>",
+  <% } %>
+];
+
+// Track which existing images were removed
+let removedImageUrls = [];
+
+// ── 2. HELPERS ────────────────────────────────────────────────────────
+function showError(msg) {
+  Swal.fire({ icon: 'error', title: 'Error', text: msg });
+}
+
+function updateImageValidation() {
+  const count    = uploadedImageUrls.filter(Boolean).length;
+  const feedback = document.getElementById('imageValidationFeedback');
+  if (count < 3) {
+    feedback.textContent = `Please upload at least ${3 - count} more image(s).`;
+    feedback.style.display = 'block';
+    return false;
+  }
+  feedback.style.display = 'none';
+  return true;
+}
+
+// ✅ Upload blob directly to Cloudinary
+async function uploadToCloudinary(blob) {
+  const sigRes  = await fetch('/admin/cloudinary-signature');
+  const sigData = await sigRes.json();
+
+  const formData = new FormData();
+  formData.append('file',      blob);
+  formData.append('api_key',   sigData.apiKey);
+  formData.append('timestamp', sigData.timestamp);
+  formData.append('signature', sigData.signature);
+  formData.append('folder',    sigData.folder);
+
+  const uploadRes  = await fetch(
+    `https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`,
+    { method: 'POST', body: formData }
+  );
+  const uploadData = await uploadRes.json();
+
+  if (uploadData.secure_url) return uploadData.secure_url;
+  throw new Error('Cloudinary upload failed: ' + (uploadData.error?.message || 'unknown'));
+}
+
+// ── 3. VARIANTS ───────────────────────────────────────────────────────
+function renderVariants() {
+  const container = document.getElementById('variantContainer');
+  container.innerHTML = '';
+  variants.forEach((v, i) => {
+    const div = document.createElement('div');
+    div.className = 'border p-3 mb-2 rounded';
+    div.innerHTML = `
+      <input class="form-control mb-2" placeholder="Unit (eg: 50ml)" value="${v.unit || ''}">
+      <input type="number" class="form-control mb-2" placeholder="Regular Price" value="${v.regularPrice || ''}">
+      <input type="number" class="form-control mb-2" placeholder="Sales Price" value="${v.salesPrice || ''}">
+      <input type="number" class="form-control mb-2" placeholder="Quantity" value="${v.quantity || ''}">
+      <button type="button" class="btn btn-sm btn-danger">Remove</button>
+    `;
+    const [unitIn, regIn, saleIn, qtyIn] = div.querySelectorAll('input');
+    unitIn.addEventListener('input', e => { variants[i].unit         = e.target.value; });
+    regIn .addEventListener('input', e => { variants[i].regularPrice = Number(e.target.value); });
+    saleIn.addEventListener('input', e => { variants[i].salesPrice   = Number(e.target.value); });
+    qtyIn .addEventListener('input', e => { variants[i].quantity     = Number(e.target.value); });
+    div.querySelector('button').addEventListener('click', () => {
+      variants.splice(i, 1);
+      renderVariants();
     });
-  </script>
+    container.appendChild(div);
+  });
+}
+
+function addVariant() {
+  variants.push({ unit: '', regularPrice: '', salesPrice: '', quantity: '' });
+  renderVariants();
+}
+
+function validateVariants() {
+  if (variants.length === 0) { showError('Please add at least one variant.'); return false; }
+  for (let i = 0; i < variants.length; i++) {
+    const v = variants[i];
+    if (!String(v.unit).trim()) { showError(`Variant ${i+1}: Unit is required.`); return false; }
+    if (!v.regularPrice || Number(v.regularPrice) <= 0) { showError(`Variant ${i+1}: Valid regular price required.`); return false; }
+    if (v.salesPrice === '' || isNaN(v.salesPrice) || Number(v.salesPrice) < 0) { showError(`Variant ${i+1}: Valid sales price required.`); return false; }
+    if (!v.quantity || Number(v.quantity) <= 0) { showError(`Variant ${i+1}: Quantity must be positive.`); return false; }
+    if (Number(v.regularPrice) <= Number(v.salesPrice)) { showError(`Variant ${i+1}: Regular price must be greater than sales price.`); return false; }
+  }
+  return true;
+}
+
+// ── 4. IMAGES ─────────────────────────────────────────────────────────
+function handleImageSelect(event, index) {
+  const input = event.target;
+  const file  = input.files[0];
+  if (!file) return;
+  const allowed = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+  if (!allowed.includes(file.type)) { showError('Only JPEG, PNG, GIF or WebP allowed.'); input.value = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { showError('Image must be under 5MB.'); input.value = ''; return; }
+  currentImageIndex = index;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('imageToCrop').src = e.target.result;
+    modal.show();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage(e, idx) {
+  e.stopPropagation();
+  e.preventDefault();
+
+  const input       = document.getElementById('imageInput'  + idx);
+  const preview     = document.getElementById('previewImg'  + idx);
+  const placeholder = document.getElementById('placeholder' + idx);
+  const clearBtn    = input.parentElement.querySelector('button');
+
+  // ✅ Track removed Cloudinary URL so controller can delete it
+  const existingUrl = uploadedImageUrls[idx];
+  if (existingUrl) {
+    removedImageUrls.push(existingUrl);
+  }
+
+  input.value              = '';
+  uploadedImageUrls[idx]   = '';
+
+  if (preview)     { preview.src = ''; preview.style.display = 'none'; }
+  if (placeholder) { placeholder.style.display = 'block'; }
+  if (clearBtn)    { clearBtn.classList.add('d-none'); }
+
+  updateImageValidation();
+}
+
+// ── 5. SUBMIT ─────────────────────────────────────────────────────────
+document.querySelector('form[action^="/admin/products/edit/"]')
+  .addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!this.checkValidity()) { this.classList.add('was-validated'); return; }
+    if (!validateVariants())      return;
+    if (!updateImageValidation()) return;
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled  = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+    // ✅ Send as JSON
+    const payload = {
+      productName:   document.getElementById('productName').value.trim(),
+      category:      document.getElementById('category').value,
+      description:   document.getElementById('description').value.trim(),
+      variants:      JSON.stringify(variants),
+      images:        uploadedImageUrls.filter(Boolean), // all current URLs
+      removeImages:  removedImageUrls                   // URLs to delete from Cloudinary
+    };
+
+    try {
+      const response = await fetch(this.action, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        await Swal.fire({
+          icon: 'success', title: 'Product Updated!',
+          timer: 2000, showConfirmButton: false
+        });
+        window.location.href = '/admin/products';
+      } else {
+        showError(result.message || 'Failed to update product.');
+      }
+    } catch {
+      showError('Network error — please try again.');
+    } finally {
+      submitBtn.disabled  = false;
+      submitBtn.innerHTML = 'Update Product';
+    }
+  });
+
+// ── 6. INIT ───────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
+
+  document.getElementById('cropImageModal').addEventListener('shown.bs.modal', function() {
+    const img = document.getElementById('imageToCrop');
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, responsive: true });
+  });
+
+  document.getElementById('cropImageModal').addEventListener('hidden.bs.modal', function() {
+    if (cropper) { cropper.destroy(); cropper = null; }
+  });
+
+  // ✅ Upload to Cloudinary on crop
+  document.getElementById('cropImageBtn').addEventListener('click', async function() {
+    if (!cropper) return;
+    const cropBtn     = this;
+    cropBtn.disabled  = true;
+    cropBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+
+    try {
+      cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' })
+        .toBlob(async blob => {
+          try {
+            const url = await uploadToCloudinary(blob);
+            uploadedImageUrls[currentImageIndex] = url;
+
+            const preview   = document.getElementById('previewImg'  + currentImageIndex);
+            const ph        = document.getElementById('placeholder' + currentImageIndex);
+            const fileInput = document.getElementById('imageInput'  + currentImageIndex);
+            const clearBtn  = fileInput.parentElement.querySelector('button');
+
+            preview.src           = url;
+            preview.style.display = 'block';
+            if (ph)       ph.style.display = 'none';
+            if (clearBtn) clearBtn.classList.remove('d-none');
+
+            modal.hide();
+            updateImageValidation();
+          } catch (err) {
+            showError('Upload failed: ' + err.message);
+          } finally {
+            cropBtn.disabled  = false;
+            cropBtn.innerHTML = 'Crop & Save';
+          }
+        }, 'image/jpeg', 0.9);
+    } catch {
+      showError('Failed to process image.');
+      cropBtn.disabled  = false;
+      cropBtn.innerHTML = 'Crop & Save';
+    }
+  });
+
+  renderVariants();
+  updateImageValidation();
+});
+</script>
+
+<%- include('../partials/admin/footer') %>
+
 <style>
   .img-container {
     max-height: 60vh;
@@ -367,179 +402,3 @@
     display: block;
   }
 </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    'use strict';
-
-    // Initial validation check when page loads
-    updateImageValidation();
-
-    // Add event listeners to all image inputs to update validation on change
-    document.querySelectorAll('.image-upload-input').forEach(input => {
-      input.addEventListener('change', updateImageValidation);
-    });
-
-    var forms = document.querySelectorAll('.needs-validation');
-
-    Array.prototype.slice.call(forms).forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        // First check form validity
-        if (!form.checkValidity()) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        
-        // Then check image validation
-        if (!updateImageValidation()) {
-          event.preventDefault();
-          event.stopPropagation();
-          // Scroll to the validation message
-          const feedback = document.getElementById('imageValidationFeedback');
-          if (feedback) {
-            feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }
-
-        form.classList.add('was-validated');
-      }, false);
-    });
-  });
-
-  function showError(message) {
-    if (typeof Swal !== 'undefined') {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonColor: '#0d6efd'
-      });
-    } else {
-      alert(message);
-    }
-  }
-</script>
-<script>
-let variants = <%- JSON.stringify(product.variants || []) %>;
-
-function renderVariants() {
-
-  const container = document.getElementById("variantContainer");
-  container.innerHTML = "";
-
-  variants.forEach((v, index) => {
-
-    container.insertAdjacentHTML("beforeend", `
-      <div class="border p-3 mb-2 rounded">
-
-        <input class="form-control mb-2"
-          placeholder="Unit (eg: 50ml)"
-          value="${v.unit || ''}"
-          oninput="variants[${index}].unit=this.value">
-
-        <input type="number"
-          class="form-control mb-2"
-          placeholder="Regular Price"
-          value="${v.regularPrice || ''}"
-          oninput="variants[${index}].regularPrice=Number(this.value)">
-
-        <input type="number"
-          class="form-control mb-2"
-          placeholder="Sales Price"
-          value="${v.salesPrice || ''}"
-          oninput="variants[${index}].salesPrice=Number(this.value)">
-
-        <input type="number"
-          class="form-control mb-2"
-          placeholder="Quantity"
-          value="${v.quantity || ''}"
-          oninput="variants[${index}].quantity=Number(this.value)">
-
-        <button type="button"
-          class="btn btn-sm btn-danger"
-          onclick="removeVariant(${index})">
-          Remove
-        </button>
-
-      </div>
-    `);
-
-  });
-
-}
-
-function addVariant(){
-
-  variants.push({
-    unit:"",
-    regularPrice:"",
-    salesPrice:"",
-    quantity:""
-  });
-
-  renderVariants();
-}
-
-function removeVariant(index){
-
-  variants.splice(index,1);
-
-  renderVariants();
-}
-
-renderVariants();
-
-document.querySelector('form[action^="/admin/products/edit/"]').addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  // ✅ SET VARIANTS FIRST (VERY IMPORTANT)
-  document.getElementById("variantsInput").value = JSON.stringify(variants);
-
-  const form = this;
-  const formData = new FormData(form);
-
-  try {
-    const response = await fetch(form.action, {
-      method: 'POST',
-      body: formData
-    });
-
-    const resText = await response.text();
-
-    if (response.ok) {
-      await Swal.fire({
-        icon: 'success',
-        title: 'Product Updated!',
-        text: 'The product was updated successfully.',
-        timer: 2000
-      });
-
-      window.location.href = '/admin/products';
-
-    } else {
-      let msg = resText;
-
-      try {
-        const json = JSON.parse(resText);
-        msg = json.message || msg;
-      } catch {}
-
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: msg
-      });
-    }
-
-  } catch (err) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Failed to update product.'
-    });
-  }
-});
-</script>
-
-</main>
-<%- include('../partials/admin/footer') %>

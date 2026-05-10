@@ -1,79 +1,100 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const Schema   = mongoose.Schema;
 const { v4: uuidv4 } = require('uuid');
 
-const orderSchema = new mongoose.Schema ({
-    orderId : {
-        type : String,
-        unique : true,
-        default: () => uuidv4(),
+const orderSchema = new mongoose.Schema({
+  orderId: {
+    type:    String,
+    unique:  true,
+    default: () => uuidv4()
+  },
+  userId: {
+    type:     Schema.Types.ObjectId,
+    ref:      'User',
+    required: true
+  },
+  orderItems: [{
+    productId: {
+      type:     Schema.Types.ObjectId,
+      ref:      'Product',
+      required: true
     },
-    userId : {
-        type : Schema.Types.ObjectId,
-        ref : "User",
-        required : true,
+    // ✅ Added missing fields
+    variantIndex: {
+      type:    Number,
+      default: 0
     },
-    orderItems : [{
-        productId : {
-        type : Schema.Types.ObjectId,
-        ref: "Product",
-        required : true,
+    quantity: {
+      type:     Number,
+      required: true
     },
-    quantity : {
-        type : Number,
-        required : true,
+    price: {
+      type:    Number,   
+      default: 0
     },
-    itemStatus: {
-        type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return-Requested', 'Returned', 'Return-Rejected'],
-        default: 'Pending'
+    name: {
+      type:    String,   
+      default: ''
     },
-    cancelReason: {
-        type: String,
-        default: null
-    },
-    returnReason: {
-        type: String,
-        default: null
-    }
-    }],
-    totalPrice : {
-        type : Number,
-        required : true,
-    },
-    discount : {
-        type : Number,
-        default : 0,
-    },
-    addressId : {
-        type : Schema.Types.ObjectId,
-        ref : "Address",
-        required : true,
-    },
-    paymentMethod: {
-        type: String,
-        enum: [ 'Cod' , 'Online', 'Wallet' ]
-    },
-    paymentStatus: {
-        type: String,
-        enum: [ 'Paid', 'Pending', 'Failed' ]
+    image: {
+      type:    String,   
+      default: ''
     },
     status: {
-        type: String,
-        enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return-Requested', 'Returned', 'Return-Rejected'],
-        default: 'Pending'
+      type: String,
+      enum: ['Pending','Processing','Shipped','Delivered','Cancelled',
+             'Return-Requested','Returned','Return-Rejected'],
+      default: 'Pending'
     },
-     razorpayOrderId: {
-         type: String 
-        },
-    returnReason: {
-        type: String,
-        default: null
-    },
-    cancellationReason: {  
-        type: String,
-        default: null
-    }
-}, { timestamps : true });
+    cancelReason: { type: String, default: null },
+    returnReason: { type: String, default: null }
+  }],
 
-module.exports = mongoose.model("Order", orderSchema)
+  // ✅ Added missing top-level fields
+  subtotal: {
+    type:    Number,
+    default: 0
+  },
+  shipping: {
+    type:    Number,
+    default: 50
+  },
+  discount: {
+    type:    Number,
+    default: 0
+  },
+  totalPrice: {
+    type:     Number,
+    required: true
+  },
+  addressId: {
+    type:     Schema.Types.ObjectId,
+    ref:      'Address',
+    required: true
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['COD', 'Online', 'Wallet']  // ✅ fixed 'Cod' → 'COD' to match controller
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Paid', 'Pending', 'Failed']
+  },
+  status: {
+    type:    String,
+    enum:    ['Pending','Processing','Shipped','Delivered','Cancelled',
+              'Return-Requested','Returned','Return-Rejected'],
+    default: 'Pending'
+  },
+  razorpayOrderId:    { type: String },
+  cancellationReason: { type: String, default: null },
+  returnReason:       { type: String, default: null },
+  returnRequest: {
+    requestedAt:     Date,
+    status:          { type: String, enum: ['pending','approved','rejected'] },
+    reason:          String,
+    refundProcessed: { type: Boolean, default: false }
+  }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Order', orderSchema);

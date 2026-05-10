@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const requireAdminAuth = require('../../middileware/adminAuth');
-const { upload, handleMulterErrors } = require('../../middileware/multerConfig');
+const requireAdminAuth = require('../../middleware/adminAuth');
 const adminController = require('../../controllers/admin/adminController');
 const customerController = require('../../controllers/admin/customerController');
 const categoryController = require('../../controllers/admin/categoryController');
@@ -31,25 +30,28 @@ router.post('/categories/unblock', categoryController.unblockCategory);
 
 router.get('/products', productController.productListPage);
 router.get('/products/add', productController.addProductPage);
-router.post('/products/add',
-  (req, res, next) => {
-    upload.array('images', 4)(req, res, (err) => {
-      if (err) return handleMulterErrors(err, req, res, next);
-      next();
-    });
-  },
-  productController.addProduct
-);
-router.post('/products/edit/:id',
-  (req, res, next) => {
-    upload.array('images', 4)(req, res, (err) => {
-      if (err) return handleMulterErrors(err, req, res, next);
-      next();
-    });
-  },
-  productController.editProduct
-);
+router.post('/products/add',  productController.addProduct);
+
 router.get('/products/edit/:id', productController.editProductPage);
+router.post('/products/edit/:id',productController.editProduct);
+const cloudinary = require("../../middleware/cloudinaryConfig");
+router.get('/cloudinary-signature', (req, res) => {
+  const timestamp  = Math.round(Date.now() / 1000);
+  const folder     = 'ecommerce/products';
+
+  const signature  = cloudinary.utils.api_sign_request(
+    { timestamp, folder },
+    process.env.CLOUDINARY_API_SECRET
+  );
+
+  res.json({
+    timestamp,
+    signature,
+    folder,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey:    process.env.CLOUDINARY_API_KEY
+  });
+});
 router.post('/toggle-product-block', productController.toggleProductBlock);
 
 router.get('/order-list', orderController.getAllOrders);

@@ -10,7 +10,7 @@ const checkoutController = require("../../controllers/user/checkoutController");
 const orderController = require("../../controllers/user/orderController")
 const wishlistController = require("../../controllers/user/wishlistController")
 const walletController = require("../../controllers/user/walletController")
-const {requireAuth, isUserLoggedIn} = require('../../middileware/userAuth');
+const {requireAuth, isUserLoggedIn} = require('../../middleware/userAuth');
 const cartModel = require('../../models/cartModel');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
@@ -125,7 +125,6 @@ router.get('/my-orders', requireAuth, orderController.getMyOrders);
 router.get('/my-orders/:orderId', requireAuth, orderController.getOrderDetails);
 router.post('/my-orders/:orderId/cancel', requireAuth, orderController.cancelOrder);
 router.post('/my-orders/:orderId/cancel-product/:productId', requireAuth, orderController.cancelProduct);
-router.get('/my-orders/:orderId/return-request', requireAuth, orderController.getReturnRequestPage);
 router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
 
 // Wallet routes

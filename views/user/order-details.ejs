@@ -1,164 +1,178 @@
 <%- include('../partials/user/header', { userName: userName }) %>
 
     <div class="container py-4 mt-3">
-        <% if (success_msg && success_msg.length > 0) { %>
+
+        <% if (success_msg && success_msg.length> 0) { %>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <%= success_msg %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        <% } %>
-        
-        <% if (error_msg && error_msg.length > 0) { %>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <%= error_msg %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <% } %>
-        <div class="order-container">
-            <div class="order-summary-card mb-4">
-                <div class="order-header">
-                    <h2 class="order-title">OrderId: #<%= order.orderId %>
-                    </h2>
-                    <div class="order-status-badge <%= order.status.toLowerCase() %>">
-                        <%= order.status %>
+            <% } %>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <%= error_msg %>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
-                </div>
+                    <% } %>
 
-                <div class="order-meta">
-                    <div class="meta-item">
-                        <i class="far fa-calendar-alt me-2"></i>
-                        <span>Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric' ,
-                                month: 'long' , year: 'numeric' }) %></span>
-                    </div>
+                        <div class="order-container">
 
-                </div>
-            </div>
-
-            <div class="order-section">
-                <h3 class="section-title">Order Items</h3>
-                <div class="order-items">
-                    <% order.orderItems.forEach((item, index)=> { %>
-                        <div class="order-item">
-                            <div class="item-image">
-                                <img src="/uploads/products/<%= item.productId.images[0] %>"
-                                    alt="<%= item.productId.productName %>">
-                                alt="<%= item.productId.name %>">
-                            </div>
-                            <div class="item-details">
-                                <h4 class="item-name">
-                                    <%= item.productId.productName %>
-                                </h4>
-                                <div class="item-price">₹<%= (item.productId.salesPrice ||
-                                        item.productId.regularPrice).toFixed(2) %>
+                            <!-- Order Header -->
+                            <div class="order-summary-card mb-4">
+                                <div class="order-header">
+                                    <h2 class="order-title">OrderId: #<%= order.orderId %>
+                                    </h2>
+                                    <div class="order-status-badge <%= order.status.toLowerCase() %>">
+                                        <%= order.status %>
+                                    </div>
                                 </div>
-                                <div class="item-quantity">Qty: <%= item.quantity %></div>
-                                <h4>Status:
-                                    <%= order.status==="Return-Rejected" ? "Return Rejected" : (item.status ||
-                                        order.status) %>
-                                </h4>
-                                <h4>Status:
-                                    <%= order.status==="Return-Rejected" ? "Return Rejected" : (item.status ||
-                                        order.status) %>
-                                </h4>
-
+                                <div class="order-meta">
+                                    <div class="meta-item">
+                                        <i class="far fa-calendar-alt me-2"></i>
+                                        <span>Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                                day: 'numeric' , month: 'long' , year: 'numeric' }) %></span>
+                                    </div>
+                                </div>
                             </div>
-                            <% if(order.status !=="Cancelled" && order.status !=="Delivered" ){ %>
-                                <div class="item-actions">
-                                    <form id="cancel-form-<%= item.productId._id %>"
-                                        action="/my-orders/<%= order.orderId %>/cancel-product/<%= item.productId._id %>"
-                                        method="POST" style="display:none;">
-                                        <input type="hidden" name="reason" id="reason-<%= item.productId._id %>">
-                                    </form>
 
-                                    <button type="button" class="btn-cancel-item"
-                                        onclick="cancelItem('<%= item.productId._id %>')">
-                                        <i class="fas fa-times me-1"></i> Cancel Item
-                                    </button>
+                            <!-- Order Items -->
+                            <div class="order-section">
+                                <h3 class="section-title">Order Items</h3>
+                                <div class="order-items">
+                                    <% order.orderItems.forEach(function(item) { %>
+                                        <div class="order-item">
 
+                                            <div class="item-image">
+                                                <!-- ✅ Use item.image stored in order — no productId needed -->
+                                                <img src="<%= item.image || '/images/placeholder-product.jpg' %>"
+                                                    alt="<%= item.name || 'Product' %>">
+                                            </div>
+
+                                            <div class="item-details">
+                                                <!-- ✅ Use item.name stored in order -->
+                                                <h4 class="item-name">
+                                                    <%= item.name || 'Product' %>
+                                                </h4>
+
+                                                <!-- ✅ Use item.price stored in order -->
+                                                <div class="item-price">₹<%= item.price ? item.price.toFixed(2) : '0.00'
+                                                        %>
+                                                </div>
+
+                                                <div class="item-quantity">Qty: <%= item.quantity %>
+                                                </div>
+
+                                                <!-- ✅ Removed duplicate status display -->
+                                                <h4>Status: <%= order.status==='Return-Rejected' ? 'Return Rejected' :
+                                                        (item.status || order.status) %>
+                                                </h4>
+                                            </div>
+
+                                            <% if ( order.status !=='Cancelled' && order.status !=='Delivered' &&
+                                                item.status !=='Cancelled' && item.status !=='Delivered' && item.status
+                                                !=='Returned' && item.status !=='Return-Requested' ) { %>
+                                                <button type="button" class="btn btn-outline-primary ms-2"
+                                                    onclick="returnOrder('<%= order.orderId %>')">
+                                                    <i class="fas fa-undo me-2"></i>Return Order
+                                                </button>
+                                                <% } %>
+
+                                        </div>
+                                        <% }); %>
+                                </div>
+                            </div>
+
+                            <!-- Shipping Address -->
+                            <div class="shipping-address">
+                                <p class="address-type">Address Type: <%= order.addressId?.addressType || 'N/A' %>
+                                </p>
+                                <h5>Shipped To:</h5>
+                                <p class="address-city">
+                                    <%= order.addressId?.city || 'N/A' %>,
+                                        <%= order.addressId?.state || 'N/A' %> -
+                                            <%= order.addressId?.pincode || 'N/A' %>
+                                </p>
+                                <p class="address-landmark">
+                                    <%= order.addressId?.landmark || 'N/A' %>
+                                </p>
+                                <p class="address-phone">
+                                    <i class="fas fa-phone-alt me-2"></i>+91 <%= order.addressId?.phoneNumber || 'N/A'
+                                        %>
+                                </p>
+                            </div>
+
+                            <!-- Payment Info -->
+                            <% if (order.paymentMethod) { %>
+                                <div class="meta-item">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    <span>Payment Method: <strong>
+                                            <%= order.paymentMethod %>
+                                        </strong></span>
                                 </div>
                                 <% } %>
+
+                                    <% if (order.paymentStatus) { %>
+                                        <div class="meta-item">
+                                            <i class="fas fa-check-circle me-2"></i>
+                                            <span>Payment Status:
+                                                <strong class="payment-status <%= order.paymentStatus.toLowerCase() %>">
+                                                    <%= order.paymentStatus %>
+                                                </strong>
+                                            </span>
+                                        </div>
+                                        <% } else { %>
+                                            <div class="meta-item">
+                                                <i class="fas fa-exclamation-circle me-2"></i>
+                                                <span>Payment Status: <strong class="text-muted">N/A</strong></span>
+                                            </div>
+                                            <% } %>
+
                         </div>
-                        <% }) %>
-                </div>
-            </div>
 
+                        <!-- Order Summary -->
+                        <div class="order-summary">
+                            <h3 class="section-title">Order Summary</h3>
 
-                    <div class="shipping-address">
-                        <p class="address-type">Address Type:
-                            <%= order.addressId?.addressType || 'N/A' %>
-                        </p>
-                        <H5>Shipped To: </H5>
-                        <p class="address-city">
-                            <%= order.addressId?.city || 'N/A' %>, <%= order.addressId?.state || 'N/A' %> - <%=
-                                        order.addressId?.pincode || 'N/A' %>
-                        </p>
-                        <p class="address-landmark">
-                            <%= order.addressId?.landmark || 'N/A' %>
-                        </p>
-                        <p class="address-phone">
-                            <i class="fas fa-phone-alt me-2"></i>+91 <%= order.addressId?.phoneNumber || 'N/A' %>
-                        </p>
-                    </div>
+                            <div class="summary-row">
+                                <span>Subtotal (<%= order.orderItems.reduce(function(t, i) { return t + i.quantity; },
+                                        0) %> items)</span>
+                                <!-- ✅ Use item.price stored in order -->
+                                <span>₹<%= order.orderItems.reduce(function(total, item) { return total + (item.price ||
+                                        0) * item.quantity; }, 0).toFixed(2) %></span>
+                            </div>
 
-                    <% if(order.paymentMethod) { %>
-    <div class="meta-item">
-        <i class="fas fa-credit-card me-2"> </i>
-        <span> Payment Method: <strong><%= order.paymentMethod %></strong></span>
-    </div>
-<% } %>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <span>₹<%= (order.shipping || 50).toFixed(2) %></span>
+                            </div>
 
-<% if(order.paymentStatus) { %>
-    <div class="meta-item">
-        <i class="fas fa-check-circle me-2"></i>
-        <span>Payment Status: 
-            <strong class="payment-status <%= order.paymentStatus.toLowerCase() %>">
-                <%= order.paymentStatus %>
-            </strong>
-        </span>
-    </div>
-<% } else { %>
-    <div class="meta-item">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <span>Payment Status: <strong class="text-muted">N/A</strong></span>
-    </div>
-<% } %>
+                            <% if (order.discount && order.discount> 0) { %>
+                                <div class="summary-row discount">
+                                    <span>Discount</span>
+                                    <span>-₹<%= order.discount.toFixed(2) %></span>
+                                </div>
+                                <% } %>
 
-        </div>
+                                    <div class="summary-total">
+                                        <span>Total</span>
+                                        <span>₹<%= order.totalPrice.toFixed(2) %></span>
+                                    </div>
+                        </div>
 
-        <div class="order-summary">
-            <h3 class="section-title">Order Summary</h3>
-            <div class="summary-row">
-                <span>Subtotal (<%= order.orderItems.reduce((total, item)=> total + item.quantity, 0) %> items)</span>
-                <span>₹<%= order.orderItems.reduce((total, item)=> total + (item.productId.salesPrice ||
-                        item.productId.regularPrice) * item.quantity, 0).toFixed(2) %></span>
-            </div>
-            <div class="summary-row">
-                <span>Shipping</span>
-                <span>₹<%= (50 || 0).toFixed(2) %></span>
-            </div>
-            <% if(order.discountAmount && order.discountAmount> 0) { %>
-                <div class="summary-row discount">
-                    <span>Discount</span>
-                    <span>-₹<%= order.discountAmount.toFixed(2) %></span>
-                </div>
-                <% } %>
-                    <div class="summary-total">
-                        <span>Total</span>
-                        <span>₹<%= order.totalPrice.toFixed(2) %></span>
-                    </div>
-        </div>
-    </div>
-    </div>
+                        <!-- Actions -->
+                        <div class="order-actions mt-4 mb-4">
+                            <a href="/my-orders" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                            </a>
+                            <% if (order.status==='Delivered' && !order.returnRequest) { %>
+                                <button class="btn btn-outline-primary ms-2 btn-return"
+                                    data-order-id="<%= order.orderId %>">
+                                    <i class="fas fa-undo me-2"></i>Return Order
+                                </button>
+                                <% } %>
+                        </div>
 
-    <div class="order-actions mt-4 mb-4">
-        <a href="/my-orders" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Back to Orders
-        </a>
-        <% if (order.status === 'Delivered' && !order.returnRequest) { %>
-            <button class="btn btn-outline-primary ms-2 btn-return" data-order-id="<%= order.orderId %>">
-                <i class="fas fa-undo me-2"></i>Return Order
-            </button>
-        <% } %>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -172,7 +186,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Yes, Cancel',
                 cancelButtonText: 'No',
-                inputValidator: (value) => {
+                inputValidator: function (value) {
                     if (!value) return 'Reason is required!';
                 }
             });
@@ -180,34 +194,85 @@
             if (!reason) return;
 
             try {
-                const response = await fetch(`/my-orders/${'<%= order.orderId %>'}/cancel-product/${productId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reason })
-                });
+                const response = await fetch(
+                    '/my-orders/<%= order.orderId %>/cancel-product/' + productId,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reason })
+                    }
+                );
 
-                if (response.ok) {
-                    const btn = document.querySelector(`#cancel-form-${productId} ~ .btn-cancel-item`);
-                    btn.innerHTML = '<i class="fas fa-check me-1"></i> Item Cancelled';
-                    btn.disabled = true;
+                const data = await response.json();
 
+                if (response.ok && data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Cancelled!',
                         text: 'The item has been cancelled successfully.',
                         timer: 2000,
                         showConfirmButton: false
+                    }).then(function () {
+                        location.reload();
                     });
                 } else {
-                    const text = await response.text();
-                    Swal.fire('Error', text, 'error');
+                    Swal.fire('Error', data.message || 'Failed to cancel item', 'error');
                 }
             } catch (err) {
                 console.error(err);
                 Swal.fire('Error', 'Something went wrong!', 'error');
             }
+        }
+    </script>
+    <script>
+        // ── RETURN ORDER ─────────────────────────────────────────────────
+        var returnBtn = document.querySelector('.btn-return');
+        if (returnBtn) {
+            returnBtn.addEventListener('click', async function () {
+                const orderId = this.dataset.orderId;
+
+                const { value: reason } = await Swal.fire({
+                    title: 'Return Order',
+                    input: 'text',
+                    inputPlaceholder: 'Enter reason for return',
+                    showCancelButton: true,
+                    confirmButtonText: 'Submit Return',
+                    cancelButtonText: 'Cancel',
+                    inputValidator: function (value) {
+                        if (!value) return 'Please provide a reason for return.';
+                    }
+                });
+
+                if (!reason) return;
+
+                try {
+                    const res = await fetch('/my-orders/' + orderId + '/return', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reason })
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'Return Requested!',
+                            text: 'Your return request has been submitted. Our team will review it shortly.',
+                            confirmButtonText: 'View My Orders'
+                        });
+                        window.location.href = '/my-orders';
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'Failed to submit return request.'
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+                }
+            });
         }
     </script>
 

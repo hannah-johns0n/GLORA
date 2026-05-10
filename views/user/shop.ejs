@@ -7,7 +7,9 @@
   <title>Shop - GLORA</title>
   <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
   <link rel="stylesheet" href="/styles/main_styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -199,7 +201,8 @@
     }
 
     /* Form Elements */
-    .form-select, .form-control {
+    .form-select,
+    .form-control {
       border: 2px solid var(--border-light);
       border-radius: 12px;
       padding: 12px 16px;
@@ -208,7 +211,8 @@
       font-weight: 500;
     }
 
-    .form-select:focus, .form-control:focus {
+    .form-select:focus,
+    .form-control:focus {
       border-color: var(--primary-color);
       box-shadow: 0 0 0 3px rgba(44, 24, 16, 0.1);
       outline: none;
@@ -281,7 +285,7 @@
       pointer-events: none;
     }
 
-    
+
 
     .product-card:hover {
       transform: translateY(-12px) scale(1.02);
@@ -517,27 +521,27 @@
         padding: 0 15px;
         margin-top: 80px;
       }
-      
+
       .search-bar-container::after {
         right: 25px;
       }
-      
+
       .search-bar-container input {
         max-width: 100%;
       }
-      
+
       .product-card {
         margin-bottom: 30px;
       }
-      
+
       aside {
         margin-bottom: 40px;
       }
-      
+
       .product-image-container {
         height: 200px;
       }
-      
+
       .product-title {
         font-size: 16px;
         min-height: 40px;
@@ -548,11 +552,11 @@
       .product-title {
         font-size: 15px;
       }
-      
+
       .product-price {
         font-size: 18px;
       }
-      
+
       .btn-view-details {
         font-size: 13px;
         padding: 10px 20px;
@@ -603,49 +607,53 @@
       </div>
 
       <div class="row">
-<aside class="col-lg-3 mb-4 mb-lg-0">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="fw-bold mb-3">Categories</h5>
-      <ul class="list-group mb-4" id="categoryList">
-        <li class="list-group-item <%= selectedCategory === 'all' ? 'active' : '' %>">
-          <a href="/shop?category=all">All Products</a>
-        </li>
-        <% categories.forEach(function(category) { %>
-          <li class="list-group-item <%= selectedCategory === category.categoryName ? 'active' : '' %>">
-            <a href="/shop?category=<%= category.categoryName %>">
-              <%= category.categoryName %>
-            </a>
-          </li>
-        <% }); %>
-      </ul>
+        <aside class="col-lg-3 mb-4 mb-lg-0">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3">Categories</h5>
+              <ul class="list-group mb-4" id="categoryList">
+                <li class="list-group-item <%= selectedCategory === 'all' ? 'active' : '' %>">
+                  <a href="/shop?category=all">All Products</a>
+                </li>
+                <% categories.forEach(function(category) { %>
+                  <li class="list-group-item <%= selectedCategory === category.categoryName ? 'active' : '' %>">
+                    <a href="/shop?category=<%= category.categoryName %>">
+                      <%= category.categoryName %>
+                    </a>
+                  </li>
+                  <% }); %>
+              </ul>
 
-      <input type="hidden" name="category" value="<%= selectedCategory %>" />
+              <input type="hidden" name="category" value="<%= selectedCategory %>" />
 
-      <h5 class="fw-bold mb-3">Sort Products</h5>
-      <form method="get">
-        <select name="sort" class="form-select mb-4">
-          <option value="">Default Sorting</option>
-          <option value="az" <%= selectedSort === 'az' ? 'selected' : '' %>>Name: A to Z</option>
-          <option value="za" <%= selectedSort === 'za' ? 'selected' : '' %>>Name: Z to A</option>
-          <option value="priceLowHigh" <%= selectedSort === 'priceLowHigh' ? 'selected' : '' %>>Price: Low to High</option>
-          <option value="priceHighLow" <%= selectedSort === 'priceHighLow' ? 'selected' : '' %>>Price: High to Low</option>
-        </select>
+              <h5 class="fw-bold mb-3">Sort Products</h5>
+              <form method="get">
+                <select name="sort" class="form-select mb-4">
+                  <option value="">Default Sorting</option>
+                  <option value="az" <%=selectedSort==='az' ? 'selected' : '' %>>Name: A to Z</option>
+                  <option value="za" <%=selectedSort==='za' ? 'selected' : '' %>>Name: Z to A</option>
+                  <option value="priceLowHigh" <%=selectedSort==='priceLowHigh' ? 'selected' : '' %>>Price: Low to High
+                  </option>
+                  <option value="priceHighLow" <%=selectedSort==='priceHighLow' ? 'selected' : '' %>>Price: High to Low
+                  </option>
+                </select>
 
-        <h5 class="fw-bold mb-3">Price Range</h5>
-        <div class="d-flex align-items-center mb-4">
-          <input type="number" name="minPrice" class="form-control" placeholder="Min" min="0" value="<%= minPrice %>">
-          <span class="mx-1">—</span>
-          <input type="number" name="maxPrice" class="form-control" placeholder="Max" min="0" value="<%= maxPrice %>">
-        </div>
+                <h5 class="fw-bold mb-3">Price Range</h5>
+                <div class="d-flex align-items-center mb-4">
+                  <input type="number" name="minPrice" class="form-control" placeholder="Min" min="0"
+                    value="<%= minPrice %>">
+                  <span class="mx-1">—</span>
+                  <input type="number" name="maxPrice" class="form-control" placeholder="Max" min="0"
+                    value="<%= maxPrice %>">
+                </div>
 
-        <button type="submit" class="btn btn-outline-primary w-100">
-          <span>Apply Filters</span>
-        </button>
-      </form>
-    </div>
-  </div>
-</aside>
+                <button type="submit" class="btn btn-outline-primary w-100">
+                  <span>Apply Filters</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </aside>
 
         <section class="col-lg-9">
           <div class="row" id="productGrid">
@@ -653,27 +661,39 @@
               <div class="col-md-4 col-lg-3 mb-4">
                 <div class="product-card">
                   <div class="product-image-container position-relative">
-                    <button class="wishlist-icon <%= product.inWishlist ? 'active' : '' %>" data-product-id="<%= product._id %>" title="<%= product.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+                    <button class="wishlist-icon <%= product.inWishlist ? 'active' : '' %>"
+                      data-product-id="<%= product._id %>"
+                      title="<%= product.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
                       <i class="<%= product.inWishlist ? 'fas' : 'far' %> fa-heart"></i>
                     </button>
 
                     <img
-                      src="<%= product.images && product.images.length > 0 ? '/uploads/products/' + product.images[0] : '/images/placeholder-product.jpg' %>"
-                      alt="<%= product.productName %>" class="product-image">
+                      src="<%= product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder-product.jpg' %>"
+  alt="<%= product.productName %>" class="product-image">
                   </div>
                   <div class="p-2">
                     <h3 class="product-title">
                       <%= product.productName %>
                     </h3>
-                    <div class="product-price">
-                      ₹<%= product.salesPrice > 0 ? product.salesPrice : product.regularPrice %>
-                      <% if (product.salesPrice > 0) { %>
-                        <span class="original-price">₹<%= product.regularPrice %></span>
-                      <% } %>
-                    </div>
-                    <a href="/product/<%= product._id %>" class="btn-view-details">
-                      <span>View Details</span>
-                    </a>
+                    <!-- ✅ Use var inside EJS scriptlet tags -->
+<%
+  var activeVariant = product.variants && product.variants.find(function(v) { return !v.isBlocked; });
+  var displaySale    = activeVariant ? activeVariant.salesPrice   : null;
+  var displayRegular = activeVariant ? activeVariant.regularPrice : null;
+%>
+                      <div class="product-price">
+                        <% if (displaySale !=null) { %>
+                          ₹<%= displaySale %>
+                            <% if (displayRegular && displayRegular> displaySale) { %>
+                              <span class="original-price">₹<%= displayRegular %></span>
+                              <% } %>
+                                <% } else { %>
+                                  <span class="text-muted">No price available</span>
+                                  <% } %>
+                      </div>
+                      <a href="/product/<%= product._id %>" class="btn-view-details">
+                        <span>View Details</span>
+                      </a>
                   </div>
                 </div>
               </div>
@@ -682,11 +702,14 @@
 
           <nav class="mt-4">
             <ul class="pagination">
-              <% for (let i = 1; i <= totalPages; i++) { %>
+              <% for (let i=1; i <=totalPages; i++) { %>
                 <li class="<%= i === currentPage ? 'active' : '' %>">
-                    <a href="?page=<%= i %>&category=<%= selectedCategory %>&sort=<%= sort %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>&search=<%= search %>"><%= i %></a>
+                  <a
+                    href="?page=<%= i %>&category=<%= selectedCategory %>&sort=<%= sort %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>&search=<%= search %>">
+                    <%= i %>
+                  </a>
                 </li>
-              <% } %>
+                <% } %>
             </ul>
           </nav>
         </section>
@@ -695,122 +718,122 @@
 
     <%- include('../partials/user/footer') %>
 
-  <script>
-    // Sort dropdown functionality
-    const sortDropdown = document.querySelector('select[name="sort"]');
-    if (sortDropdown) {
-      sortDropdown.addEventListener('change', function () {
-        this.closest('form').classList.add('loading');
-        this.form.submit();
-      });
-    }
+      <script>
+        // Sort dropdown functionality
+        const sortDropdown = document.querySelector('select[name="sort"]');
+        if (sortDropdown) {
+          sortDropdown.addEventListener('change', function () {
+            this.closest('form').classList.add('loading');
+            this.form.submit();
+          });
+        }
 
-    // Enhanced search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      let searchTimeout;
-      
-      searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        
-        searchTimeout = setTimeout(() => {
-          const searchTerm = this.value.trim();
-          const url = new URL(window.location.href);
-          
-          if (searchTerm) {
-            url.searchParams.set('search', searchTerm);
-            url.searchParams.set('page', '1');
-          } else {
-            url.searchParams.delete('search');
-          }
-          
-          document.body.classList.add('loading');
-          window.location.href = url.toString();
-        }, 500); 
-      });
-      
-      const urlParams = new URLSearchParams(window.location.search);
-      const searchTerm = urlParams.get('search');
-      if (searchTerm) {
-        searchInput.value = searchTerm;
-      }
-    }
+        // Enhanced search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          let searchTimeout;
 
-    // Enhanced wishlist functionality
-    document.querySelectorAll('.wishlist-icon').forEach(button => {
-      button.addEventListener('click', async (event) => {
-        event.preventDefault();
-        const productId = event.currentTarget.dataset.productId;
-        const icon = event.currentTarget.querySelector('i');
-        const originalTransform = event.currentTarget.style.transform;
+          searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
 
-        // Add click animation
-        event.currentTarget.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-          event.currentTarget.style.transform = originalTransform;
-        }, 150);
+            searchTimeout = setTimeout(() => {
+              const searchTerm = this.value.trim();
+              const url = new URL(window.location.href);
 
-        try {
-          const response = await fetch(`/wishlist/toggle/${productId}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            }
+              if (searchTerm) {
+                url.searchParams.set('search', searchTerm);
+                url.searchParams.set('page', '1');
+              } else {
+                url.searchParams.delete('search');
+              }
+
+              document.body.classList.add('loading');
+              window.location.href = url.toString();
+            }, 500);
           });
 
-          if (response.ok) {
-            // Toggle the icon and button state
-            if (icon.classList.contains('far')) {
-              icon.classList.remove('far');
-              icon.classList.add('fas');
-              event.currentTarget.classList.add('active');
-              event.currentTarget.title = 'Remove from Wishlist';
-            } else {
-              icon.classList.remove('fas');
-              icon.classList.add('far');
-              event.currentTarget.classList.remove('active');
-              event.currentTarget.title = 'Add to Wishlist';
-            }
-          } else {
-            const data = await response.json();
-            if (data.redirect) {
-              window.location.href = data.redirect;
-            }
+          const urlParams = new URLSearchParams(window.location.search);
+          const searchTerm = urlParams.get('search');
+          if (searchTerm) {
+            searchInput.value = searchTerm;
           }
-        } catch (error) {
-          console.error('Error toggling wishlist:', error);
         }
-      });
-    });
 
-    // Add smooth scroll animation for page changes
-    document.addEventListener('DOMContentLoaded', function() {
-      // Animate cards on load
-      const cards = document.querySelectorAll('.product-card');
-      cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        setTimeout(() => {
-          card.style.transition = 'all 0.6s ease';
-          card.style.opacity = '1';
-          card.style.transform = 'translateY(0)';
-        }, index * 100);
-      });
-    });
+        // Enhanced wishlist functionality
+        document.querySelectorAll('.wishlist-icon').forEach(button => {
+          button.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const productId = event.currentTarget.dataset.productId;
+            const icon = event.currentTarget.querySelector('i');
+            const originalTransform = event.currentTarget.style.transform;
 
-    // Add loading state to buttons
-    document.querySelectorAll('form').forEach(form => {
-      form.addEventListener('submit', function() {
-        const button = this.querySelector('button[type="submit"]');
-        if (button) {
-          button.style.opacity = '0.7';
-          button.style.pointerEvents = 'none';
-        }
-      });
-    });
-  </script>
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            // Add click animation
+            event.currentTarget.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+              event.currentTarget.style.transform = originalTransform;
+            }, 150);
+
+            try {
+              const response = await fetch(`/wishlist/toggle/${productId}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              if (response.ok) {
+                // Toggle the icon and button state
+                if (icon.classList.contains('far')) {
+                  icon.classList.remove('far');
+                  icon.classList.add('fas');
+                  event.currentTarget.classList.add('active');
+                  event.currentTarget.title = 'Remove from Wishlist';
+                } else {
+                  icon.classList.remove('fas');
+                  icon.classList.add('far');
+                  event.currentTarget.classList.remove('active');
+                  event.currentTarget.title = 'Add to Wishlist';
+                }
+              } else {
+                const data = await response.json();
+                if (data.redirect) {
+                  window.location.href = data.redirect;
+                }
+              }
+            } catch (error) {
+              console.error('Error toggling wishlist:', error);
+            }
+          });
+        });
+
+        // Add smooth scroll animation for page changes
+        document.addEventListener('DOMContentLoaded', function () {
+          // Animate cards on load
+          const cards = document.querySelectorAll('.product-card');
+          cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            setTimeout(() => {
+              card.style.transition = 'all 0.6s ease';
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+            }, index * 100);
+          });
+        });
+
+        // Add loading state to buttons
+        document.querySelectorAll('form').forEach(form => {
+          form.addEventListener('submit', function () {
+            const button = this.querySelector('button[type="submit"]');
+            if (button) {
+              button.style.opacity = '0.7';
+              button.style.pointerEvents = 'none';
+            }
+          });
+        });
+      </script>
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </body>
 
 </html>

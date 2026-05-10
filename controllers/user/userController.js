@@ -82,8 +82,8 @@ const signup = async (req, res) => {
     });
 
     res.redirect(`/verify-otp?email=${email}`);
-  } 
-  
+  }
+
   catch (error) {
     res.render("user/signup", { error: "Internal server error" });
   }
@@ -98,7 +98,7 @@ const getVerifyOtp = async (req, res) => {
     email,
     error: null,
     expiresIn: 300,
-    purpose: "verify"    
+    purpose: "verify"
   };
   res.render("user/otp", viewData);
 };
@@ -108,23 +108,23 @@ const postVerifyOtp = async (req, res) => {
 
   const tempUser = await TempUser.findOne({ email });
 
- if (!tempUser) {
-  return res.render("user/otp", { 
-    email, 
-    error: "No OTP found for this email", 
-    expiresIn: 300,
-    purpose: "verify" 
-  });
-}
+  if (!tempUser) {
+    return res.render("user/otp", {
+      email,
+      error: "No OTP found for this email",
+      expiresIn: 300,
+      purpose: "verify"
+    });
+  }
 
-if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
-  return res.render("user/otp", { 
-    email, 
-    error: "Invalid or expired OTP", 
-    expiresIn: 300,
-    purpose: "verify" 
-  });
-}
+  if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
+    return res.render("user/otp", {
+      email,
+      error: "Invalid or expired OTP",
+      expiresIn: 300,
+      purpose: "verify"
+    });
+  }
 
   await User.create({
     name: tempUser.name,
@@ -135,7 +135,7 @@ if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
 
   await TempUser.deleteOne({ email });
 
-res.redirect("/login?signupSuccess=1",);
+  res.redirect("/login?signupSuccess=1",);
 };
 
 const resendOtp = async (req, res) => {
@@ -144,7 +144,7 @@ const resendOtp = async (req, res) => {
   const tempUser = await TempUser.findOne({ email });
   if (!tempUser) return res.redirect('/signup');
 
-  const otp = generateOTP(); 
+  const otp = generateOTP();
   const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
   console.log(`OTP for ${email}: ${otp}`);
 
@@ -152,11 +152,11 @@ const resendOtp = async (req, res) => {
   tempUser.otpExpires = otpExpires;
   await tempUser.save();
 
-  const viewData = { 
+  const viewData = {
     email,
     error: null,
-    OTP : otp,
-    ExpiresAt : otpExpires,
+    OTP: otp,
+    ExpiresAt: otpExpires,
     purpose: "verify"
   };
 
@@ -172,8 +172,8 @@ const resendOtp = async (req, res) => {
 
 const getLogin = (req, res) => {
   try {
-  const signupSuccess = req.query.signupSuccess === "1";
-  res.render("user/login", { signupSuccess });
+    const signupSuccess = req.query.signupSuccess === "1";
+    res.render("user/login", { signupSuccess });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
   }
@@ -206,13 +206,13 @@ const login = async (req, res) => {
 
     res.cookie("jwt", token, {
       httpOnly: true,
-      maxAge: 60 * 60 * 1000 
+      maxAge: 60 * 60 * 1000
     });
 
     const categories = await Category.find({ isBlocked: false });
     const products = await Product.find({}).sort({ createdAt: -1 }).limit(8);
-  
-     res.render("user/home", {
+
+    res.render("user/home", {
       userName: user.name,
       user: user,
       categories,
@@ -220,15 +220,15 @@ const login = async (req, res) => {
       loginSuccess: true
     });
 
-  } 
+  }
   catch (error) {
     return res.render("user/login", { error: "Something went wrong so please try again later" });
   }
 };
 
 const logout = (req, res) => {
-res.clearCookie("jwt")
-res.redirect('/')
+  res.clearCookie("jwt")
+  res.redirect('/')
 };
 
 const loadHomePage = async (req, res) => {
@@ -242,7 +242,7 @@ const loadHomePage = async (req, res) => {
         userName = decoded.name || null;
         user = decoded;
       }
-       catch (err) {
+      catch (err) {
         userName = null;
         user = null;
       }
@@ -251,62 +251,53 @@ const loadHomePage = async (req, res) => {
     const products = await Product.find({ isBlocked: false }).sort({ createdAt: -1 }).limit(8);
 
     res.render("user/home", { userName, user, categories, products });
-  } 
+  }
   catch (error) {
     res.render("user/home", { userName: null, user: null, categories: [] });
   }
 };
 
 const getAbout = (req, res) => {
-   let userName = null;
-    const token = req.cookies.jwt;
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        userName = decoded.name || null;
-      }
-       catch (err) {
-        userName = null;
-        user = null;
-      }
+  let userName = null;
+  const token = req.cookies.jwt;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userName = decoded.name || null;
     }
-  res.render("user/aboutUs"),{userName};
+    catch (err) {
+      userName = null;
+      user = null;
+    }
+  }
+  res.render("user/aboutUs"), { userName };
 };
 
 const getShopPage = async (req, res) => {
+  const sort = req.query.sort || ''; // needed in catch block too
   try {
     const search = req.query.search || '';
     const category = req.query.category || 'all';
-    const minPrice = parseFloat(req.query.minPrice) || 0;       
+    const minPrice = parseFloat(req.query.minPrice) || 0;
     const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
-    const sort = req.query.sort || '';
     const page = parseInt(req.query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
+
     const filter = {
-      salesPrice: { $gte: minPrice, $lte: maxPrice }, 
-      isBlocked: { $ne: true } 
+      isBlocked: { $ne: true },
+      'variants.salesPrice': { $gte: minPrice, ...(maxPrice !== Infinity && { $lte: maxPrice }) }
     };
 
-    if (category !== 'all') {
-      filter.category = category; 
-    }
-
-    if (search) {
-      filter.productName = { $regex: search, $options: 'i' };
-    }
+    if (category !== 'all') filter.category = category;
+    if (search) filter.productName = { $regex: search, $options: 'i' };
 
     const sortOption = {};
-      
-    if (sort === 'az') {
-      sortOption.productName = 1; 
-    } else if (sort === 'za') {
-      sortOption.productName = -1; 
-    } else if (sort === 'priceLowHigh') {
-      sortOption.salesPrice = 1; 
-    } else if (sort === 'priceHighLow') {
-      sortOption.salesPrice = -1; 
-    }
+    if (sort === 'az') sortOption.productName = 1;
+    else if (sort === 'za') sortOption.productName = -1;
+    else if (sort === 'priceLowHigh') sortOption['variants.salesPrice'] = 1;
+    else if (sort === 'priceHighLow') sortOption['variants.salesPrice'] = -1;
+
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
@@ -314,45 +305,22 @@ const getShopPage = async (req, res) => {
       .sort(sortOption)
       .skip(skip)
       .limit(limit);
-    products = products.map(product => product.toObject());
+
+    products = products.map(p => p.toObject());
+
     if (req.user) {
-      const wishlistItems = await Wishlist.find({ 
+      const wishlistItems = await Wishlist.find({
         userId: req.user._id,
         productId: { $in: products.map(p => p._id) }
       });
-      const wishlistProductIds = new Set(wishlistItems.map(item => item.productId.toString()));
-      products = products.map(product => ({
-        ...product,
-        inWishlist: wishlistProductIds.has(product._id.toString())
-      }));
+      const wishlistSet = new Set(wishlistItems.map(i => i.productId.toString()));
+      products = products.map(p => ({ ...p, inWishlist: wishlistSet.has(p._id.toString()) }));
     } else {
-      products = products.map(product => ({
-        ...product,
-        inWishlist: false
-      }));
+      products = products.map(p => ({ ...p, inWishlist: false }));
     }
-    const categories = await Category.find({ isBlocked: false });
-    const userName = req.user ? req.user.name : null;
-    const url = req.originalUrl;
 
-    if (req.user) {
-  const wishlistItems = await Wishlist.find({ 
-    userId: req.user._id,
-    productId: { $in: products.map(p => p._id) }
-  });
-  const wishlistProductIds = new Set(
-    wishlistItems.map(item => item.productId.toString())
-  );
-  products = products.map(product => ({
-    ...product,
-    inWishlist: wishlistProductIds.has(product._id.toString())
-  }));
-} else {
-  products = products.map(product => ({
-    ...product,
-    inWishlist: false
-  }));
-}
+    const categories = await Category.find({ isBlocked: false });
+
     res.render('user/shop', {
       products,
       categories,
@@ -361,18 +329,18 @@ const getShopPage = async (req, res) => {
       search,
       selectedCategory: category,
       minPrice,
-      maxPrice,
+      maxPrice: maxPrice === Infinity ? '' : maxPrice,
       selectedSort: sort,
       sort,
       path: '/shop',
-      userName,       
-      url
+      userName: req.user ? req.user.name : null,
+      url: req.originalUrl
     });
 
-  } 
-  catch (error) {
+  } catch (error) {
+    console.error('Shop page error:', error);
     res.render('user/shop', {
-      url: req.originalUrl,   
+      url: req.originalUrl,
       userName: null,
       categories: [],
       products: [],
@@ -382,7 +350,7 @@ const getShopPage = async (req, res) => {
       selectedSort: sort,
       search: '',
       minPrice: 0,
-      maxPrice: 0,
+      maxPrice: '',
       sort: ''
     });
   }
@@ -411,9 +379,9 @@ const getProductDetails = async (req, res) => {
           user = foundUser;
         }
 
-const cart = await Cart.findOne({ userId: decoded.id });
-cartCount = cart ? cart.items.reduce((sum, p) => sum + p.quantity, 0) : 0;
-console.log(cart)
+        const cart = await Cart.findOne({ userId: decoded.id });
+        cartCount = cart ? cart.items.reduce((sum, p) => sum + p.quantity, 0) : 0;
+        console.log(cart)
       } catch (err) {
         console.error("JWT error:", err);
       }
@@ -427,7 +395,7 @@ console.log(cart)
 
     res.render('user/productDetails', {
       product,
-      relatedProducts,
+      similarProducts: relatedProducts,
       userName,
       user,
       url: req.originalUrl,
@@ -442,7 +410,7 @@ console.log(cart)
 
 const getForgotPassword = (req, res) => {
   try {
-    res.render('user/forgotPassword', {error : null});
+    res.render('user/forgotPassword', { error: null });
   }
   catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
@@ -458,8 +426,8 @@ const postForgotPassword = async (req, res) => {
       return res.render('user/forgotPassword', { error: 'Email not found' });
     }
 
-   const otp = generateOTP();
-   console.log("Generated OTP:", otp);
+    const otp = generateOTP();
+    console.log("Generated OTP:", otp);
     const otpExpires = Date.now() + 5 * 60 * 1000;
 
     await PasswordReset.updateOne(
@@ -499,7 +467,7 @@ const verifyPasswordOtp = (req, res) => {
 
 const postVerifyPasswordOtp = async (req, res) => {
   try {
-    const { otp, email } = req.body;   
+    const { otp, email } = req.body;
     const record = await PasswordReset.findOne({ email });
     if (!record || record.otp !== otp || record.otpExpires < Date.now()) {
       return res.render("user/otp", {
@@ -511,7 +479,7 @@ const postVerifyPasswordOtp = async (req, res) => {
 
     await PasswordReset.deleteOne({ email });
 
-    res.render("user/resetPassword", { error : null, email });
+    res.render("user/resetPassword", { error: null, email });
 
   } catch (error) {
     console.error(error);
@@ -573,16 +541,16 @@ const postResetPassword = async (req, res) => {
       }
     }
 
-    await PasswordReset.deleteOne({ email }).catch(() => {});
+    await PasswordReset.deleteOne({ email }).catch(() => { });
     res.clearCookie("allowResetToken");
     res.clearCookie("resetToken");
 
-return res.render("user/resetPassword", {
-  error: null,
-  email: "",
-  success: true
-});    
-  } 
+    return res.render("user/resetPassword", {
+      error: null,
+      email: "",
+      success: true
+    });
+  }
   catch (error) {
     console.error("postResetPassword error:", error);
     return res.render("user/resetPassword", {
@@ -593,33 +561,33 @@ return res.render("user/resetPassword", {
 };
 
 const getProfilePage = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        const success = req.query.success || null;
+  try {
+    const user = await User.findById(req.user.id);
+    const success = req.query.success || null;
 
-        res.render('user/profile', {
-            user,
-            userName: user?.name || 'User'
-        });
-    } catch (err) {
-        res.redirect('user/profile');
-    }
+    res.render('user/profile', {
+      user,
+      userName: user?.name || 'User'
+    });
+  } catch (err) {
+    res.redirect('user/profile');
+  }
 };
 
 const getEditProfilePage = async (req, res) => {
-try {
-if (!req.user) {
-   return res.redirect('/login');
- }
+  try {
+    if (!req.user) {
+      return res.redirect('/login');
+    }
 
- const user = await User.findById(req.user._id);
-res.render('user/editProfile', { 
- user
- });
- } catch (error) {
- console.error('Error in getEditProfilePage:', error);
- res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
- }
+    const user = await User.findById(req.user._id);
+    res.render('user/editProfile', {
+      user
+    });
+  } catch (error) {
+    console.error('Error in getEditProfilePage:', error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Internal Server Error');
+  }
 };
 
 const updateProfile = async (req, res) => {
@@ -647,35 +615,35 @@ const updateProfile = async (req, res) => {
 };
 
 const getManageAddressPage = async (req, res) => {
-    try {
-        const user = await User.findById(req.user._id); 
-        const addresses = await Address.find({ userId: req.user._id });
+  try {
+    const user = await User.findById(req.user._id);
+    const addresses = await Address.find({ userId: req.user._id });
 
-        const success = req.query.deleted ? 'Address deleted successfully!' : null;
+    const success = req.query.deleted ? 'Address deleted successfully!' : null;
 
-        res.render('user/manage-address', {
-            user,
-            userName: user.name, 
-            addresses,
-            success
-        });
-    } 
-    catch (error) {
-        res.redirect('/profile');
-    }
+    res.render('user/manage-address', {
+      user,
+      userName: user.name,
+      addresses,
+      success
+    });
+  }
+  catch (error) {
+    res.redirect('/profile');
+  }
 };
 
 const getAddAddressPage = (req, res) => {
-    const fromCheckout = req.query.fromCheckout === "true";  
-    res.render('user/add-address', { userName: req.user.name, fromCheckout });
+  const fromCheckout = req.query.fromCheckout === "true";
+  res.render('user/add-address', { userName: req.user.name, fromCheckout });
 };
 
 const postAddAddress = async (req, res) => {
   try {
-const user = await User.findById(req.user._id);
-const addresses = await Address.find({ userId: req.user._id });
+    const user = await User.findById(req.user._id);
+    const addresses = await Address.find({ userId: req.user._id });
 
-        const fromCheckout = req.body.fromCheckout === "true"; 
+    const fromCheckout = req.body.fromCheckout === "true";
 
     if (!req.user.id) {
       return res.redirect('/login');
@@ -686,33 +654,33 @@ const addresses = await Address.find({ userId: req.user._id });
     const noSpecialChars = /^[a-zA-Z0-9\s]+$/;
 
     if (!addressType || !city || !landmark || !state || !pincode || !phoneNumber) {
-      return res.render('user/add-address', { 
-        userName: req.user.name, 
-        error: 'All fields are required.' 
+      return res.render('user/add-address', {
+        userName: req.user.name,
+        error: 'All fields are required.'
       });
     }
 
-    if (!noSpecialChars.test(addressType) || 
-        !noSpecialChars.test(city) || 
-        !noSpecialChars.test(landmark) || 
-        !noSpecialChars.test(state)) {
-      return res.render('user/add-address', { 
-        userName: req.user.name, 
-        error: 'No special characters allowed in Address Type, City, Landmark, or State.' 
+    if (!noSpecialChars.test(addressType) ||
+      !noSpecialChars.test(city) ||
+      !noSpecialChars.test(landmark) ||
+      !noSpecialChars.test(state)) {
+      return res.render('user/add-address', {
+        userName: req.user.name,
+        error: 'No special characters allowed in Address Type, City, Landmark, or State.'
       });
     }
 
     if (!/^\d{6}$/.test(pincode)) {
-      return res.render('user/add-address', { 
-        userName: req.user.name, 
-        error: 'Pincode must be exactly 6 digits.' 
+      return res.render('user/add-address', {
+        userName: req.user.name,
+        error: 'Pincode must be exactly 6 digits.'
       });
     }
 
     if (!/^\d{10}$/.test(phoneNumber)) {
-      return res.render('user/add-address', { 
-        userName: req.user.name, 
-        error: 'Phone number must be exactly 10 digits.' 
+      return res.render('user/add-address', {
+        userName: req.user.name,
+        error: 'Phone number must be exactly 10 digits.'
       });
     }
 
@@ -726,37 +694,37 @@ const addresses = await Address.find({ userId: req.user._id });
       phoneNumber
     });
 
-if (fromCheckout) {
+    if (fromCheckout) {
       return res.redirect('/checkout');
     }
 
-  return res.render('user/manage-address', { 
-  user,
-  userName: user.name,
-  addresses,
-  success: 'Address added successfully!'
-});
+    return res.render('user/manage-address', {
+      user,
+      userName: user.name,
+      addresses,
+      success: 'Address added successfully!'
+    });
 
 
   } catch (err) {
     console.error(err);
-    res.status(500).render('user/add-address', { 
-      userName: req.user.name, 
-      error: 'Server error. Failed to add address.' 
+    res.status(500).render('user/add-address', {
+      userName: req.user.name,
+      error: 'Server error. Failed to add address.'
     });
   }
 };
 
 const getEditAddressPage = async (req, res) => {
-    try {
-        const address = await Address.findOne({ _id: req.params.id, userId: req.user._id }).lean();
+  try {
+    const address = await Address.findOne({ _id: req.params.id, userId: req.user._id }).lean();
 
-        if (!address) return res.redirect('/manage-address');
-        res.render('user/edit-address', { address, userName: req.user.name });
-    } 
-    catch (err) {
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
-    }
+    if (!address) return res.redirect('/manage-address');
+    res.render('user/edit-address', { address, userName: req.user.name });
+  }
+  catch (err) {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+  }
 };
 
 const postEditAddress = async (req, res) => {
@@ -776,58 +744,58 @@ const postEditAddress = async (req, res) => {
     const onlyLetters = /^[a-zA-Z\s]+$/;
 
     if (!addressType || !city || !landmark || !state || !pincodeStr || !phoneStr) {
-      return res.render('user/edit-address', { 
-        address: { ...req.body, _id: req.params.id }, 
-        error: 'All fields are required.', 
-        userName: req.user.name 
+      return res.render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error: 'All fields are required.',
+        userName: req.user.name
       });
     }
 
     if (
-      !onlyLetters.test(addressType) || 
-      !onlyLetters.test(city) || 
-      !onlyLetters.test(landmark) || 
+      !onlyLetters.test(addressType) ||
+      !onlyLetters.test(city) ||
+      !onlyLetters.test(landmark) ||
       !onlyLetters.test(state)
     ) {
-      return res.render('user/edit-address', { 
-        address: { ...req.body, _id: req.params.id }, 
-        error: 'Address Type, City, Landmark, and State must contain letters and spaces only.', 
-        userName: req.user.name 
+      return res.render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error: 'Address Type, City, Landmark, and State must contain letters and spaces only.',
+        userName: req.user.name
       });
     }
 
     if (!/^\d{6}$/.test(pincodeStr)) {
-      return res.render('user/edit-address', { 
-        address: { ...req.body, _id: req.params.id }, 
-        error: 'Pincode must be exactly 6 digits.', 
-        userName: req.user.name 
+      return res.render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error: 'Pincode must be exactly 6 digits.',
+        userName: req.user.name
       });
     }
 
     if (!/^\d{10}$/.test(phoneStr)) {
-      return res.render('user/edit-address', { 
-        address: { ...req.body, _id: req.params.id }, 
-        error: 'Phone number must be exactly 10 digits.', 
-        userName: req.user.name 
+      return res.render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error: 'Phone number must be exactly 10 digits.',
+        userName: req.user.name
       });
     }
 
     await Address.updateOne(
       { _id: req.params.id, userId: req.user._id },
-      { 
-        addressType, 
-        city, 
-        landmark, 
-        state, 
-        pincode: Number(pincodeStr), 
-        phoneNumber: Number(phoneStr) 
+      {
+        addressType,
+        city,
+        landmark,
+        state,
+        pincode: Number(pincodeStr),
+        phoneNumber: Number(phoneStr)
       }
     );
 
-    return res.render('user/edit-address', { 
-      address: { ...req.body, _id: req.params.id }, 
-      success: 'Address updated successfully!', 
-      userName: req.user.name 
+    return res.render('user/edit-address', {
+      address: { ...req.body, _id: req.params.id },
+      success: 'Address updated successfully!',
+      userName: req.user.name
     });
 
   } catch (err) {
@@ -837,100 +805,101 @@ const postEditAddress = async (req, res) => {
 };
 
 const deleteAddress = async (req, res) => {
-    try {
-        await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
-         res.redirect('/manage-address?deleted=true');
-    } 
-    catch (err) {
-        console.error(err);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
-    }
+  try {
+    await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
+    res.redirect('/manage-address?deleted=true');
+  }
+  catch (err) {
+    console.error(err);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+  }
 };
 
 const getChangeEmailPage = (req, res) => {
-    res.render('user/change-email', { error: null });
+  res.render('user/change-email', { error: null });
 };
 
 const getVerifyEmailOtpPage = (req, res) => {
-    res.render('user/otp', { error: null });
+  res.render('user/otp', { error: null });
 };
 
 let otpStore = {};
 
 const sendChangeEmailOtp = async (req, res) => {
-    try {
-        const { email } = req.body;
-const userId = req.user?._id || req.user?.id;
+  try {
+    const { email } = req.body;
+    const userId = req.user?._id || req.user?.id;
 
-        const otp = generateOTP();
-        otpStore[userId] = { otp, newEmail: email, expires: Date.now() + 5 * 60 * 1000 };
+    const otp = generateOTP();
+    otpStore[userId] = { otp, newEmail: email, expires: Date.now() + 5 * 60 * 1000 };
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: 'Change Email OTP',
-            text: `Your OTP is ${otp}. It will expire in 5 minutes.`
-        });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Change Email OTP',
+      text: `Your OTP is ${otp}. It will expire in 5 minutes.`
+    });
 
-        console.log(`OTP for ${email} is ${otp}`);
+    console.log(`OTP for ${email} is ${otp}`);
 
-        res.render('user/otp', { error: null, purpose: 'changeEmail', email});
-    } 
-    catch (error) {
-        console.error('Error sending OTP:', error);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error sending OTP');
-    }
+    res.render('user/otp', { error: null, purpose: 'changeEmail', email });
+  }
+  catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error sending OTP');
+  }
 };
 
 const verifyChangeEmailOtp = async (req, res) => {
-    try {
-        const { otp, email } = req.body;
-const userId = req.user?._id || req.user?.id;
-        const stored = otpStore[userId];
-console.log(req.body)
-        if (!stored) {
-            return res.render('user/otp', { 
-                error: 'OTP expired. Try again.', 
-                purpose: 'changeEmail',
-                email,
-                expiresIn: 300
-            });
-        }
-
-        if (stored.otp !== otp || Date.now() > stored.expires) {
-            return res.render('user/otp', { error: 'Invalid or expired OTP',purpose: 'changeEmail',email: stored.newEmail,expiresIn: Math.max(0, Math.floor((stored.expires - Date.now())/1000))
-            });
-        }
-
-        await User.findByIdAndUpdate(userId, { email: stored.newEmail });
-
-        delete otpStore[userId]; 
-
-        return res.render("user/new-email", {   error: null,   userId });    
-
-}
-    catch (err) {
-        console.error("Error verifying OTP:", err);
-        res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error verifying OTP');
+  try {
+    const { otp, email } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const stored = otpStore[userId];
+    console.log(req.body)
+    if (!stored) {
+      return res.render('user/otp', {
+        error: 'OTP expired. Try again.',
+        purpose: 'changeEmail',
+        email,
+        expiresIn: 300
+      });
     }
+
+    if (stored.otp !== otp || Date.now() > stored.expires) {
+      return res.render('user/otp', {
+        error: 'Invalid or expired OTP', purpose: 'changeEmail', email: stored.newEmail, expiresIn: Math.max(0, Math.floor((stored.expires - Date.now()) / 1000))
+      });
+    }
+
+    await User.findByIdAndUpdate(userId, { email: stored.newEmail });
+
+    delete otpStore[userId];
+
+    return res.render("user/new-email", { error: null, userId });
+
+  }
+  catch (err) {
+    console.error("Error verifying OTP:", err);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error verifying OTP');
+  }
 };
 
 const saveNewEmail = async (req, res) => {
   try {
     const { newEmail, confirmEmail } = req.body;
-    const userId = req.user._id;   
+    const userId = req.user._id;
 
     if (!newEmail || !confirmEmail) {
-      return res.render("user/new-email", { 
-        error: "Both fields are required!", 
-        newEmail 
+      return res.render("user/new-email", {
+        error: "Both fields are required!",
+        newEmail
       });
     }
 
     if (newEmail !== confirmEmail) {
-      return res.render("user/new-email", { 
-        error: "Emails do not match!", 
-        newEmail 
+      return res.render("user/new-email", {
+        error: "Emails do not match!",
+        newEmail
       });
     }
 
@@ -942,9 +911,9 @@ const saveNewEmail = async (req, res) => {
 
   } catch (err) {
     console.error("Error saving new email:", err);
-    return res.render("user/new-email", { 
-      error: "Something went wrong. Try again.", 
-      newEmail: req.body.newEmail 
+    return res.render("user/new-email", {
+      error: "Something went wrong. Try again.",
+      newEmail: req.body.newEmail
     });
   }
 };
