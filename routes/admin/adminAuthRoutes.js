@@ -58,6 +58,8 @@ router.get('/order-list', orderController.getAllOrders);
 router.get('/order-list/:id', orderController.getOrderDetails);
 router.post('/order-list/:id/status', orderController.updateOrderStatus);
 router.all('/order-list/:id/verify-return', orderController.verifyReturnRequest);
+router.post('/order-list/:id/verify-item-return/:productId', orderController.verifyItemReturn);
+
 
 router.get("/coupons", couponsController.getCoupons);
 router.get("/coupons/add", couponsController.getAddCoupon);
