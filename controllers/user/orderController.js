@@ -152,6 +152,43 @@ const cancelProduct = async (req, res) => {
   }
 };
 
+const returnOrderItem = async (req, res) => {
+  try {
+    const { orderId, productId } = req.params;
+    const { reason }             = req.body;
+    const userId                 = req.user.id;
+
+    const order = await Order.findOne({ orderId, userId });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.status !== 'Delivered') {
+      return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
+    }
+
+    const item = order.orderItems.find(i => i.productId.toString() === productId);
+    if (!item) return res.status(404).json({ success: false, message: 'Item not found' });
+    if (item.status !== 'Delivered') {
+      return res.status(400).json({ success: false, message: 'Item is not eligible for return' });
+    }
+    if (item.returnRequest && item.returnRequest.status === 'pending') {
+      return res.status(400).json({ success: false, message: 'Return already requested for this item' });
+    }
+
+    item.status        = 'Return-Requested';
+    item.returnRequest = {
+      requestedAt: new Date(),
+      reason:      reason || 'No reason provided',
+      status:      'pending'
+    };
+
+    await order.save();
+    return res.json({ success: true, message: 'Return request submitted for this item.' });
+
+  } catch (err) {
+    console.error('returnOrderItem error:', err);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 const returnOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -272,5 +309,6 @@ module.exports = {
     cancelProduct,
     returnOrder,
     downloadInvoice,
-    updatePaymentStatus
+    updatePaymentStatus,
+    returnOrderItem
 }

@@ -19,7 +19,6 @@ const orderSchema = new mongoose.Schema({
       ref:      'Product',
       required: true
     },
-    // ✅ Added missing fields
     variantIndex: {
       type:    Number,
       default: 0
@@ -47,10 +46,15 @@ const orderSchema = new mongoose.Schema({
       default: 'Pending'
     },
     cancelReason: { type: String, default: null },
-    returnReason: { type: String, default: null }
+    returnReason: { type: String, default: null },
+    returnRequest: {
+      requestedAt: Date,
+      status: { type: String, enum: ['pending','approved','rejected'], default: null },
+      reason: String,
+      processedAt: Date
+    }
   }],
 
-  // ✅ Added missing top-level fields
   subtotal: {
     type:    Number,
     default: 0
@@ -74,7 +78,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['COD', 'Online', 'Wallet']  // ✅ fixed 'Cod' → 'COD' to match controller
+    enum: ['COD', 'Online', 'Wallet']  
   },
   paymentStatus: {
     type: String,

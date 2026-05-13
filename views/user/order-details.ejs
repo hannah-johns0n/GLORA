@@ -44,39 +44,68 @@
                                         <div class="order-item">
 
                                             <div class="item-image">
-                                                <!-- ✅ Use item.image stored in order — no productId needed -->
                                                 <img src="<%= item.image || '/images/placeholder-product.jpg' %>"
                                                     alt="<%= item.name || 'Product' %>">
                                             </div>
 
                                             <div class="item-details">
-                                                <!-- ✅ Use item.name stored in order -->
                                                 <h4 class="item-name">
                                                     <%= item.name || 'Product' %>
                                                 </h4>
-
-                                                <!-- ✅ Use item.price stored in order -->
                                                 <div class="item-price">₹<%= item.price ? item.price.toFixed(2) : '0.00'
                                                         %>
                                                 </div>
-
                                                 <div class="item-quantity">Qty: <%= item.quantity %>
                                                 </div>
-
-                                                <!-- ✅ Removed duplicate status display -->
-                                                <h4>Status: <%= order.status==='Return-Rejected' ? 'Return Rejected' :
-                                                        (item.status || order.status) %>
+                                                <h4>Status: <%= item.status || 'Pending' %>
                                                 </h4>
                                             </div>
 
-                                            <% if ( order.status !=='Cancelled' && order.status !=='Delivered' &&
-                                                item.status !=='Cancelled' && item.status !=='Delivered' && item.status
-                                                !=='Returned' && item.status !=='Return-Requested' ) { %>
-                                                <button type="button" class="btn btn-outline-primary ms-2"
-                                                    onclick="returnOrder('<%= order.orderId %>')">
-                                                    <i class="fas fa-undo me-2"></i>Return Order
-                                                </button>
-                                                <% } %>
+                                            <div class="item-actions">
+
+                                                <% var canCancel = item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped'; %>
+                                                <% var canReturn = item.status === 'Delivered'; %>
+
+                                                <% if (canCancel) { %>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="cancelItem('<%= item.productId %>')">
+                                                        <i class="fas fa-times me-1"></i> Cancel Item
+                                                    </button>
+                                                    <% } %>
+
+                                                        <% if (canReturn) { %>
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-outline-warning mt-1"
+                                                                onclick="returnItem('<%= item.productId %>')">
+                                                                <i class="fas fa-undo me-1"></i> Return Item
+                                                            </button>
+                                                            <% } %>
+
+                                                                <% if (item.status === 'Cancelled') { %>
+                                                                    <span class="badge bg-danger">Cancelled</span>
+                                                                    <% if (item.cancelReason) { %>
+                                                                        <br><small class="text-muted"><%= item.cancelReason %></small>
+                                                                        <% } %>
+                                                                        <% } %>
+
+                                                                            <% if (item.status === 'Return-Requested') { %>
+                                                                                <span
+                                                                                    class="badge bg-warning text-dark">Return Pending</span>
+                                                                                <% if (item.returnRequest && item.returnRequest.reason) { %>
+                                                                                    <br><small class="text-muted">Reason: <%= item.returnRequest.reason %></small>
+                                                                                    <% } %>
+                                                                                    <% } %>
+
+                                                                                        <% if (item.status === 'Returned') { %>
+                                                                                            <span
+                                                                                                class="badge bg-success">Returned</span>
+                                                                                            <% } %>
+
+                                                                                                <% if (item.status === 'Delivered' && !item.returnRequest && item.status !== 'Return-Requested') { %>
+                                                                                                    <span class="badge bg-primary">Delivered</span>
+                                                                                                    <% } %>
+
+                                            </div>
 
                                         </div>
                                         <% }); %>
@@ -165,12 +194,6 @@
                             <a href="/my-orders" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Orders
                             </a>
-                            <% if (order.status==='Delivered' && !order.returnRequest) { %>
-                                <button class="btn btn-outline-primary ms-2 btn-return"
-                                    data-order-id="<%= order.orderId %>">
-                                    <i class="fas fa-undo me-2"></i>Return Order
-                                </button>
-                                <% } %>
                         </div>
 
     </div>
@@ -273,6 +296,43 @@
                     Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
                 }
             });
+        }
+
+        async function returnItem(productId) {
+            const { value: reason } = await Swal.fire({
+                title: 'Return this item?',
+                input: 'text',
+                inputPlaceholder: 'Enter reason for return',
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                inputValidator: function (v) { if (!v) return 'Reason is required'; }
+            });
+
+            if (!reason) return;
+
+            try {
+                const res = await fetch(
+                    '/my-orders/<%= order.orderId %>/return-item/' + productId,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reason })
+                    }
+                );
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    await Swal.fire({
+                        icon: 'success', title: 'Return Requested!',
+                        text: data.message, timer: 2000, showConfirmButton: false
+                    });
+                    location.reload();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Something went wrong.', 'error');
+            }
         }
     </script>
 
