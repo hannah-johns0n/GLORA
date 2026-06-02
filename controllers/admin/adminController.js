@@ -37,24 +37,75 @@ exports.getHome = async (req,res) => {
 
 exports.getDashboard = async (req, res) => {
   try {
-    const filter = req.query.filter || 'yearly';
+    const filter = req.query.filter || 'monthly';
 
     const totalCustomers = await User.countDocuments({ role: 'user' });
-    const totalOrders = await Order.countDocuments();
+    const totalOrders = await Order.countDocuments({ status: { $ne: 'Cancelled' } });
     const totalProducts = await Product.countDocuments();
+
     const totalSales = await Order.aggregate([
+      { $match: { status: { $ne: 'Cancelled' } } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } }
     ]);
 
-    const recentOrders = await Order.find()
+    const recentOrders = await Order.find({ status: { $ne: 'Cancelled' } })
       .populate("userId", "name")
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
 
-    let chartData;
-    if (filter === 'yearly') {
-      chartData = await Order.aggregate([
+    let revenueTrendData;
+    let dateFormat;
+
+    if (filter === 'daily') {
+      revenueTrendData = await Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" },
+              day: { $dayOfMonth: "$createdAt" }
+            },
+            total: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+      ]);
+      dateFormat = 'daily';
+    } else if (filter === 'weekly') {
+      revenueTrendData = await Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              week: { $week: "$createdAt" }
+            },
+            total: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.week": 1 } }
+      ]);
+      dateFormat = 'weekly';
+    } else if (filter === 'monthly') {
+      revenueTrendData = await Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        {
+          $group: {
+            _id: {
+              year: { $year: "$createdAt" },
+              month: { $month: "$createdAt" }
+            },
+            total: { $sum: "$totalPrice" }
+          }
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } }
+      ]);
+      dateFormat = 'monthly';
+    } else {
+      revenueTrendData = await Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
         {
           $group: {
             _id: { $year: "$createdAt" },
@@ -63,79 +114,59 @@ exports.getDashboard = async (req, res) => {
         },
         { $sort: { "_id": 1 } }
       ]);
-    } else {
-      chartData = await Order.aggregate([
-        {
-          $group: {
-            _id: { $month: "$createdAt" },
-            total: { $sum: "$totalPrice" }
-          }
-        },
-        { $sort: { "_id": 1 } }
-      ]);
+      dateFormat = 'yearly';
     }
 
-    const labels = chartData.map(item => filter === 'yearly' ? item._id : `Month ${item._id}`);
-    const data = chartData.map(item => item.total);
-
-    const bestProducts = await Order.aggregate([
-      { $unwind: "$orderItems" },
-      {
-        $group: {
-          _id: "$orderItems.productId",
-          totalSold: { $sum: "$orderItems.quantity" }
-        }
-      },
-      { $sort: { totalSold: -1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: "products",
-          localField: "_id",
-          foreignField: "_id",
-          as: "product"
-        }
-      },
-      { $unwind: "$product" },
-      {
-        $project: {
-          productName: "$product.name",
-          totalSold: 1
-        }
+    const chartLabels = revenueTrendData.map(item => {
+      if (dateFormat === 'daily') {
+        return `${item._id.day}/${item._id.month}/${item._id.year}`;
+      } else if (dateFormat === 'weekly') {
+        return `Week ${item._id.week}/${item._id.year}`;
+      } else if (dateFormat === 'monthly') {
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${monthNames[item._id.month - 1]} ${item._id.year}`;
+      } else {
+        return `${item._id}`;
       }
-    ]);
+    });
 
-    const bestCategories = await Order.aggregate([
+    const chartData = revenueTrendData.map(item => item.total);
+
+    const bestSellingProducts = await Order.aggregate([
+      { $match: { status: { $ne: 'Cancelled' } } },
       { $unwind: "$orderItems" },
+      {
+        $group: {
+          _id: {
+            productId: "$orderItems.productId",
+            variantIndex: "$orderItems.variantIndex"
+          },
+          totalQuantity: { $sum: "$orderItems.quantity" },
+          totalRevenue: { $sum: { $multiply: ["$orderItems.price", "$orderItems.quantity"] } }
+        }
+      },
+      { $sort: { totalQuantity: -1 } },
+      { $limit: 5 },
       {
         $lookup: {
           from: "products",
-          localField: "orderItems.productId",
+          localField: "_id.productId",
           foreignField: "_id",
-          as: "product"
+          as: "productData"
         }
       },
-      { $unwind: "$product" },
-      {
-        $group: {
-          _id: "$product.categoryId",
-          totalSold: { $sum: "$orderItems.quantity" }
-        }
-      },
-      { $sort: { totalSold: -1 } },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "_id",
-          foreignField: "_id",
-          as: "category"
-        }
-      },
-      { $unwind: "$category" },
+      { $unwind: "$productData" },
       {
         $project: {
-          categoryName: "$category.name",
-          totalSold: 1
+          _id: 0,
+          productId: "$_id.productId",
+          productName: "$productData.productName",
+          variantIndex: "$_id.variantIndex",
+          variant: {
+            $arrayElemAt: ["$productData.variants", "$_id.variantIndex"]
+          },
+          totalQuantity: 1,
+          totalRevenue: { $round: ["$totalRevenue", 2] }
         }
       }
     ]);
@@ -152,9 +183,10 @@ exports.getDashboard = async (req, res) => {
         status: order.status,
         total: order.totalPrice
       })),
-      chartData: { labels, data },
-      bestProducts,
-      bestCategories
+      chartLabels,
+      chartData,
+      bestSellingProducts,
+      currentFilter: filter
     });
   } catch (error) {
     console.log(error);

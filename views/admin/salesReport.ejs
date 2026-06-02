@@ -407,7 +407,7 @@
               <td class="item-list">
                 <% if (o.orderItems && o.orderItems.length > 0) { %>
                   <% o.orderItems.forEach(i => { %>
-                    <p><%= i.productId.name %> × <%= i.quantity %></p>
+                    <p><%= i.productId ? i.productId.name : 'Unknown product' %> × <%= i.quantity %></p>
                   <% }) %>
                 <% } else { %>
                   <p style="color: #9ca3af;">No items</p>

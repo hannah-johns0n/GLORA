@@ -274,7 +274,7 @@ const getAbout = (req, res) => {
 };
 
 const getShopPage = async (req, res) => {
-  const sort = req.query.sort || ''; // needed in catch block too
+  const sort = req.query.sort || ''; 
   try {
     const search = req.query.search || '';
     const category = req.query.category || 'all';

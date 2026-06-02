@@ -6,180 +6,604 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/css/admin.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    main {
+      background-color: #f8f9fa;
+      padding-bottom: 40px;
+    }
+
+    h1 {
+      color: #2c1810;
+      font-weight: 600;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    /* ── STAT CARDS ────────────────────────────────────────────── */
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 24px;
+      border-left: 4px solid;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-card.customers {
+      border-left-color: #667eea;
+    }
+
+    .stat-card.orders {
+      border-left-color: #059669;
+    }
+
+    .stat-card.products {
+      border-left-color: #f59e0b;
+    }
+
+    .stat-card.sales {
+      border-left-color: #dc2626;
+    }
+
+    .stat-card-content h5 {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 8px 0;
+    }
+
+    .stat-card-content p {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0;
+    }
+
+    .stat-card-icon {
+      font-size: 32px;
+      opacity: 0.2;
+    }
+
+    /* ── ANALYTICS SECTION ────────────────────────────────────── */
+    .analytics-section {
+      margin-top: 40px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .card-header h5 {
+      color: #1f2937;
+      font-weight: 600;
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .card-body {
+      padding: 24px;
+      background: white;
+    }
+
+    /* ── REVENUE CHART SECTION ────────────────────────────────── */
+    .revenue-filter {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #6b7280;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: #2c1810;
+      color: white;
+      border-color: #2c1810;
+    }
+
+    .filter-btn:hover {
+      border-color: #2c1810;
+      color: #2c1810;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px;
+      margin-bottom: 20px;
+    }
+
+    /* ── TOP PRODUCTS TABLE ────────────────────────────────────── */
+    .products-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .products-table thead {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .products-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b7280;
+    }
+
+    .products-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+      color: #1f2937;
+    }
+
+    .products-table tbody tr {
+      transition: background-color 0.2s ease;
+    }
+
+    .products-table tbody tr:hover {
+      background-color: #fafbfc;
+    }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: #2c1810;
+      color: white;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .product-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .product-name {
+      font-weight: 500;
+      color: #1f2937;
+    }
+
+    .product-variant {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #2c1810;
+      font-size: 15px;
+    }
+
+    .revenue-badge {
+      display: inline-block;
+      background: #f0fdf4;
+      color: #059669;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ── RECENT ORDERS SECTION ────────────────────────────────── */
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .orders-table thead {
+      background: #f9fafb;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .orders-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b7280;
+    }
+
+    .orders-table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+      color: #1f2937;
+    }
+
+    .orders-table tbody tr:hover {
+      background-color: #fafbfc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .status-delivered {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-processing {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-shipped {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    /* ── RESPONSIVE DESIGN ────────────────────────────────────── */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .stat-card {
+        margin-bottom: 16px;
+      }
+
+      .revenue-filter {
+        flex-wrap: wrap;
+      }
+
+      .chart-container {
+        height: 300px;
+      }
+
+      .products-table,
+      .orders-table {
+        font-size: 12px;
+      }
+
+      .products-table th,
+      .products-table td,
+      .orders-table th,
+      .orders-table td {
+        padding: 12px 8px;
+      }
+    }
+  </style>
 </head>
 <body>
   <%- include('../partials/admin/header') %>
+
   <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-  <div class="container mt-5">
-    <h1 class="mb-4">Welcome to the Admin Dashboard</h1>
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-          <div class="card-body">
-            <h5 class="card-title">Total Customers</h5>
-            <p class="card-text display-6"><%= typeof totalCustomers !== 'undefined' ? totalCustomers : '...' %></p>
+    <div class="container-fluid">
+      <!-- Header -->
+      <h1>Admin Dashboard</h1>
+
+      <!-- Stat Cards Row -->
+      <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+          <div class="stat-card customers">
+            <div class="stat-card-content">
+              <h5>Total Customers</h5>
+              <p><%= typeof totalCustomers !== 'undefined' ? totalCustomers : '0' %></p>
+            </div>
+            <div class="stat-card-icon">👥</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="stat-card orders">
+            <div class="stat-card-content">
+              <h5>Total Orders</h5>
+              <p><%= typeof totalOrders !== 'undefined' ? totalOrders : '0' %></p>
+            </div>
+            <div class="stat-card-icon">📦</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="stat-card products">
+            <div class="stat-card-content">
+              <h5>Total Products</h5>
+              <p><%= typeof totalProducts !== 'undefined' ? totalProducts : '0' %></p>
+            </div>
+            <div class="stat-card-icon">🛍️</div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="stat-card sales">
+            <div class="stat-card-content">
+              <h5>Total Revenue</h5>
+              <p>₹<%= typeof totalSales !== 'undefined' ? totalSales.toFixed(0) : '0' %></p>
+            </div>
+            <div class="stat-card-icon">💰</div>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
-          <div class="card-body">
-            <h5 class="card-title">Total Orders</h5>
-            <p class="card-text display-6"><%= typeof totalOrders !== 'undefined' ? totalOrders : '...' %></p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
-          <div class="card-body">
-            <h5 class="card-title">Total Products</h5>
-            <p class="card-text display-6"><%= typeof totalProducts !== 'undefined' ? totalProducts : '...' %></p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-          <div class="card-body">
-            <h5 class="card-title">Total Sales</h5>
-            <p class="card-text display-6"><%= typeof totalSales !== 'undefined' ? totalSales : '...' %></p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="row mt-5">
-      <div class="col-12">
+
+      <!-- Analytics Section -->
+      <div class="analytics-section">
+        <h2 class="section-title">Sales Analytics</h2>
+
+        <!-- Revenue Trend Chart -->
         <div class="card">
-          <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0">Recent Orders</h5>
+          <div class="card-header">
+            <h5>Revenue Trend</h5>
+            <div class="revenue-filter">
+              <span class="filter-label">Period:</span>
+              <button class="filter-btn <%= currentFilter === 'daily' ? 'active' : '' %>" onclick="changeFilter('daily')">Daily</button>
+              <button class="filter-btn <%= currentFilter === 'weekly' ? 'active' : '' %>" onclick="changeFilter('weekly')">Weekly</button>
+              <button class="filter-btn <%= currentFilter === 'monthly' ? 'active' : '' %>" onclick="changeFilter('monthly')">Monthly</button>
+              <button class="filter-btn <%= currentFilter === 'yearly' ? 'active' : '' %>" onclick="changeFilter('yearly')">Yearly</button>
+            </div>
           </div>
           <div class="card-body">
-            <% if (recentOrders && recentOrders.length > 0) { %>
-              <table class="table table-striped">
+            <div class="chart-container">
+              <canvas id="revenueTrendChart"></canvas>
+            </div>
+            <div style="text-align: center; color: #9ca3af; font-size: 13px;">
+              Sales revenue over <%= currentFilter %> periods
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 5 Best-Selling Products -->
+        <div class="card">
+          <div class="card-header">
+            <h5>Top 5 Best-Selling Products</h5>
+            <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
+          </div>
+          <div class="card-body">
+            <% if (bestSellingProducts && bestSellingProducts.length > 0) { %>
+              <table class="products-table">
                 <thead>
                   <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Total</th>
+                    <th style="width: 8%;">Rank</th>
+                    <th style="width: 40%;">Product</th>
+                    <th style="width: 18%;">Units Sold</th>
+                    <th style="width: 34%;">Revenue</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <% recentOrders.forEach(function(order) { %>
+                  <% bestSellingProducts.forEach((product, index) => { %>
                     <tr>
-                      <td><%= order._id %></td>
-                      <td><%= order.customerName %></td>
-                      <td><%= order.date %></td>
-                      <td><%= order.status %></td>
-                      <td>₹<%= order.total %></td>
+                      <td>
+                        <span class="rank-badge"><%= index + 1 %></span>
+                      </td>
+                      <td>
+                        <div class="product-info">
+                          <span class="product-name"><%= product.productName %></span>
+                          <span class="product-variant"><%= product.variant?.unit || 'N/A' %></span>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="metric-value"><%= product.totalQuantity %></span>
+                      </td>
+                      <td>
+                        <span class="revenue-badge">₹<%= product.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></span>
+                      </td>
                     </tr>
                   <% }) %>
                 </tbody>
               </table>
             <% } else { %>
-              <p>No recent orders found.</p>
+              <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                <p>No sales data available yet</p>
+              </div>
             <% } %>
-            <div class="row mt-5">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header bg-secondary text-white d-flex justify-content-between">
-        <h5 class="mb-0">Sales Overview</h5>
-        <select id="salesFilter" class="form-select w-auto">
-          <option value="yearly">Yearly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <canvas id="salesChart" height="100"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="row mt-5">
-  <div class="col-md-6">
-  <div class="card">
-    <div class="card-header bg-info text-white">Top 10 Best-Selling Products</div>
-    <div class="card-body">
-      <canvas id="productChart"></canvas>
-    </div>
-  </div>
-</div>
-<div class="col-md-6">
-  <div class="card">
-    <div class="card-header bg-warning text-white">Best-Selling Categories</div>
-    <div class="card-body">
-      <canvas id="categoryChart"></canvas>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<script>
-  const ctx = document.getElementById('salesChart').getContext('2d');
-  let salesChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: <%- JSON.stringify(chartData.labels) %>,
-      datasets: [{
-        label: 'Sales',
-        data: <%- JSON.stringify(chartData.data) %>,
-        backgroundColor: 'rgba(54, 162, 235, 0.7)'
-      }]
-    }
-  });
-
-  document.getElementById('salesFilter').addEventListener('change', function() {
-    window.location.href = '/admin/dashboard?filter=' + this.value;
-  });
-</script>
-
+      <!-- Recent Orders Section -->
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Recent Orders</h5>
+            </div>
+            <div class="card-body">
+              <% if (recentOrders && recentOrders.length > 0) { %>
+                <table class="orders-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% recentOrders.forEach(function(order) { %>
+                      <tr>
+                        <td><span style="font-family: monospace; font-size: 12px;"><%- order._id.toString().slice(0, 8).toUpperCase() %></span></td>
+                        <td><%= order.customerName %></td>
+                        <td><%= order.date %></td>
+                        <td>
+                          <span class="status-badge status-<%= order.status.toLowerCase().replace(/[-]/g, '-') %>">
+                            <%= order.status %>
+                          </span>
+                        </td>
+                        <td><strong>₹<%= order.total.toFixed(2) %></strong></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              <% } else { %>
+                <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                  <p>No recent orders found</p>
+                </div>
+              <% } %>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
   </main>
+
+  <script>
+    // ── REVENUE TREND CHART ────────────────────────────────────
+    const chartCtx = document.getElementById('revenueTrendChart');
+    let revenueTrendChart = null;
+
+    function initRevenueTrendChart() {
+      const chartData = <%- JSON.stringify(chartData) %>;
+      const chartLabels = <%- JSON.stringify(chartLabels) %>;
+
+      if (revenueTrendChart) {
+        revenueTrendChart.destroy();
+      }
+
+      revenueTrendChart = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: 'Revenue (₹)',
+            data: chartData,
+            borderColor: '#2c1810',
+            backgroundColor: 'rgba(44, 24, 16, 0.05)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#2c1810',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                font: { size: 12, weight: '500' },
+                color: '#6b7280',
+                padding: 16,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1f2937',
+              titleFont: { size: 12, weight: '600' },
+              bodyFont: { size: 13 },
+              padding: 12,
+              borderRadius: 8,
+              displayColors: false,
+              callbacks: {
+                label: function(context) {
+                  return '₹' + context.parsed.y.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: '#e5e7eb',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 12 },
+                color: '#6b7280',
+                callback: function(value) {
+                  return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { size: 12 },
+                color: '#6b7280'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ── FILTER FUNCTIONALITY ───────────────────────────────────
+    function changeFilter(filterType) {
+      window.location.href = '/admin/dashboard?filter=' + filterType;
+    }
+
+    // Initialize chart on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initRevenueTrendChart();
+    });
+  </script>
 </body>
 </html>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  // Product Chart (Bar)
-  new Chart(document.getElementById('productChart'), {
-    type: 'bar',
-    data: {
-      labels: <%- JSON.stringify(bestProducts.map(p => p.productName)) %>,
-      datasets: [{
-        label: 'Units Sold',
-        data: <%- JSON.stringify(bestProducts.map(p => p.totalSold)) %>,
-        backgroundColor: 'rgba(75, 192, 192, 0.7)'
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
-
-  // Category Chart (Pie)
-  new Chart(document.getElementById('categoryChart'), {
-    type: 'pie',
-    data: {
-      labels: <%- JSON.stringify(bestCategories.map(c => c.categoryName)) %>,
-      datasets: [{
-        label: 'Units Sold',
-        data: <%- JSON.stringify(bestCategories.map(c => c.totalSold)) %>,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(255, 206, 86, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(153, 102, 255, 0.7)'
-        ]
-      }]
-    },
-    options: { responsive: true }
-  });
-</script>

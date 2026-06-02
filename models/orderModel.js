@@ -28,15 +28,19 @@ const orderSchema = new mongoose.Schema({
       required: true
     },
     price: {
-      type:    Number,   
+      type:    Number,
       default: 0
     },
     name: {
-      type:    String,   
+      type:    String,
+      default: ''
+    },
+    unit: {
+      type:    String,
       default: ''
     },
     image: {
-      type:    String,   
+      type:    String,
       default: ''
     },
     status: {

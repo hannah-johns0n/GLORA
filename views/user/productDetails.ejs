@@ -550,15 +550,15 @@
   <div class="products-grid" id="similarProductsGrid">
     <% if (similarProducts && similarProducts.length > 0) { %>
       <% similarProducts.forEach(function(p) { %>
-        <div class="product-card">
+        <div class="product-card" onclick="window.location.href='/product/<%= p._id %>'">
           <div class="card-image">
             <img src="<%= p.images && p.images[0] ? p.images[0] : '/images/placeholder-product.jpg' %>" alt="<%= p.productName %>">
-            <button class="card-wishlist-btn" data-product-id="<%= p._id %>" onclick="addToWishlist('<%= p._id %>')">
+            <button class="card-wishlist-btn" data-product-id="<%= p._id %>" onclick="event.stopPropagation(); addToWishlist('<%= p._id %>')">
               <i class="fa fa-heart-o"></i>
             </button>
           </div>
           <div class="card-content">
-            <h3 class="card-title"><a href="/product/<%= p._id %>" style="text-decoration: none; color: #2c2c2c;"><%= p.productName %></a></h3>
+            <h3 class="card-title"><%= p.productName %></h3>
             <div class="card-price">₹<%= p.variants && p.variants[0] ? (p.variants[0].salesPrice > 0 ? p.variants[0].salesPrice : p.variants[0].regularPrice) : 0 %></div>
           </div>
         </div>

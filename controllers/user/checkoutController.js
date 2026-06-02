@@ -126,7 +126,8 @@ const placeOrder = async (req, res) => {
         variantIndex: variantIndex,
         quantity: item.quantity,
         price: price,
-        name: item.productId.productName,  
+        name: item.productId.productName,
+        unit: variant ? variant.unit : '',
         image: item.productId.images[0] || '',
         status: 'Pending',
         cancelReason: null
@@ -267,6 +268,7 @@ if (paymentMethod === 'wallet') {
           quantity: item.quantity,
           price: price,
           name: item.productId.productName,
+          unit: variant ? variant.unit : '',
           image: item.productId.images[0] || '',
           status: 'Pending',
           cancelReason: null
@@ -283,7 +285,7 @@ if (paymentMethod === 'wallet') {
         shipping,
         totalPrice: finalTotal,
         paymentMethod: 'Online',
-        paymentStatus: 'Failed',  // will update to Paid after verification
+        paymentStatus: 'Failed',  
         status: 'Pending'
       });
       await order.save();
