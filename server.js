@@ -11,9 +11,7 @@ const adminRouter = require('./routes/admin/adminAuthRoutes');
 
 const app = express();
 
-// Make messages available to all views
 app.use((req, res, next) => {
-    // Initialize empty messages
     res.locals.success_msg = null;
     res.locals.error_msg = null;
     next();

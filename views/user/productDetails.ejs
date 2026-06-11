@@ -3,721 +3,926 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= product.productName %> – GLORA</title>
-  <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
-  <link rel="stylesheet" href="/styles/main_styles.css">
+  <title><%= product.productName %> — GLORA</title>
+  <%- include('../partials/user/header', { userName: userName, cartCount: cartCount }) %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap');
+    /* ── BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #ffffff;
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #2c2c2c;
-      line-height: 1.6;
+      background: #FAF7F4;
+      font-family: 'Poppins', sans-serif;
+      color: #1A1A1A;
     }
 
-    .product-section {
-      max-width: 1300px;
-      margin: 80px auto 0;
-      padding: 0 20px 60px;
+    /* ── BREADCRUMB ──────────────────────────────────── */
+    .glora-breadcrumb {
+      padding: 16px 40px;
+      font-size: 11px;
+      color: #999;
+      letter-spacing: 0.5px;
+      margin-top: 65px;
+      border-bottom: 1px solid #E0D8D0;
+    }
+
+    .glora-breadcrumb a {
+      color: #999;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .glora-breadcrumb a:hover { color: #8B1A1A; }
+    .glora-breadcrumb span { margin: 0 8px; }
+
+    /* ── PRODUCT SECTION ─────────────────────────────── */
+    .glora-product {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
       align-items: start;
     }
 
-    /* ── IMAGE GALLERY ─────────────────────────────────────────────── */
-    .gallery-column { display: flex; flex-direction: column; gap: 12px; }
-    .main-img-container {
+    /* ── GALLERY ─────────────────────────────────────── */
+    .glora-gallery { display: flex; flex-direction: column; gap: 14px; }
+
+    .glora-main-img {
       width: 100%;
       aspect-ratio: 1;
-      background: #f9f9f9;
-      border-radius: 12px;
+      background: #F0EBE3;
       overflow: hidden;
       position: relative;
+      cursor: crosshair;
     }
-    .main-img-container img {
+
+    .glora-main-img img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      transition: transform 0.4s cubic-bezier(0.33, 0.66, 0.66, 1);
+      display: block;
+      pointer-events: none;
     }
-    .main-img-container:hover img { transform: scale(1.05); }
 
-    .thumbnails {
+    /* zoom lens overlay */
+    .glora-zoom-lens {
+      position: absolute;
+      border: 2px solid #D4A96A;
+      background: rgba(212, 169, 106, 0.15);
+      cursor: crosshair;
+      display: none;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* zoom result — fixed panel, floats beside image */
+    .glora-zoom-result {
+      position: fixed;
+      width: 380px;
+      height: 380px;
+      background: #fff;
+      border: 1px solid #E0D8D0;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: none;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .glora-zoom-result img {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .glora-thumbs {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
     }
-    .thumbnail {
-      width: 100%;
+
+    .glora-thumb {
       aspect-ratio: 1;
-      border-radius: 8px;
-      background: #f5f5f5;
+      background: #F0EBE3;
       border: 2px solid transparent;
       cursor: pointer;
       overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    .thumbnail img { width: 100%; height: 100%; object-fit: cover; }
-    .thumbnail:hover, .thumbnail.active {
-      border-color: #8b6a47;
-      box-shadow: 0 4px 12px rgba(139, 106, 71, 0.12);
+      transition: border-color 0.2s ease;
     }
 
-    /* ── INGREDIENTS SECTION ──────────────────────────────────────── */
-    .ingredients-section {
-      margin-top: 24px;
-      padding: 16px;
-      background: #fafafa;
-      border-radius: 10px;
-      border-left: 3px solid #8b6a47;
+    .glora-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
     }
-    .ingredients-section h4 {
-      font-size: 0.75rem;
-      font-weight: 700;
+
+    .glora-thumb:hover img { transform: scale(1.06); }
+    .glora-thumb.active { border-color: #8B1A1A; }
+
+    /* ── INFO COLUMN ─────────────────────────────────── */
+    .glora-info { display: flex; flex-direction: column; }
+
+    .glora-info__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #666;
+      color: #D4A96A;
       margin-bottom: 12px;
-      font-family: 'Poppins', sans-serif;
-    }
-    .ingredients-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .ingredient-tag {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 0.85rem;
-      color: #555;
-      font-weight: 400;
     }
 
-    /* ── PRODUCT INFO ──────────────────────────────────────────────── */
-    .info-column { display: flex; flex-direction: column; }
-
-    .product-header { margin-bottom: 24px; }
-    .product-header h1 {
-      font-size: 2.2rem;
+    .glora-info__name {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(28px, 3.5vw, 44px);
       font-weight: 600;
-      letter-spacing: -0.7px;
-      margin-bottom: 12px;
-      font-family: 'Lora', serif;
-      color: #1a1a1a;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      margin-bottom: 20px;
+      color: #1A1A1A;
     }
 
-    .rating-bar {
+    .glora-info__rating {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      color: #666;
-      font-weight: 500;
-    }
-    .stars {
-      color: #ffc107;
-      letter-spacing: 2px;
-    }
-
-    .price-section {
-      margin: 24px 0;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .price-display {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
-    .current-price {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #2c2c2c;
-      font-family: 'Poppins', sans-serif;
-      letter-spacing: -0.5px;
-    }
-    .original-price {
-      font-size: 1.1rem;
+      gap: 8px;
+      margin-bottom: 24px;
+      font-size: 12px;
       color: #999;
-      text-decoration: line-through;
-      font-weight: 500;
     }
 
-    .description {
-      font-size: 0.95rem;
-      color: #555;
-      line-height: 1.8;
+    .glora-info__rating .stars { color: #D4A96A; letter-spacing: 2px; }
+
+    /* price */
+    .glora-price-block {
+      padding: 24px 0;
+      border-top: 1px solid #E0D8D0;
+      border-bottom: 1px solid #E0D8D0;
       margin-bottom: 28px;
+    }
+
+    .glora-price {
+      font-size: 32px;
+      font-weight: 600;
+      color: #1A1A1A;
+      letter-spacing: -0.5px;
+    }
+
+    .glora-price__original {
+      font-size: 16px;
       font-weight: 400;
-      letter-spacing: 0.3px;
+      color: #bbb;
+      text-decoration: line-through;
+      margin-left: 12px;
     }
 
-    /* ── VARIANT SELECTORS ────────────────────────────────────────── */
-    .variant-selector {
-      margin-bottom: 28px;
-    }
-    .variant-label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
+    .glora-price__save {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 500;
       letter-spacing: 1px;
-      color: #666;
-      margin-bottom: 14px;
-      font-family: 'Poppins', sans-serif;
+      text-transform: uppercase;
+      color: #8B1A1A;
     }
 
-    .variant-options {
+    /* description */
+    .glora-description {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.9;
+      margin-bottom: 32px;
+      font-weight: 300;
+    }
+
+    /* variants */
+    .glora-variant-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    .glora-variants {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 32px;
     }
 
-    .variant-box {
-      padding: 10px 18px;
-      border: 2px solid #e0e0e0;
+    .glora-variant-btn {
+      padding: 10px 20px;
+      border: 1.5px solid #E0D8D0;
       background: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
       font-weight: 500;
-      color: #555;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 100px;
-      text-align: center;
-    }
-
-    .variant-box:hover {
-      border-color: #8b6a47;
-      background: #fafafa;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(139, 106, 71, 0.1);
-    }
-
-    .variant-box.active {
-      border-color: #8b6a47;
-      background: #8b6a47;
-      color: #fff;
-      box-shadow: 0 6px 16px rgba(139, 106, 71, 0.3);
-    }
-
-    /* ── QUANTITY & BUTTONS ────────────────────────────────────────── */
-    .controls {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .quantity-selector {
-      display: flex;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      width: fit-content;
-    }
-    .qty-btn {
-      width: 40px;
-      height: 40px;
-      border: none;
-      background: #fff;
+      color: #1A1A1A;
       cursor: pointer;
-      font-size: 1rem;
       transition: all 0.2s ease;
-      color: #666;
-      font-weight: 600;
-    }
-    .qty-btn:hover { background: #f5f5f5; }
-    .qty-input {
-      width: 50px;
-      border: none;
       text-align: center;
-      font-weight: 600;
-      background: #fff;
-      font-size: 0.95rem;
+      min-width: 90px;
     }
 
-    .btn-primary-action {
-      background: #2c2c2c;
+    .glora-variant-btn:hover {
+      border-color: #1A1A1A;
+    }
+
+    .glora-variant-btn.active {
+      background: #1A1A1A;
+      border-color: #1A1A1A;
       color: #fff;
-      padding: 14px 40px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      min-height: 48px;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-    }
-    .btn-primary-action:hover {
-      background: #1a1a1a;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(44, 44, 44, 0.2);
-    }
-    .btn-primary-action:active {
-      transform: translateY(0);
     }
 
-    .action-buttons {
+    /* quantity + actions */
+    .glora-controls {
       display: flex;
       gap: 12px;
-      flex-wrap: wrap;
+      align-items: stretch;
+      margin-bottom: 14px;
     }
-    .btn-secondary {
-      flex: 1;
-      min-width: 120px;
-      border: 2px solid #2c2c2c;
+
+    .glora-qty {
+      display: flex;
+      border: 1.5px solid #E0D8D0;
       background: #fff;
-      color: #2c2c2c;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      font-weight: 600;
+    }
+
+    .glora-qty__btn {
+      width: 40px;
+      height: 48px;
+      border: none;
+      background: transparent;
+      font-size: 18px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      color: #555;
+      transition: background 0.2s;
+    }
+
+    .glora-qty__btn:hover { background: #F0EBE3; }
+
+    .glora-qty__input {
+      width: 48px;
+      border: none;
+      border-left: 1px solid #E0D8D0;
+      border-right: 1px solid #E0D8D0;
+      text-align: center;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      outline: none;
+    }
+
+    .glora-btn {
+      flex: 1;
+      padding: 0 28px;
+      height: 48px;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      letter-spacing: 0.2px;
-    }
-    .btn-secondary:hover {
-      background: #f5f5f5;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(44, 44, 44, 0.1);
     }
 
-    .btn-wishlist {
-      width: 48px;
-      height: 48px;
-      border-radius: 6px;
-      border: 2px solid #e0e0e0;
-      background: #fff;
-      cursor: pointer;
-      font-size: 1.2rem;
+    .glora-btn--primary {
+      background: #1A1A1A;
+      color: #fff;
+    }
+
+    .glora-btn--primary:hover { background: #8B1A1A; }
+
+    .glora-btn--outline {
+      background: transparent;
+      border: 1.5px solid #1A1A1A;
+      color: #1A1A1A;
+    }
+
+    .glora-btn--outline:hover {
+      background: #1A1A1A;
+      color: #fff;
+    }
+
+    /* wishlist row */
+    .glora-secondary-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .glora-wishlist-btn {
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
+      gap: 8px;
+      padding: 12px 20px;
+      border: 1.5px solid #E0D8D0;
+      background: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .glora-wishlist-btn i { color: #bbb; transition: color 0.2s; }
+    .glora-wishlist-btn:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .glora-wishlist-btn:hover i { color: #8B1A1A; }
+    .glora-wishlist-btn.active { border-color: #8B1A1A; color: #8B1A1A; }
+    .glora-wishlist-btn.active i { color: #8B1A1A; }
+
+    /* trust badges */
+    .glora-badges {
+      display: flex;
+      gap: 20px;
+      padding-top: 24px;
+      border-top: 1px solid #E0D8D0;
+      flex-wrap: wrap;
+    }
+
+    .glora-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .glora-badge i { color: #D4A96A; font-size: 14px; }
+
+    /* ingredients */
+    .glora-ingredients {
+      margin-top: 16px;
+      padding: 20px;
+      background: #F0EBE3;
+      border-left: 3px solid #D4A96A;
+    }
+
+    .glora-ingredients__title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    .glora-ingredients__tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .glora-ingredient-tag {
+      background: #fff;
+      border: 1px solid #E0D8D0;
+      padding: 5px 12px;
+      font-size: 11px;
       color: #666;
     }
-    .btn-wishlist:hover {
-      border-color: #8b6a47;
-      color: #8b6a47;
-      transform: scale(1.05);
+
+    /* ── SIMILAR PRODUCTS ────────────────────────────── */
+    .glora-similar {
+      background: #F0EBE3;
+      padding: 80px 0;
     }
 
-    /* ── SIMILAR PRODUCTS ──────────────────────────────────────────── */
-    .similar-section {
-      max-width: 1300px;
-      margin: 80px auto 0;
-      padding: 0 20px 60px;
+    .glora-similar__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
     }
 
-    .section-title {
-      font-size: 1.8rem;
+    .glora-similar__head {
+      margin-bottom: 40px;
+    }
+
+    .glora-similar__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #D4A96A;
+      margin-bottom: 8px;
+    }
+
+    .glora-similar__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(28px, 3vw, 40px);
       font-weight: 600;
-      margin-bottom: 32px;
-      letter-spacing: -0.5px;
-      font-family: 'Lora', serif;
-      color: #1a1a1a;
+      color: #1A1A1A;
     }
 
-    .products-grid {
+    .glora-similar__grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
     }
 
-    .product-card {
+    .glora-sim-card {
       background: #fff;
-      border-radius: 8px;
       overflow: hidden;
-      transition: all 0.3s ease;
-      border: 1px solid transparent;
-    }
-    .product-card:hover {
-      border-color: #e0e0e0;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
     }
 
-    .card-image {
+    .glora-sim-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .glora-sim-card__img {
       width: 100%;
       aspect-ratio: 1;
-      background: #f5f5f5;
+      background: #F0EBE3;
       overflow: hidden;
       position: relative;
     }
-    .card-image img {
+
+    .glora-sim-card__img img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: transform 0.4s ease;
     }
-    .product-card:hover .card-image img {
-      transform: scale(1.05);
-    }
 
-    .card-wishlist-btn {
+    .glora-sim-card:hover .glora-sim-card__img img { transform: scale(1.06); }
+
+    .glora-sim-wishlist {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 36px;
-      height: 36px;
-      background: #fff;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
       border: none;
-      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      font-size: 13px;
+      color: #aaa;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      color: #666;
-    }
-    .card-wishlist-btn:hover {
-      transform: scale(1.1);
-      color: #8b6a47;
     }
 
-    .card-content {
-      padding: 16px;
-    }
+    .glora-sim-wishlist:hover,
+    .glora-sim-wishlist.active { color: #8B1A1A; background: #fff; }
 
-    .card-title {
-      font-size: 0.95rem;
+    .glora-sim-card__body { padding: 14px 16px 18px; }
+
+    .glora-sim-card__name {
+      font-size: 13px;
       font-weight: 500;
-      margin-bottom: 8px;
-      color: #2c2c2c;
-      line-height: 1.4;
-      min-height: 2.8em;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .card-price {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #2c2c2c;
+    .glora-sim-card__price {
+      font-size: 14px;
+      font-weight: 600;
+      color: #8B1A1A;
     }
 
-    /* ── RESPONSIVE ────────────────────────────────────────────────── */
-    @media (max-width: 768px) {
-      .product-section {
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 900px) {
+      .glora-product {
         grid-template-columns: 1fr;
-        gap: 40px;
-        margin: 60px auto 0;
+        gap: 36px;
+        padding: 32px 20px 60px;
       }
-      .product-header h1 {
-        font-size: 1.8rem;
-      }
-      .current-price {
-        font-size: 1.6rem;
-      }
-      .controls {
-        grid-template-columns: 1fr;
-      }
-      .action-buttons {
-        flex-direction: column;
-      }
-      .btn-secondary {
-        min-width: unset;
-      }
-      .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 16px;
-      }
-      .variant-box {
-        padding: 10px 14px;
-        font-size: 0.85rem;
-      }
+      .glora-breadcrumb { padding: 14px 20px; }
+      .glora-similar__grid { grid-template-columns: repeat(2, 1fr); }
+      .glora-similar__inner { padding: 0 20px; }
+    }
+
+    @media (max-width: 540px) {
+      .glora-controls { flex-wrap: wrap; }
+      .glora-btn { flex: 1 1 calc(50% - 6px); }
+      .glora-similar__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     }
   </style>
 </head>
-
 <body>
 
-<%- include('../partials/user/header', { userName: userName, cartCount: cartCount }) %>
+<!-- ── BREADCRUMB ─────────────────────────────────────── -->
+<div class="glora-breadcrumb">
+  <a href="/">Home</a>
+  <span>/</span>
+  <a href="/shop">Shop</a>
+  <span>/</span>
+  <%= product.productName %>
+</div>
 
-<!-- PRODUCT DETAIL -->
-<div class="product-section">
-  <!-- IMAGE GALLERY -->
-  <div class="gallery-column">
-    <div class="main-img-container">
-      <img id="mainImage" src="<%= product.images && product.images.length ? product.images[0] : '/images/placeholder-product.jpg' %>" alt="<%= product.productName %>">
+<!-- ── PRODUCT ────────────────────────────────────────── -->
+<div class="glora-product">
+
+  <!-- GALLERY -->
+  <div class="glora-gallery">
+    <div class="glora-main-img" id="zoomContainer">
+      <img id="mainImage"
+        src="<%= product.images && product.images.length ? product.images[0] : '/images/placeholder-product.jpg' %>"
+        alt="<%= product.productName %>">
+      <div class="glora-zoom-lens" id="zoomLens"></div>
+      <div class="glora-zoom-result" id="zoomResult">
+        <img id="zoomResultImg"
+          src="<%= product.images && product.images.length ? product.images[0] : '/images/placeholder-product.jpg' %>"
+          alt="Zoom">
+      </div>
     </div>
 
-    <div class="thumbnails">
+    <div class="glora-thumbs">
       <% product.images.slice(0, 4).forEach(function(img, idx) { %>
-        <div class="thumbnail <%= idx === 0 ? 'active' : '' %>" data-src="<%= img %>">
-          <img src="<%= img %>" alt="Product image <%= idx + 1 %>">
-        </div>
+      <div class="glora-thumb <%= idx === 0 ? 'active' : '' %>" data-src="<%= img %>">
+        <img src="<%= img %>" alt="View <%= idx + 1 %>">
+      </div>
       <% }); %>
     </div>
 
-    <!-- INGREDIENTS -->
     <% if (product.ingredients && product.ingredients.length > 0) { %>
-      <div class="ingredients-section">
-        <h4>Ingredients</h4>
-        <div class="ingredients-list">
-          <% product.ingredients.forEach(function(ingredient) { %>
-            <span class="ingredient-tag"><%= ingredient %></span>
-          <% }); %>
-        </div>
+    <div class="glora-ingredients">
+      <p class="glora-ingredients__title">Key Ingredients</p>
+      <div class="glora-ingredients__tags">
+        <% product.ingredients.forEach(function(ingredient) { %>
+        <span class="glora-ingredient-tag"><%= ingredient %></span>
+        <% }); %>
       </div>
+    </div>
     <% } %>
   </div>
 
-  <!-- PRODUCT INFO -->
-  <div class="info-column">
-    <div class="product-header">
-      <h1><%= product.productName %></h1>
-      <div class="rating-bar">
-        <div class="stars">
-          <% var rating = (product.rating || 4); %>
-          <% for (var i = 1; i <= 5; i++) { %>
-            <% if (i <= rating) { %>
-              <i class="fa fa-star"></i>
-            <% } else { %>
-              <i class="fa fa-star-o"></i>
-            <% } %>
-          <% } %>
-        </div>
-        <span>(<%= rating %>/5)</span>
-      </div>
+  <!-- INFO -->
+  <div class="glora-info">
+    <p class="glora-info__eyebrow">GLORA Beauty</p>
+    <h1 class="glora-info__name"><%= product.productName %></h1>
+
+    <div class="glora-info__rating">
+      <span class="stars">
+        <% var rating = product.rating || 4; %>
+        <% for (var i = 1; i <= 5; i++) { %>
+          <i class="<%= i <= rating ? 'fas' : 'far' %> fa-star"></i>
+        <% } %>
+      </span>
+      <span><%= rating %>/5</span>
     </div>
 
-    <div class="price-section">
-      <div class="price-display">
-        <div class="current-price" id="priceDisplay">₹0</div>
-        <div class="original-price" id="originalPriceDisplay"></div>
+    <div class="glora-price-block">
+      <div>
+        <span class="glora-price" id="priceDisplay">₹0</span>
+        <span class="glora-price__original" id="originalPriceDisplay"></span>
       </div>
+      <span class="glora-price__save" id="saveDisplay"></span>
     </div>
 
-    <p class="description"><%= product.description %></p>
+    <p class="glora-description"><%= product.description %></p>
 
-    <!-- VARIANT SELECT -->
     <% if (product.variants && product.variants.length > 0) { %>
-      <div class="variant-selector">
-        <label class="variant-label">Select Variant</label>
-        <div class="variant-options">
-          <% product.variants.forEach(function(v, index) { %>
-            <button class="variant-box <%= index === 0 ? 'active' : '' %>" data-variant-index="<%= index %>" onclick="selectVariant('<%= index %>')">
-              <%= v.unit %><br><span style="font-size: 0.75rem; opacity: 0.8;">₹<%= v.salesPrice > 0 ? v.salesPrice : v.regularPrice %></span>
-            </button>
-          <% }); %>
-        </div>
-      </div>
-      <input type="hidden" id="variantSelect" value="0">
+    <p class="glora-variant-label">Select Size / Variant</p>
+    <div class="glora-variants">
+      <% product.variants.forEach(function(v, index) { %>
+      <button class="glora-variant-btn <%= index === 0 ? 'active' : '' %>"
+        data-variant-index="<%= index %>"
+        onclick="selectVariant(<%= index %>)">
+        <%= v.unit %>
+        <br>
+        <span style="font-size:11px;opacity:0.75;">₹<%= v.salesPrice > 0 ? v.salesPrice : v.regularPrice %></span>
+      </button>
+      <% }); %>
+    </div>
+    <input type="hidden" id="variantSelect" value="0">
     <% } %>
 
-    <!-- QUANTITY & ACTIONS -->
-    <div class="controls">
-      <div class="quantity-selector">
-        <button class="qty-btn" id="decreaseQty">−</button>
-        <input type="number" id="quantityInput" class="qty-input" value="1" min="1" readonly>
-        <button class="qty-btn" id="increaseQty">+</button>
+    <!-- quantity + add to cart + buy now -->
+    <div class="glora-controls">
+      <div class="glora-qty">
+        <button class="glora-qty__btn" id="decreaseQty">−</button>
+        <input type="number" id="quantityInput" class="glora-qty__input" value="1" min="1" readonly>
+        <button class="glora-qty__btn" id="increaseQty">+</button>
       </div>
+      <button class="glora-btn glora-btn--primary" id="addToCartBtn" data-id="<%= product._id %>">
+        <i class="fas fa-shopping-bag"></i> Add to Cart
+      </button>
     </div>
 
-    <div class="action-buttons">
-      <button id="buyNowBtn" class="btn-primary-action" data-id="<%= product._id %>">
+    <div class="glora-secondary-actions">
+      <button class="glora-btn glora-btn--outline" id="buyNowBtn" data-id="<%= product._id %>" style="flex:1;">
         Buy Now
       </button>
-      <button id="addToCartBtn" class="btn-secondary" data-id="<%= product._id %>">
-        <i class="fa fa-shopping-bag"></i> Add to Cart
+      <button class="glora-wishlist-btn <%= product.inWishlist ? 'active' : '' %>"
+        id="wishlistBtn" data-product-id="<%= product._id %>">
+        <i class="<%= product.inWishlist ? 'fas' : 'far' %> fa-heart"></i>
+        <span><%= product.inWishlist ? 'Wishlisted' : 'Wishlist' %></span>
       </button>
-      <button id="addToWishlistBtn" class="btn-wishlist" title="Add to Wishlist">
-        <i class="fa fa-heart-o"></i>
-      </button>
+    </div>
+
+    <!-- trust badges -->
+    <div class="glora-badges">
+      <div class="glora-badge">
+        <i class="fas fa-truck"></i>
+        <span>Free delivery above ₹999</span>
+      </div>
+      <div class="glora-badge">
+        <i class="fas fa-undo"></i>
+        <span>Easy returns</span>
+      </div>
+      <div class="glora-badge">
+        <i class="fas fa-shield-alt"></i>
+        <span>100% authentic</span>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- SIMILAR PRODUCTS -->
-<div class="similar-section">
-  <h2 class="section-title">Similar Products</h2>
-  <div class="products-grid" id="similarProductsGrid">
-    <% if (similarProducts && similarProducts.length > 0) { %>
-      <% similarProducts.forEach(function(p) { %>
-        <div class="product-card" onclick="window.location.href='/product/<%= p._id %>'">
-          <div class="card-image">
+<!-- ── SIMILAR PRODUCTS ───────────────────────────────── -->
+<section class="glora-similar">
+  <div class="glora-similar__inner">
+    <div class="glora-similar__head">
+      <p class="glora-similar__eyebrow">You may also like</p>
+      <h2 class="glora-similar__title">Similar Products</h2>
+    </div>
+
+    <div class="glora-similar__grid">
+      <% if (similarProducts && similarProducts.length > 0) { %>
+        <% similarProducts.forEach(function(p) { %>
+        <a href="/product/<%= p._id %>" class="glora-sim-card">
+          <div class="glora-sim-card__img">
             <img src="<%= p.images && p.images[0] ? p.images[0] : '/images/placeholder-product.jpg' %>" alt="<%= p.productName %>">
-            <button class="card-wishlist-btn" data-product-id="<%= p._id %>" onclick="event.stopPropagation(); addToWishlist('<%= p._id %>')">
-              <i class="fa fa-heart-o"></i>
+            <button class="glora-sim-wishlist <%= p.inWishlist ? 'active' : '' %>"
+              data-product-id="<%= p._id %>"
+              onclick="event.preventDefault(); toggleWishlist(this, '<%= p._id %>')">
+              <i class="<%= p.inWishlist ? 'fas' : 'far' %> fa-heart"></i>
             </button>
           </div>
-          <div class="card-content">
-            <h3 class="card-title"><%= p.productName %></h3>
-            <div class="card-price">₹<%= p.variants && p.variants[0] ? (p.variants[0].salesPrice > 0 ? p.variants[0].salesPrice : p.variants[0].regularPrice) : 0 %></div>
+          <div class="glora-sim-card__body">
+            <p class="glora-sim-card__name"><%= p.productName %></p>
+            <p class="glora-sim-card__price">
+              ₹<%= p.variants && p.variants[0] ? (p.variants[0].salesPrice > 0 ? p.variants[0].salesPrice : p.variants[0].regularPrice) : '—' %>
+            </p>
           </div>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <p style="color: #999; padding: 20px;">No similar products found</p>
-    <% } %>
+        </a>
+        <% }); %>
+      <% } else { %>
+        <p style="color:#999;font-size:13px;grid-column:1/-1;">No similar products found.</p>
+      <% } %>
+    </div>
   </div>
-</div>
+</section>
 
 <%- include('../partials/user/footer') %>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-const variants = <%- JSON.stringify(product.variants || []) %>;
-const variantSelect = document.getElementById('variantSelect');
-const quantityInput = document.getElementById('quantityInput');
+  const variants = <%- JSON.stringify(product.variants || []) %>;
+  const variantSelect = document.getElementById('variantSelect');
+  const quantityInput = document.getElementById('quantityInput');
 
-function updatePrice(index) {
-  const v = variants[index];
-  if (!v) return;
-  const current = v.salesPrice > 0 ? v.salesPrice : v.regularPrice;
-  document.getElementById('priceDisplay').textContent = '₹' + current;
+  // ── PRICE UPDATE ─────────────────────────────────────
+  function updatePrice(index) {
+    const v = variants[index];
+    if (!v) return;
+    const sale = v.salesPrice > 0 ? v.salesPrice : v.regularPrice;
+    document.getElementById('priceDisplay').textContent = '₹' + sale;
 
-  if (v.salesPrice > 0) {
-    document.getElementById('originalPriceDisplay').textContent = '₹' + v.regularPrice;
-  } else {
-    document.getElementById('originalPriceDisplay').textContent = '';
+    const origEl = document.getElementById('originalPriceDisplay');
+    const saveEl = document.getElementById('saveDisplay');
+
+    if (v.salesPrice > 0 && v.regularPrice > v.salesPrice) {
+      origEl.textContent = '₹' + v.regularPrice;
+      const saving = v.regularPrice - v.salesPrice;
+      const pct = Math.round((saving / v.regularPrice) * 100);
+      saveEl.textContent = pct + '% off';
+    } else {
+      origEl.textContent = '';
+      saveEl.textContent = '';
+    }
   }
-}
 
-function selectVariant(index) {
-  variantSelect.value = index;
-  document.querySelectorAll('.variant-box').forEach(box => box.classList.remove('active'));
-  document.querySelector(`[data-variant-index="${index}"]`).classList.add('active');
-  updatePrice(index);
-}
+  function selectVariant(index) {
+    variantSelect.value = index;
+    document.querySelectorAll('.glora-variant-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-variant-index="${index}"]`).classList.add('active');
+    updatePrice(index);
+  }
 
-if (variants.length > 0) updatePrice(0);
+  if (variants.length > 0) updatePrice(0);
 
-// ── THUMBNAILS ─────────────────────────────────────────────────────
-document.querySelectorAll('.thumbnail').forEach(function(thumb) {
-  thumb.addEventListener('click', function() {
-    document.getElementById('mainImage').src = this.dataset.src;
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    this.classList.add('active');
+  // ── THUMBNAILS — handled inside initZoom() above ────
+
+  // ── QUANTITY ─────────────────────────────────────────
+  document.getElementById('decreaseQty').addEventListener('click', function () {
+    const val = parseInt(quantityInput.value) || 1;
+    if (val > 1) quantityInput.value = val - 1;
   });
-});
 
-// ── QUANTITY CONTROLS ─────────────────────────────────────────────
-document.getElementById('decreaseQty').addEventListener('click', function() {
-  const val = parseInt(quantityInput.value) || 1;
-  if (val > 1) quantityInput.value = val - 1;
-});
+  document.getElementById('increaseQty').addEventListener('click', function () {
+    quantityInput.value = (parseInt(quantityInput.value) || 1) + 1;
+  });
 
-document.getElementById('increaseQty').addEventListener('click', function() {
-  const val = parseInt(quantityInput.value) || 1;
-  quantityInput.value = val + 1;
-});
+  // ── ADD TO CART ──────────────────────────────────────
+  document.getElementById('addToCartBtn').addEventListener('click', async function () {
+    const productId = this.getAttribute('data-id');
+    const variantIdx = Number(variantSelect.value);
+    const qty = parseInt(quantityInput.value) || 1;
 
-// ── ADD TO CART ────────────────────────────────────────────────────
-document.getElementById('addToCartBtn').addEventListener('click', async function() {
-  const productId = this.getAttribute('data-id');
-  const variantIdx = variantSelect ? Number(variantSelect.value) : 0;
-  const qty = parseInt(quantityInput.value) || 1;
-  const btnText = this.textContent;
+    this.disabled = true;
+    this.innerHTML = '<span style="opacity:.7">Adding...</span>';
 
-  this.disabled = true;
-  this.textContent = 'Adding...';
+    try {
+      const res = await fetch('/cart/add/' + productId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
+      });
+      const result = await res.json();
 
-  try {
-    const response = await fetch('/cart/add/' + productId, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      Swal.fire({ icon: 'success', title: 'Added!', text: 'Product added to cart' });
-      const cartCountEl = document.querySelector('.cart-count');
-      if (cartCountEl) cartCountEl.textContent = result.cartCount || 0;
-    } else {
-      throw new Error(result.message || 'Failed to add to cart');
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-  } finally {
-    this.disabled = false;
-    this.textContent = btnText;
-  }
-});
-
-// ── BUY NOW ────────────────────────────────────────────────────────
-document.getElementById('buyNowBtn').addEventListener('click', async function() {
-  const productId = this.getAttribute('data-id');
-  const variantIdx = variantSelect ? Number(variantSelect.value) : 0;
-  const qty = parseInt(quantityInput.value) || 1;
-
-  try {
-    const response = await fetch('/cart/add/' + productId, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
-    });
-
-    if (response.ok) {
-      window.location.href = '/checkout';
-    } else {
-      const result = await response.json();
-      throw new Error(result.message || 'Failed to add to cart');
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-  }
-});
-
-// ── WISHLIST ───────────────────────────────────────────────────────
-document.getElementById('addToWishlistBtn').addEventListener('click', async function() {
-  const productId = '<%= product._id %>';
-  const icon = this.querySelector('i');
-  const wasActive = icon.classList.contains('fa-heart');
-
-  try {
-    const res = await fetch('/wishlist/add/' + productId, { method: 'POST' });
-    const data = await res.json();
-
-    if (res.ok) {
-      icon.classList.toggle('fa-heart-o', wasActive);
-      icon.classList.toggle('fa-heart', !wasActive);
-      Swal.fire({ icon: 'success', title: 'Done!', text: data.message });
-    } else {
-      throw new Error(data.message);
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-  }
-});
-
-function addToWishlist(productId) {
-  event.stopPropagation();
-  const btn = event.currentTarget;
-  const icon = btn.querySelector('i');
-
-  fetch('/wishlist/add/' + productId, { method: 'POST' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success || data.message) {
-        icon.classList.toggle('fa-heart-o');
-        icon.classList.toggle('fa-heart');
+      if (res.ok) {
+        Swal.fire({ icon: 'success', title: 'Added to cart', showConfirmButton: false, timer: 1400 });
+        const cartCountEl = document.querySelector('.cart-count');
+        if (cartCountEl && result.cartCount != null) cartCountEl.textContent = result.cartCount;
+      } else {
+        throw new Error(result.message || 'Failed to add to cart');
       }
-    })
-    .catch(err => console.error(err));
-}
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Oops', text: err.message });
+    } finally {
+      this.disabled = false;
+      this.innerHTML = '<i class="fas fa-shopping-bag"></i> Add to Cart';
+    }
+  });
+
+  // ── BUY NOW ──────────────────────────────────────────
+  document.getElementById('buyNowBtn').addEventListener('click', async function () {
+    const productId = this.getAttribute('data-id');
+    const variantIdx = Number(variantSelect.value);
+    const qty = parseInt(quantityInput.value) || 1;
+
+    try {
+      const res = await fetch('/cart/add/' + productId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
+      });
+      if (res.ok) {
+        window.location.href = '/checkout';
+      } else {
+        const result = await res.json();
+        throw new Error(result.message || 'Failed');
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Oops', text: err.message });
+    }
+  });
+
+  // ── WISHLIST (main product) ───────────────────────────
+  document.getElementById('wishlistBtn').addEventListener('click', async function () {
+    await toggleWishlist(this, this.dataset.productId, true);
+  });
+
+  async function toggleWishlist(btn, productId, updateLabel = false) {
+    try {
+      const res = await fetch(`/wishlist/toggle/${productId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        const added = data.action === 'added';
+        btn.classList.toggle('active', added);
+        btn.querySelector('i').className = (added ? 'fas' : 'far') + ' fa-heart';
+        if (updateLabel) {
+          const span = btn.querySelector('span');
+          if (span) span.textContent = added ? 'Wishlisted' : 'Wishlist';
+        }
+        btn.title = added ? 'Remove from Wishlist' : 'Add to Wishlist';
+      } else if (data.redirect) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Login Required',
+          text: 'Please log in to save items to your wishlist.',
+          confirmButtonText: 'Login',
+          confirmButtonColor: '#8B1A1A',
+          showCancelButton: true,
+          cancelButtonText: 'Continue'
+        }).then(r => { if (r.isConfirmed) window.location.href = data.redirect; });
+      }
+    } catch (err) {
+      console.error('Wishlist error:', err);
+    }
+  }
+
+  // ── IMAGE ZOOM ───────────────────────────────────────
+  (function initZoom() {
+    const container  = document.getElementById('zoomContainer');
+    const mainImg    = document.getElementById('mainImage');
+    const lens       = document.getElementById('zoomLens');
+    const result     = document.getElementById('zoomResult');
+    const resultImg  = document.getElementById('zoomResultImg');
+
+    const ZOOM      = 0.5;     // magnification level
+    const LENS_SIZE = 100;   // lens square size in px
+
+    lens.style.width  = LENS_SIZE + 'px';
+    lens.style.height = LENS_SIZE + 'px';
+
+    function moveLens(e) {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+
+      // cursor relative to container
+      let cx = e.clientX - rect.left;
+      let cy = e.clientY - rect.top;
+
+      // clamp so lens stays inside container
+      const half = LENS_SIZE / 2;
+      cx = Math.max(half, Math.min(cx, rect.width  - half));
+      cy = Math.max(half, Math.min(cy, rect.height - half));
+
+      // move lens
+      lens.style.left = (cx - half) + 'px';
+      lens.style.top  = (cy - half) + 'px';
+
+      // position result panel to the right of the container using fixed coords
+      const RW = 380;
+      const RH = 380;
+      let rx = rect.right + 16;
+      let ry = rect.top + (rect.height / 2) - (RH / 2);
+
+      // keep result panel inside viewport
+      if (rx + RW > window.innerWidth) rx = rect.left - RW - 16;
+      ry = Math.max(10, Math.min(ry, window.innerHeight - RH - 10));
+
+      result.style.left   = rx + 'px';
+      result.style.top    = ry + 'px';
+      result.style.width  = RW + 'px';
+      result.style.height = RH + 'px';
+
+      // scale zoomed image
+      const scaleX = (RW / LENS_SIZE) * ZOOM;
+      const scaleY = (RH / LENS_SIZE) * ZOOM;
+      const imgW = rect.width  * scaleX;
+      const imgH = rect.height * scaleY;
+
+      resultImg.style.width  = imgW + 'px';
+      resultImg.style.height = imgH + 'px';
+
+      // shift so the hovered region is centred in result panel
+      const px = -((cx / rect.width)  * imgW - RW / 2);
+      const py = -((cy / rect.height) * imgH - RH / 2);
+      resultImg.style.left = px + 'px';
+      resultImg.style.top  = py + 'px';
+    }
+
+    function showZoom() {
+      if (window.matchMedia('(hover: none)').matches) return;
+      lens.style.display   = 'block';
+      result.style.display = 'block';
+    }
+
+    function hideZoom() {
+      lens.style.display   = 'none';
+      result.style.display = 'none';
+    }
+
+    container.addEventListener('mouseenter', showZoom);
+    container.addEventListener('mouseleave', hideZoom);
+    container.addEventListener('mousemove',  moveLens);
+
+    // sync zoom image when thumbnail clicked
+    document.querySelectorAll('.glora-thumb').forEach(function(thumb) {
+      thumb.addEventListener('click', function() {
+        const src      = this.dataset.src;
+        mainImg.src    = src;
+        resultImg.src  = src;
+        document.querySelectorAll('.glora-thumb').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  })();
 </script>
 
 </body>

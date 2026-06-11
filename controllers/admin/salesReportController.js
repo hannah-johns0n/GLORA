@@ -2,12 +2,23 @@ const Order  = require('../../models/orderModel');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 
-// ── HELPER: fetch orders with all needed data ─────────────────────────
-async function fetchOrders(extraFilter = {}) {
-  const filter = {
-    status: { $in: ['Delivered', 'Returned'] },
-    ...extraFilter
-  };
+async function fetchOrders(query = {}) {
+  const { startDate, endDate, paymentMethod, orderStatus } = query;
+
+  const filter = { status: { $in: ['Delivered', 'Returned'] } };
+
+  if (startDate && endDate) {
+    filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+  if (paymentMethod && paymentMethod !== 'all') {
+    filter.paymentMethod = paymentMethod;
+  }
+
+  if (orderStatus && orderStatus !== 'all') {
+    filter.status = orderStatus;
+  }
+
   return Order.find(filter)
     .populate('userId', 'name email')
     .sort({ createdAt: -1 })
@@ -46,10 +57,9 @@ const getSalesReport = async (req, res) => {
   }
 };
 
-// ── EXCEL ─────────────────────────────────────────────────────────────
 const downloadExcel = async (req, res) => {
   try {
-    const orders   = await fetchOrders();
+    const orders = await fetchOrders(req.query);
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'GLORA Admin';
     workbook.created = new Date();
@@ -58,7 +68,6 @@ const downloadExcel = async (req, res) => {
       pageSetup: { fitToPage: true, fitToWidth: 1 }
     });
 
-    // ── Title row ────────────────────────────────────────────────────
     ws.mergeCells('A1:I1');
     const titleCell = ws.getCell('A1');
     titleCell.value     = 'GLORA — Sales Report';
@@ -67,7 +76,6 @@ const downloadExcel = async (req, res) => {
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
     ws.getRow(1).height = 36;
 
-    // ── Generated date row ───────────────────────────────────────────
     ws.mergeCells('A2:I2');
     const dateCell = ws.getCell('A2');
     dateCell.value     = `Generated: ${new Date().toLocaleString('en-IN')}`;
@@ -109,11 +117,9 @@ const downloadExcel = async (req, res) => {
     });
     headerRow.height = 28;
 
-    // ── Data rows ────────────────────────────────────────────────────
     let rowIndex = 0;
     orders.forEach(order => {
       if (!order.orderItems || order.orderItems.length === 0) {
-        // Order with no items — still show one row
         addDataRow(ws, rowIndex++, {
           customerName:  order.userId?.name  || 'N/A',
           productName:   order.orderItems?.[0]?.name || 'N/A',
@@ -128,7 +134,6 @@ const downloadExcel = async (req, res) => {
       } else {
         order.orderItems.forEach((item, itemIdx) => {
           addDataRow(ws, rowIndex++, {
-            // Only show customer/payment/status/date on first item row
             customerName:  itemIdx === 0 ? (order.userId?.name || 'N/A') : '',
             productName:   item.name  || 'N/A',
             variant:       item.unit  || 'N/A',
@@ -144,7 +149,6 @@ const downloadExcel = async (req, res) => {
       }
     });
 
-    // ── Summary rows ─────────────────────────────────────────────────
     ws.addRow([]);
     const totalRow = ws.addRow([
       '', '', '', '', 'TOTAL REVENUE',
@@ -201,7 +205,6 @@ function addDataRow(ws, rowIndex, data) {
     };
   });
 
-  // Status color coding
   const statusCell = row.getCell(8);
   if (data.orderStatus === 'Delivered') {
     statusCell.font = { color: { argb: 'FF1A7A1A' }, bold: true, size: 10 };
@@ -212,27 +215,24 @@ function addDataRow(ws, rowIndex, data) {
 
 const downloadPDF = async (req, res) => {
   try {
-    const orders = await fetchOrders();
+    const orders = await fetchOrders(req.query);
 
-    // ✅ No autoFirstPage pagination — single continuous document
     const doc = new PDFDocument({
       margin:       30,
       size:         'A4',
       layout:       'landscape',
       autoFirstPage: true,
-      bufferPages:  true   // buffer all pages so we can count them
+      bufferPages:  true   
     });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=glora-sales-report.pdf');
     doc.pipe(res);
 
-    // ── Page dimensions ───────────────────────────────────────────────
     const pageW  = doc.page.width;
     const margin = 30;
     const tableW = pageW - margin * 2;
 
-    // Column widths (must add up to tableW)
     const cols = [
       { label: 'Customer',    width: 90  },
       { label: 'Product',     width: 100 },
@@ -252,7 +252,6 @@ const downloadPDF = async (req, res) => {
     const evenBg    = '#F9F6F4';
     const oddBg     = '#FFFFFF';
 
-    // ── Draw cover / title ─────────────────────────────────────────────
     doc.rect(0, 0, pageW, 60).fill('#2C1810');
     doc.fillColor('#FFFFFF').fontSize(22).font('Helvetica-Bold')
        .text('GLORA — Sales Report', margin, 18, { align: 'center', width: tableW });
@@ -264,7 +263,6 @@ const downloadPDF = async (req, res) => {
 
     doc.moveDown(2);
 
-    // ── Draw table header ──────────────────────────────────────────────
     let y = 70;
 
     function drawTableHeader() {
@@ -286,7 +284,6 @@ const downloadPDF = async (req, res) => {
       const bg = isEven ? evenBg : oddBg;
       doc.rect(margin, y, tableW, rowH).fill(bg);
 
-      // Row border
       doc.rect(margin, y, tableW, rowH).stroke(lineColor);
 
       let x = margin;
@@ -303,7 +300,6 @@ const downloadPDF = async (req, res) => {
              ellipsis:  true
            });
 
-        // Column divider
         doc.moveTo(x + col.width, y).lineTo(x + col.width, y + rowH)
            .stroke(lineColor);
         x += col.width;
@@ -321,7 +317,6 @@ const downloadPDF = async (req, res) => {
 
     drawTableHeader();
 
-    // ── Data rows ──────────────────────────────────────────────────────
     let rowIndex = 0;
     orders.forEach(order => {
       const customerName  = order.userId?.name  || 'N/A';
@@ -351,7 +346,6 @@ const downloadPDF = async (req, res) => {
       });
     });
 
-    // ── Summary footer ────────────────────────────────────────────────
     checkPageBreak();
     y += 6;
     const totalRevenue = orders.reduce((s, o) => s + o.totalPrice, 0);

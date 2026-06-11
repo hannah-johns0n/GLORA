@@ -41,7 +41,8 @@
     }
     button:hover { background: #490505; }
     .resend-link { margin-top: 1rem; font-size: 0.85rem; color: #666; }
-    .resend-link a { color: #711a1a; text-decoration: none; font-weight: 500; }
+    .resend-link a { color: #711a1a; text-decoration: none; font-weight: 500; cursor: pointer; }
+    .resend-link a.disabled { color: #ccc; cursor: not-allowed; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -97,11 +98,31 @@
   <script>
     (function() {
       const expirySpan = document.getElementById('expiryText');
+      const resendLink = document.querySelector('.resend-link a');
       let remaining = <%= typeof expiresIn !== 'undefined' ? expiresIn : 300 %>;
+      
+      // Disable resend link initially if timer is running
+      if (remaining > 0 && resendLink) {
+        resendLink.classList.add('disabled');
+      }
+      
       function update() {
         const minutes = String(Math.floor(remaining / 60)).padStart(2,'0');
         const seconds = String(remaining % 60).padStart(2,'0');
         expirySpan.textContent = `OTP expires in: ${minutes}:${seconds}`;
+        
+        // Show/hide resend link based on timer
+        if (remaining <= 0) {
+          expirySpan.textContent = 'OTP Expired';
+          if (resendLink) {
+            resendLink.classList.remove('disabled');
+          }
+        } else {
+          if (resendLink) {
+            resendLink.classList.add('disabled');
+          }
+        }
+        
         if (remaining > 0) {
           remaining--;
           setTimeout(update, 1000);

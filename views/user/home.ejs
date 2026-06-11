@@ -4,212 +4,727 @@
     window.location.href = "/login?blocked=1";
   </script>
 <% } %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/user/header', { userName: userName, url: url }) %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<style>
+  /* ── CATEGORY STRIP ─────────────────────────────────── */
+  .glora-categories {
+    background: #1A1A1A;
+    padding: 80px 0;
+  }
+
+  .glora-categories .glora-section__eyebrow,
+  .glora-categories .glora-section__title {
+    color: #FAF7F4;
+  }
+
+  .glora-cat-strip-wrap {
+    position: relative;
+    padding: 0 40px;
+  }
+
+  .glora-cat-card {
+    flex: 0 0 220px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .glora-cat-card__img-wrap {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .glora-cat-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    display: block;
+  }
+
+  .glora-cat-card:hover .glora-cat-card__img-wrap img {
+    transform: scale(1.07);
+  }
+
+  .glora-cat-card__placeholder {
+    width: 100%;
+    height: 100%;
+  }
+
+  .glora-cat-card:hover .glora-cat-card__placeholder {
+    filter: brightness(1.1);
+  }
+
+  .glora-cat-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.0) 55%);
+    transition: background 0.3s ease;
+  }
+
+  .glora-cat-card:hover .glora-cat-card__overlay {
+    background: linear-gradient( rgba(10, 2, 2, 0.7) 0%, rgba(0, 0, 0, 0.372) 55%);
+  }
+
+  .glora-cat-card__label {
+    position: absolute;
+    bottom: 18px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #fff;
+    font-family: 'Cormorant Garant', serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* reuse gradients from before */
+  .cat-grad-1 { background: linear-gradient(135deg, #3d1f1f 0%, #7a3030 100%); }
+  .cat-grad-2 { background: linear-gradient(135deg, #1f2d3d 0%, #2e4a6e 100%); }
+  .cat-grad-3 { background: linear-gradient(135deg, #1f3d2d 0%, #2e6e4a 100%); }
+  .cat-grad-4 { background: linear-gradient(135deg, #3d351f 0%, #7a6530 100%); }
+  .cat-grad-5 { background: linear-gradient(135deg, #2d1f3d 0%, #4a2e6e 100%); }
+</style>
 <body>
-
-<div class="super_container">
-    
- <%- include('../partials/user/header', { userName: userName }) %>
-
- <style>
-    body {
-      background: #fafafa;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .section_title {
-      font-size: 28px; 
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .section_subtitle {
-      color: #b88f3b;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .card {
-      border: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      border-radius: 8px;
-      background: #fff;
-    }
-
-    .card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .card img {
-      transition: transform 0.3s ease;
-    }
-
-    .card:hover img {
-      transform: scale(1.05);
-    }
-
-    .btn {
-      transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-      background: #b88f3b;
-      color: #fff;
-    }
-  </style>
-
-    <div class="home">
-        <div class="home_slider_container">
-            <div class="owl-carousel owl-theme home_slider">
-                <div class="owl-item">
-                    <div class="home_slider_background" style="background-image:url(images/home_slider_1.jpg)"></div>
-                    <div class="home_slider_content">
-                        <div class="home_slider_content_inner">
-                            <div class="home_slider_subtitle">GLORA</div>
-                            <div class="home_slider_title">GLOW LIKE NEVER BEFORE</div>
-                        </div>    
-                    </div>
-                </div>
-            </div>
-            <div class="home_slider_next d-flex flex-column align-items-center justify-content-center"><img src="images/arrow_r.png" alt=""></div>
-            <div class="home_slider_dots_container">
-                <div class="container">
-                    <div class="row">
-                        <div class="col">
-                            <div class="home_slider_dots">
-                                <ul id="home_slider_custom_dots" class="home_slider_custom_dots">
-                                    <li class="home_slider_custom_dot active">01.<div></div></li>
-                                    <li class="home_slider_custom_dot">02.<div></div></li>
-                                    <li class="home_slider_custom_dot">03.<div></div></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>        
-            </div>
-        </div>
-    </div>
-
-    <div class="promo">
-    </div>
-
-    <div class="arrivals">
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                    <div class="section_title_container text-center">
-                        <div class="section_subtitle">only the best</div>
-                        <div class="section_title">OUR BEST SELLERS</div>
-                    </div>
-                </div>
-            </div>
-            <div class="row justify-content-center">
-              <% if (products && products.length) { %>
-                <% products.forEach(function(product) { %>
-                  <% if (!product.isBlocked) { %>
-                  <div class="col-md-4 col-lg-3 mb-4">
-                    <div class="card h-100">
-                      <div class="p-2" style="height: 200px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; overflow: hidden;">
-                        <% if (product.images && product.images[0]) { %>
-                          <img src="<%= product.images[0] %>" 
-                               alt="<%= product.productName %>" 
-                               style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                        <% } else { %>
-                          <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #bbb; font-size: 2rem;">
-                            <i class="fas fa-image"></i>
-                          </div>
-                        <% } %>
-                      </div>
-                      <div class="card-body text-center">
-                        <h5 class="card-title mb-2"><%= product.productName %></h5>
-                      </div>
-                    </div>
-                  </div>
-                  <% } %>
-                <% }); %>
-              <% } else { %>
-                <div class="col-12 text-center text-muted">No products available.</div>
-              <% } %>
-            </div>
-        </div>
-    </div>
-
-    <div class="extra clearfix">
-    </div>
-
 
 <% if (typeof loginSuccess !== 'undefined' && loginSuccess) { %>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    Swal.fire({
-      icon: 'success',
-      title: 'Logged in successfully!',
-      showConfirmButton: false,
-      timer: 1500
+    document.addEventListener('DOMContentLoaded', function() {
+      Swal.fire({
+        icon: 'success',
+        title: 'Logged in successfully!',
+        showConfirmButton: false,
+        timer: 1500
+      });
     });
   </script>
 <% } %>
-    <div class="gallery">
-        <div class="gallery_image" style="background-image:url(images/gallery.jpg)"></div>
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                    <div class="gallery_title text-center">
-                        <ul>
-                            <li><a href="#">#GLORA</a></li>
-                            <li><a href="#">#glorainstagram</a></li>
-                        </ul>
-                    </div>
-                    <div class="gallery_text text-center">
-                      We’ve designed this site with care so sit back, explore, and enjoy your time here
-                    </div>
-              </div> 
-            </div>
-        </div>    
-    </div>
 
-    <div class="newsletter">
-    </div>
+<style>
+  /* ── BASE ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<%- include('../partials/user/footer')  %>
+  body {
+    background: #FAF7F4;
+    font-family: 'Poppins', sans-serif;
+    color: #1A1A1A;
+  }
+
+  /* ── HERO ───────────────────────────────────────────── */
+  .glora-hero {
+    position: relative;
+    width: 100%;
+    height: 0vh;
+    min-height: 400px;
+    overflow: hidden;
+    background: #1A1A1A;
+  }
+
+  .glora-hero__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    opacity: 0.88;
+    transition: transform 8s ease;
+  }
+
+  .glora-hero:hover .glora-hero__img {
+    transform: scale(1.04);
+  }
+
+  .glora-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.08) 0%,
+      rgba(0,0,0,0.0) 40%,
+      rgba(0,0,0,0.55) 100%
+    );
+  }
+
+  .glora-hero__content {
+    position: absolute;
+    bottom: 60px;
+    left: 60px;
+    right: 60px;
+    color: #fff;
+  }
+
+  .glora-hero__eyebrow {
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #D4A96A;
+    margin-bottom: 14px;
+  }
+
+  .glora-hero__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(44px, 7vw, 88px);
+    font-weight: 600;
+    line-height: 1.0;
+    letter-spacing: -1px;
+    margin-bottom: 28px;
+  }
+
+  .glora-hero__title em {
+    font-family: 'Cormorant Garant', serif;
+    font-weight: 100;
+  }
+
+  .glora-hero__cta {
+    display: inline-block;
+    padding: 14px 36px;
+    background: transparent;
+    border: 1.5px solid #fff;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .glora-hero__cta:hover {
+    background: #fff;
+    color: #1A1A1A;
+    text-decoration: none;
+  }
+
+  /* ── SECTION HEADER ─────────────────────────────────── */
+  .glora-section {
+    padding: 80px 0 60px;
+  }
+
+  .glora-section__head {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .glora-section__eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #D4A96A;
+    margin-bottom: 10px;
+  }
+
+  .glora-section__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 600;
+    color: #1A1A1A;
+    letter-spacing: -0.5px;
+  }
+
+  /* ── PRODUCT CAROUSEL ───────────────────────────────── */
+  .glora-carousel-wrap {
+    position: relative;
+    padding: 0 40px;
+  }
+
+  .glora-carousel {
+    display: flex;
+    gap: 24px;
+    overflow: hidden;
+    scroll-behavior: smooth;
+  }
+
+  .glora-product-card {
+    flex: 0 0 calc(25% - 18px);
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .glora-product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .glora-product-card__img-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #F0EBE3;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .glora-product-card__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .glora-product-card:hover .glora-product-card__img-wrap img {
+    transform: scale(1.06);
+  }
+
+  .glora-product-card__body {
+    padding: 16px 18px 20px;
+  }
+
+  .glora-product-card__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1A1A1A;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .glora-product-card__price {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8B1A1A;
+    margin-bottom: 14px;
+  }
+
+  .glora-product-card__btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: #1A1A1A;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .glora-product-card__btn:hover {
+    background: #8B1A1A;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* carousel arrows */
+  .glora-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .glora-arrow:hover {
+    background: #8B1A1A;
+    border-color: #8B1A1A;
+    color: #fff;
+  }
+
+  .glora-arrow:hover i { color: #fff; }
+
+  .glora-arrow i { font-size: 13px; color: #555; }
+
+  .glora-arrow--prev { left: 0; }
+  .glora-arrow--next { right: 0; }
+
+  /* ── CATEGORY BENTO ─────────────────────────────────── */
+  .glora-categories {
+    background: #1A1A1A;
+    padding: 80px 0;
+  }
+
+  .glora-categories .glora-section__eyebrow,
+  .glora-categories .glora-section__title {
+    color: #FAF7F4;
+  }
+
+  .glora-bento {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr 1fr;
+    grid-template-rows: 260px 260px;
+    gap: 3px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .glora-bento__item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+  }
+
+  /* layout: item 1 spans 2 rows on left, item 3 spans 2 rows on right */
+  .glora-bento__item:nth-child(1) { grid-row: 1 / 3; }
+  .glora-bento__item:nth-child(2) { grid-column: 2; grid-row: 1; }
+  .glora-bento__item:nth-child(3) { grid-column: 3; grid-row: 1 / 3; }
+  .glora-bento__item:nth-child(4) { grid-column: 2; grid-row: 2; }
+
+  .glora-bento__bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    display: block;
+  }
+
+  .glora-bento__item:hover .glora-bento__bg {
+    transform: scale(1.07);
+  }
+
+  /* placeholder gradient tiles for categories without images */
+  .glora-bento__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .glora-bento__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0,0,0,0.65) 0%,
+      rgba(0,0,0,0.0) 55%
+    );
+    transition: background 0.3s ease;
+  }
+
+  .glora-bento__item:hover .glora-bento__overlay {
+    background: linear-gradient(
+      to top,
+      rgba(139,26,26,0.70) 0%,
+      rgba(0,0,0,0.0) 55%
+    );
+  }
+
+  .glora-bento__label {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    color: #fff;
+  }
+
+  .glora-bento__label span {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: block;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .glora-bento__label small {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #D4A96A;
+    margin-top: 4px;
+    display: block;
+  }
+
+  /* category placeholder gradients */
+  .cat-grad-1 { background: linear-gradient(135deg, #3d1f1f 0%, #7a3030 100%); }
+  .cat-grad-2 { background: linear-gradient(135deg, #1f2d3d 0%, #2e4a6e 100%); }
+  .cat-grad-3 { background: linear-gradient(135deg, #1f3d2d 0%, #2e6e4a 100%); }
+  .cat-grad-4 { background: linear-gradient(135deg, #3d351f 0%, #7a6530 100%); }
+  .cat-grad-5 { background: linear-gradient(135deg, #2d1f3d 0%, #4a2e6e 100%); }
+
+  /* ── DIVIDER ────────────────────────────────────────── */
+  .glora-divider {
+    text-align: center;
+    padding: 20px 0 0;
+    color: #ccc;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  /* ── BRAND STRIP ────────────────────────────────────── */
+  .glora-strip {
+    background: #8B1A1A;
+    padding: 18px 0;
+    text-align: center;
+  }
+
+  .glora-strip p {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .glora-product-card { flex: 0 0 calc(50% - 12px); }
+
+    .glora-bento {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 200px 200px 200px;
+    }
+
+    .glora-bento__item:nth-child(1) { grid-row: 1; grid-column: 1; }
+    .glora-bento__item:nth-child(2) { grid-row: 1; grid-column: 2; }
+    .glora-bento__item:nth-child(3) { grid-row: 2; grid-column: 1; }
+    .glora-bento__item:nth-child(4) { grid-row: 2; grid-column: 2; }
+  }
+
+  @media (max-width: 600px) {
+    .glora-hero__content { left: 24px; right: 24px; bottom: 40px; }
+    .glora-product-card { flex: 0 0 calc(80% - 12px); }
+    .glora-carousel-wrap { padding: 0 20px; }
+    .glora-bento {
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(4, 180px);
+    }
+    .glora-bento__item:nth-child(n) { grid-row: auto; grid-column: 1; }
+  }
+</style>
+
+
+<section class="glora-hero">
+  <img
+    class="glora-hero__img"
+    src="\images\hero_section_img.png"
+    onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, #2c1810 0%, #8B1A1A 50%, #D4A96A 100%)'"
+    alt="GLORA — Glow Like Never Before"
+  >
+  <div class="glora-hero__overlay"></div>
+  <div class="glora-hero__content">
+    <h1 class="glora-hero__title">Glow Like<br><em>Never Before!</em></h1>
+    <a href="/shop" class="glora-hero__cta">Explore the Collection</a>
+  </div>
+</section>
+
+<!-- brand strip -->
+<div class="glora-strip">
+  <p>Free shipping on orders above ₹999 &nbsp;·&nbsp; Authentic products &nbsp;·&nbsp; Easy returns</p>
 </div>
 
-<script src="js/jquery-3.2.1.min.js"></script>
-<script src="styles/bootstrap4/popper.js"></script>
-<script src="styles/bootstrap4/bootstrap.min.js"></script>
-<script src="plugins/OwlCarousel2-2.2.1/owl.carousel.js"></script>
-<script src="plugins/easing/easing.js"></script>
-<script src="plugins/parallax-js-master/parallax.min.js"></script>
-<script src="plugins/colorbox/jquery.colorbox-min.js"></script>
-<script src="js/custom.js"></script>
+<!-- ══════════════════════════════════════════
+     BEST SELLERS
+═══════════════════════════════════════════ -->
+<section class="glora-section">
+  <div class="container-fluid px-4">
+    <div class="glora-section__head">
+      <p class="glora-section__eyebrow">Only the best</p>
+      <h2 class="glora-section__title">Our Best Sellers</h2>
+    </div>
+
+    <div class="glora-carousel-wrap">
+      <button class="glora-arrow glora-arrow--prev" onclick="scrollCarousel('best', -1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="glora-carousel" id="carousel-best">
+        <% if (bestSellers && bestSellers.length) { %>
+          <% bestSellers.forEach(function(product) { %>
+            <% if (!product.isBlocked) { %>
+            <a href="/product/<%= product._id %>" class="glora-product-card">
+              <div class="glora-product-card__img-wrap">
+                <% if (product.images && product.images[0]) { %>
+                  <img src="<%= product.images[0] %>" alt="<%= product.productName %>">
+                <% } else { %>
+                  <div style="width:100%;height:100%;background:#F0EBE3;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-image" style="font-size:2rem;color:#ccc;"></i>
+                  </div>
+                <% } %>
+              </div>
+              <div class="glora-product-card__body">
+                <p class="glora-product-card__name"><%= product.productName %></p>
+                <p class="glora-product-card__price">
+                  ₹<%= product.variants && product.variants[0] ? product.variants[0].salesPrice : '—' %>
+                </p>
+                <span class="glora-product-card__btn">View Details</span>
+              </div>
+            </a>
+            <% } %>
+          <% }); %>
+        <% } else { %>
+          <p style="color:#999;font-size:13px;padding:20px;">No products available.</p>
+        <% } %>
+      </div>
+
+      <button class="glora-arrow glora-arrow--next" onclick="scrollCarousel('best', 1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SHOP BY CATEGORY
+═══════════════════════════════════════════ -->
+<section class="glora-categories">
+  <div class="container-fluid px-4">
+    <div class="glora-section__head">
+      <p class="glora-section__eyebrow">Find your ritual</p>
+      <h2 class="glora-section__title">Shop by Category</h2>
+    </div>
+
+    <div class="glora-cat-strip-wrap">
+      <button class="glora-arrow glora-arrow--prev" onclick="scrollCarousel('cat', -1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="glora-carousel" id="carousel-cat">
+        <%
+          var gradients = ['cat-grad-1','cat-grad-2','cat-grad-3','cat-grad-4','cat-grad-5'];
+          var displayCats = categories ? categories : [];
+        %>
+        <% if (displayCats.length > 0) { %>
+          <% displayCats.forEach(function(cat, i) { %>
+          <a href="/shop?category=<%= cat.categoryName %>" class="glora-cat-card">
+            <div class="glora-cat-card__img-wrap">
+              <% if (cat.image) { %>
+                <img src="<%= cat.image %>" alt="<%= cat.categoryName %>">
+              <% } else { %>
+                <div class="glora-cat-card__placeholder <%= gradients[i % gradients.length] %>"></div>
+              <% } %>
+              <div class="glora-cat-card__overlay"></div>
+              <span class="glora-cat-card__label"><%= cat.categoryName %></span>
+            </div>
+          </a>
+          <% }); %>
+        <% } else { %>
+          <% ['Skin Care','Hair Care','Body Care','Lip Care','Eye Care'].forEach(function(name, i) { %>
+          <a href="/shop" class="glora-cat-card">
+            <div class="glora-cat-card__img-wrap">
+              <div class="glora-cat-card__placeholder <%= gradients[i % gradients.length] %>"></div>
+              <div class="glora-cat-card__overlay"></div>
+              <span class="glora-cat-card__label"><%= name %></span>
+            </div>
+          </a>
+          <% }); %>
+        <% } %>
+      </div>
+
+      <button class="glora-arrow glora-arrow--next" onclick="scrollCarousel('cat', 1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     NEW LAUNCHES
+═══════════════════════════════════════════ -->
+<section class="glora-section" style="background:#F0EBE3;">
+  <div class="container-fluid px-4">
+    <div class="glora-section__head">
+      <p class="glora-section__eyebrow">Just arrived</p>
+      <h2 class="glora-section__title">New Launches</h2>
+    </div>
+
+    <div class="glora-carousel-wrap">
+      <button class="glora-arrow glora-arrow--prev" onclick="scrollCarousel('new', -1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="glora-carousel" id="carousel-new">
+        <% if (newLaunches && newLaunches.length) { %>
+          <% newLaunches.forEach(function(product) { %>
+            <% if (!product.isBlocked) { %>
+            <a href="/product/<%= product._id %>" class="glora-product-card">
+              <div class="glora-product-card__img-wrap">
+                <% if (product.images && product.images[0]) { %>
+                  <img src="<%= product.images[0] %>" alt="<%= product.productName %>">
+                <% } else { %>
+                  <div style="width:100%;height:100%;background:#F0EBE3;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-image" style="font-size:2rem;color:#ccc;"></i>
+                  </div>
+                <% } %>
+              </div>
+              <div class="glora-product-card__body">
+                <p class="glora-product-card__name"><%= product.productName %></p>
+                <p class="glora-product-card__price">
+                  ₹<%= product.variants && product.variants[0] ? product.variants[0].salesPrice : '—' %>
+                </p>
+                <span class="glora-product-card__btn">View Details</span>
+              </div>
+            </a>
+            <% } %>
+          <% }); %>
+        <% } else { %>
+          <p style="color:#999;font-size:13px;padding:20px;">No new launches yet.</p>
+        <% } %>
+      </div>
+
+      <button class="glora-arrow glora-arrow--next" onclick="scrollCarousel('new', 1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/user/footer') %>
+
 <script>
+  // ── CAROUSEL SCROLL ──────────────────────────────────
+  function scrollCarousel(id, dir) {
+    var carousel = document.getElementById('carousel-' + id);
+    if (!carousel) return;
+    var card = carousel.querySelector('.glora-product-card');
+    var cardWidth = card ? card.offsetWidth + 24 : 300;
+    carousel.scrollBy({ left: dir * cardWidth * 2, behavior: 'smooth' });
+  }
+
+  // ── BLOCKED USER POLL ────────────────────────────────
   setInterval(async function() {
     try {
-      const res = await fetch('/user/check-blocked', { credentials: 'same-origin' });
-      if (res.status === 401) {
-        window.location.href = '/login?blocked=1';
-      }
-    } catch (e) {
-    }
+      var res = await fetch('/user/check-blocked', { credentials: 'same-origin' });
+      if (res.status === 401) window.location.href = '/login?blocked=1';
+    } catch(e) {}
   }, 30000);
-
-  $(document).ready(function(){
-    $('.home_slider').owlCarousel({
-      items: 1,
-      loop: true,
-      autoplay: true,
-      autoplayTimeout: 5000,
-      dots: true,
-      nav: false
-    });
-  });
 </script>
+
 </body>
 </html>

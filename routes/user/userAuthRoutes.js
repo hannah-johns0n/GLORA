@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-// Parse JSON and URL-encoded request bodies
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 const userController = require("../../controllers/user/userController");
@@ -84,6 +83,7 @@ router.post('/forgot-password', userController.postForgotPassword);
 
 router.get('/forgot-password/verify', userController.verifyPasswordOtp);
 router.post('/forgot-password/verify', userController.postVerifyPasswordOtp);
+router.get('/resend-forgot-password-otp', userController.resendForgotPasswordOtp);
 
 router.get('/reset-password',requireAuth, userController.getResetPassword);
 router.post('/reset-password', requireAuth, userController.postResetPassword);
@@ -106,6 +106,7 @@ router.get('/change-email', requireAuth, userController.getChangeEmailPage);
 router.get('/verify-change-email-otp', requireAuth, userController.getVerifyEmailOtpPage);
 router.post('/send-change-email-otp', userController.sendChangeEmailOtp);
 router.post('/verify-change-email-otp', userController.verifyChangeEmailOtp);
+router.get('/resend-change-email-otp', requireAuth, userController.resendChangeEmailOtp);
 router.post('/save-new-email', requireAuth, userController.saveNewEmail);
 
 router.get('/cart', requireAuth, cartController.getCart);
@@ -136,6 +137,7 @@ router.post("/update-payment-status", requireAuth, orderController.updatePayment
 router.post("/wishlist/toggle/:productId", requireAuth, wishlistController.toggleWishlist);
 router.get("/wishlist/add/:id", requireAuth, wishlistController.addToWishlist);
 router.get("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
+router.post("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
 router.get("/wishlist", requireAuth, wishlistController.getWishlist);
 router.post("/cart/add/:productId", requireAuth, cartController.addToCart);
 

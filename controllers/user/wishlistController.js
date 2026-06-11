@@ -91,12 +91,16 @@ module.exports = {
 
 
   removeFromWishlist: async (req, res) => {
-    try {
-      await Wishlist.findByIdAndDelete(req.params.id);
-      res.redirect("/wishlist");
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
-    }
+  try {
+    // find by productId, not wishlist doc _id
+    await Wishlist.findOneAndDelete({ 
+      userId: req.user._id, 
+      productId: req.params.id 
+    });
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
+}
 };

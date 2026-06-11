@@ -94,10 +94,16 @@ const getVerifyOtp = async (req, res) => {
   const tempUser = await TempUser.findOne({ email });
   console.log(`OTP for ${email}: ${tempUser.otp}`);
 
+  // Calculate remaining time from database expiry time
+  const now = Date.now();
+  const expiryTime = new Date(tempUser.otpExpires).getTime();
+  const remainingMs = Math.max(0, expiryTime - now);
+  const remainingSeconds = Math.floor(remainingMs / 1000);
+
   const viewData = {
     email,
     error: null,
-    expiresIn: 300,
+    expiresIn: remainingSeconds,
     purpose: "verify"
   };
   res.render("user/otp", viewData);
@@ -112,16 +118,22 @@ const postVerifyOtp = async (req, res) => {
     return res.render("user/otp", {
       email,
       error: "No OTP found for this email",
-      expiresIn: 300,
+      expiresIn: 0,
       purpose: "verify"
     });
   }
 
   if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
+    // Calculate remaining time from database expiry time
+    const now = Date.now();
+    const expiryTime = new Date(tempUser.otpExpires).getTime();
+    const remainingMs = Math.max(0, expiryTime - now);
+    const remainingSeconds = Math.floor(remainingMs / 1000);
+
     return res.render("user/otp", {
       email,
       error: "Invalid or expired OTP",
-      expiresIn: 300,
+      expiresIn: remainingSeconds,
       purpose: "verify"
     });
   }
@@ -152,18 +164,20 @@ const resendOtp = async (req, res) => {
   tempUser.otpExpires = otpExpires;
   await tempUser.save();
 
+  // Calculate remaining time (5 minutes = 300 seconds)
+  const remainingSeconds = 300;
+
   const viewData = {
     email,
     error: null,
-    OTP: otp,
-    ExpiresAt: otpExpires,
+    expiresIn: remainingSeconds,
     purpose: "verify"
   };
 
   await transporter.sendMail({
     to: email,
     subject: 'Resend OTP - Email Verification',
-    html: `<h2>Your new OTP is: ${otp}</h2><p>Expires in 10 minutes</p>`,
+    html: `<h2>Your new OTP is: ${otp}</h2><p>Expires in 5 minutes</p>`,
   });
 
   res.render("user/otp", viewData);
@@ -208,17 +222,10 @@ const login = async (req, res) => {
       httpOnly: true,
       maxAge: 60 * 60 * 1000
     });
+    res.redirect('/');
 
     const categories = await Category.find({ isBlocked: false });
     const products = await Product.find({}).sort({ createdAt: -1 }).limit(8);
-
-    res.render("user/home", {
-      userName: user.name,
-      user: user,
-      categories,
-      products,
-      loginSuccess: true
-    });
 
   }
   catch (error) {
@@ -236,24 +243,46 @@ const loadHomePage = async (req, res) => {
     let userName = null;
     let user = null;
     const token = req.cookies.jwt;
+
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         userName = decoded.name || null;
         user = decoded;
-      }
-      catch (err) {
+      } catch (err) {
         userName = null;
         user = null;
       }
     }
-    const categories = await Category.find({ isBlocked: false });
-    const products = await Product.find({ isBlocked: false }).sort({ createdAt: -1 }).limit(8);
 
-    res.render("user/home", { userName, user, categories, products });
-  }
-  catch (error) {
-    res.render("user/home", { userName: null, user: null, categories: [] });
+    const categories = await Category.find({ isBlocked: false });
+
+    const bestSellers = await Product.find({ isBlocked: false })
+      .sort({ createdAt: -1 })
+      .limit(8);
+
+    const newLaunches = await Product.find({ isBlocked: false })
+      .sort({ createdAt: -1 })
+      .skip(8)
+      .limit(8);
+
+    res.render('user/home', {
+      userName,
+      user,
+      categories,
+      bestSellers,
+      newLaunches,
+      loginSuccess: false
+    });
+  } catch (error) {
+    console.error("Home page error:", error);
+    res.render("user/home", {
+      userName: null,
+      user: null,
+      categories: [],
+      bestSellers: [],
+      newLaunches: [],
+    });
   }
 };
 
@@ -274,7 +303,22 @@ const getAbout = (req, res) => {
 };
 
 const getShopPage = async (req, res) => {
-  const sort = req.query.sort || ''; 
+  const sort = req.query.sort || '';
+
+  // ── decode user from JWT cookie once, use everywhere ──
+  let loggedInUserId = null;
+  let userName = null;
+  try {
+    const token = req.cookies.jwt;
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      loggedInUserId = decoded.id || null;
+      userName = decoded.name || null;
+    }
+  } catch (e) {
+    // invalid/expired token — treat as guest
+  }
+
   try {
     const search = req.query.search || '';
     const category = req.query.category || 'all';
@@ -284,8 +328,12 @@ const getShopPage = async (req, res) => {
     const limit = 20;
     const skip = (page - 1) * limit;
 
+    const unblockedCategories = await Category.find({ isBlocked: false }).select('categoryName');
+    const unblockedCategoryNames = unblockedCategories.map(c => c.categoryName);
+
     const filter = {
       isBlocked: { $ne: true },
+      category: { $in: unblockedCategoryNames },
       'variants.salesPrice': { $gte: minPrice, ...(maxPrice !== Infinity && { $lte: maxPrice }) }
     };
 
@@ -308,9 +356,10 @@ const getShopPage = async (req, res) => {
 
     products = products.map(p => p.toObject());
 
-    if (req.user) {
+    // ── wishlist state — uses JWT-decoded userId, not req.user ──
+    if (loggedInUserId) {
       const wishlistItems = await Wishlist.find({
-        userId: req.user._id,
+        userId: loggedInUserId,
         productId: { $in: products.map(p => p._id) }
       });
       const wishlistSet = new Set(wishlistItems.map(i => i.productId.toString()));
@@ -319,11 +368,9 @@ const getShopPage = async (req, res) => {
       products = products.map(p => ({ ...p, inWishlist: false }));
     }
 
-    const categories = await Category.find({ isBlocked: false });
-
     res.render('user/shop', {
       products,
-      categories,
+      categories: unblockedCategories,
       currentPage: page,
       totalPages,
       search,
@@ -333,7 +380,7 @@ const getShopPage = async (req, res) => {
       selectedSort: sort,
       sort,
       path: '/shop',
-      userName: req.user ? req.user.name : null,
+      userName,
       url: req.originalUrl
     });
 
@@ -341,7 +388,7 @@ const getShopPage = async (req, res) => {
     console.error('Shop page error:', error);
     res.render('user/shop', {
       url: req.originalUrl,
-      userName: null,
+      userName,
       categories: [],
       products: [],
       currentPage: 1,
@@ -367,21 +414,21 @@ const getProductDetails = async (req, res) => {
     let userName = null;
     let user = null;
     let cartCount = 0;
+    let userId = null;
 
     const token = req.cookies.jwt;
     if (token) {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
         const foundUser = await User.findById(decoded.id).select('name');
         if (foundUser) {
           userName = foundUser.name;
           user = foundUser;
+          userId = decoded.id;
         }
 
         const cart = await Cart.findOne({ userId: decoded.id });
         cartCount = cart ? cart.items.reduce((sum, p) => sum + p.quantity, 0) : 0;
-        console.log(cart)
       } catch (err) {
         console.error("JWT error:", err);
       }
@@ -393,9 +440,30 @@ const getProductDetails = async (req, res) => {
       isBlocked: false
     }).limit(4);
 
+    let productObj = product.toObject();
+    productObj.inWishlist = false;
+    let similarWithWishlist = relatedProducts.map(p => ({ ...p.toObject(), inWishlist: false }));
+
+    if (userId) {
+      const mainWishlist = await Wishlist.findOne({ userId, productId });
+      productObj.inWishlist = !!mainWishlist;
+
+      const similarIds = relatedProducts.map(p => p._id);
+      const wishlistedSimilar = await Wishlist.find({
+        userId,
+        productId: { $in: similarIds }
+      }).select('productId');
+
+      const wishlistedSet = new Set(wishlistedSimilar.map(w => w.productId.toString()));
+      similarWithWishlist = relatedProducts.map(p => ({
+        ...p.toObject(),
+        inWishlist: wishlistedSet.has(p._id.toString())
+      }));
+    }
+
     res.render('user/productDetails', {
-      product,
-      similarProducts: relatedProducts,
+      product: productObj,
+      similarProducts: similarWithWishlist,
       userName,
       user,
       url: req.originalUrl,
@@ -456,7 +524,15 @@ const verifyPasswordOtp = (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const email = decoded.email;
 
-    res.render("user/otp", { email, error: null, purpose: "reset" });
+    // Calculate remaining time (5 minutes from now = 300 seconds)
+    const remainingSeconds = 300;
+
+    res.render("user/otp", {
+      email,
+      error: null,
+      expiresIn: remainingSeconds,
+      purpose: "reset"
+    });
 
   }
   catch (error) {
@@ -469,10 +545,20 @@ const postVerifyPasswordOtp = async (req, res) => {
   try {
     const { otp, email } = req.body;
     const record = await PasswordReset.findOne({ email });
+
     if (!record || record.otp !== otp || record.otpExpires < Date.now()) {
+      // Calculate remaining time from database expiry time
+      let remainingSeconds = 0;
+      if (record && record.otpExpires) {
+        const now = Date.now();
+        const remainingMs = Math.max(0, record.otpExpires - now);
+        remainingSeconds = Math.floor(remainingMs / 1000);
+      }
+
       return res.render("user/otp", {
         email,
         error: "Invalid or expired OTP",
+        expiresIn: remainingSeconds,
         purpose: "reset"
       });
     }
@@ -506,6 +592,15 @@ const getResetPassword = (req, res) => {
 const postResetPassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
+
+    // Check if user is a Google OAuth user
+    const user = await User.findOne({ email });
+    if (user && user.googleId && !user.password) {
+      return res.render("user/resetPassword", {
+        error: "Password reset is not available for Google-authenticated accounts.",
+        email: ""
+      });
+    }
 
     if (!email) {
       return res.render("user/resetPassword", {
@@ -635,7 +730,7 @@ const getManageAddressPage = async (req, res) => {
 
 const getAddAddressPage = (req, res) => {
   const fromCheckout = req.query.fromCheckout === "true";
-  res.render('user/add-address', { userName: req.user.name, fromCheckout });
+  res.render('user/add-address', { userName: req.user.name, fromCheckout: fromCheckout ? 'true' : 'false' });
 };
 
 const postAddAddress = async (req, res) => {
@@ -710,6 +805,7 @@ const postAddAddress = async (req, res) => {
     console.error(err);
     res.status(500).render('user/add-address', {
       userName: req.user.name,
+      fromCheckout: req.body.fromCheckout || 'false',
       error: 'Server error. Failed to add address.'
     });
   }
@@ -816,6 +912,12 @@ const deleteAddress = async (req, res) => {
 };
 
 const getChangeEmailPage = (req, res) => {
+  // Check if user is a Google OAuth user
+  if (req.user && req.user.googleId && !req.user.password) {
+    return res.render('user/change-email', {
+      error: 'Email change is not available for Google-authenticated accounts.'
+    });
+  }
   res.render('user/change-email', { error: null });
 };
 
@@ -830,8 +932,20 @@ const sendChangeEmailOtp = async (req, res) => {
     const { email } = req.body;
     const userId = req.user?._id || req.user?.id;
 
+    // Check if user is a Google OAuth user
+    const user = await User.findById(userId);
+    if (user && user.googleId && !user.password) {
+      return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+        error: 'Email change is not available for Google-authenticated accounts.'
+      });
+    }
+
     const otp = generateOTP();
-    otpStore[userId] = { otp, newEmail: email, expires: Date.now() + 5 * 60 * 1000 };
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+    otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
+
+    // Calculate remaining time (5 minutes = 300 seconds)
+    const remainingSeconds = 300;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -842,7 +956,12 @@ const sendChangeEmailOtp = async (req, res) => {
 
     console.log(`OTP for ${email} is ${otp}`);
 
-    res.render('user/otp', { error: null, purpose: 'changeEmail', email });
+    res.render('user/otp', {
+      error: null,
+      purpose: 'changeEmail',
+      email,
+      expiresIn: remainingSeconds
+    });
   }
   catch (error) {
     console.error('Error sending OTP:', error);
@@ -854,20 +973,38 @@ const verifyChangeEmailOtp = async (req, res) => {
   try {
     const { otp, email } = req.body;
     const userId = req.user?._id || req.user?.id;
+
+    // Check if user is a Google OAuth user
+    const user = await User.findById(userId);
+    if (user && user.googleId && !user.password) {
+      return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+        error: 'Email change is not available for Google-authenticated accounts.'
+      });
+    }
+
     const stored = otpStore[userId];
     console.log(req.body)
+
     if (!stored) {
       return res.render('user/otp', {
         error: 'OTP expired. Try again.',
         purpose: 'changeEmail',
         email,
-        expiresIn: 300
+        expiresIn: 0
       });
     }
 
     if (stored.otp !== otp || Date.now() > stored.expires) {
+      // Calculate remaining time from in-memory store
+      const now = Date.now();
+      const remainingMs = Math.max(0, stored.expires - now);
+      const remainingSeconds = Math.floor(remainingMs / 1000);
+
       return res.render('user/otp', {
-        error: 'Invalid or expired OTP', purpose: 'changeEmail', email: stored.newEmail, expiresIn: Math.max(0, Math.floor((stored.expires - Date.now()) / 1000))
+        error: 'Invalid or expired OTP',
+        purpose: 'changeEmail',
+        email: stored.newEmail,
+        expiresIn: remainingSeconds
       });
     }
 
@@ -918,12 +1055,95 @@ const saveNewEmail = async (req, res) => {
   }
 };
 
+const resendForgotPasswordOtp = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    const user = await User.findOne({ email }) || await TempUser.findOne({ email });
+    if (!user) {
+      return res.redirect('/forgot-password');
+    }
+
+    const otp = generateOTP();
+    const otpExpires = Date.now() + 5 * 60 * 1000;
+    console.log("Generated OTP:", otp);
+
+    await PasswordReset.updateOne(
+      { email },
+      { $set: { otp, otpExpires } },
+      { upsert: true }
+    );
+
+    await sendOTP(email, otp);
+
+    // Calculate remaining time (5 minutes = 300 seconds)
+    const remainingSeconds = 300;
+
+    res.render("user/otp", {
+      email,
+      error: null,
+      expiresIn: remainingSeconds,
+      purpose: "reset"
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
+  }
+};
+
+const resendChangeEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.query;
+    const userId = req.user?._id || req.user?.id;
+
+    if (!userId) {
+      return res.redirect('/profile');
+    }
+
+    // Check if user is a Google OAuth user
+    const user = await User.findById(userId);
+    if (user && user.googleId && !user.password) {
+      return res.render('user/change-email', {
+        error: 'Email change is not available for Google-authenticated accounts.'
+      });
+    }
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 5 * 60 * 1000;
+    otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
+
+    // Calculate remaining time (5 minutes = 300 seconds)
+    const remainingSeconds = 300;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Change Email OTP',
+      text: `Your OTP is ${otp}. It will expire in 5 minutes.`
+    });
+
+    console.log(`OTP for ${email} is ${otp}`);
+
+    res.render('user/otp', {
+      error: null,
+      purpose: 'changeEmail',
+      email,
+      expiresIn: remainingSeconds
+    });
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error resending OTP');
+  }
+};
+
 
 module.exports = {
   signup,
   getVerifyOtp,
   postVerifyOtp,
   resendOtp,
+  resendForgotPasswordOtp,
+  resendChangeEmailOtp,
   login,
   logout,
   loadHomePage,

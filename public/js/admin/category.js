@@ -1,327 +1,238 @@
-// admin/category.js - Handles add/edit category with Fetch API for admin panel
+// admin/category.js — category management with Cloudinary image upload
+
 document.addEventListener('DOMContentLoaded', function () {
-  // Add Category
-const addCategoryForm = document.getElementById('addCategoryForm');
-if (addCategoryForm) {
-  addCategoryForm.onsubmit = async function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Add category form submitted');
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    try {
-      // Disable submit button and show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
-      
-      // Get form data
-      const formData = new FormData(this);
-      const data = {
-        name: formData.get('name'),
-        description: formData.get('description')
+
+  // ── CLOUDINARY UPLOAD (same as products) ────────────
+  async function uploadToCloudinary(file) {
+    const sigRes = await fetch('/admin/cloudinary-signature');
+    const sigData = await sigRes.json();
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', sigData.apiKey);
+    formData.append('timestamp', sigData.timestamp);
+    formData.append('signature', sigData.signature);
+    formData.append('folder', sigData.folder);
+
+    const uploadRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+    const uploadData = await uploadRes.json();
+
+    if (uploadData.secure_url) return uploadData.secure_url;
+    throw new Error('Cloudinary upload failed: ' + (uploadData.error?.message || 'unknown error'));
+  }
+
+  // ── IMAGE PREVIEW ────────────────────────────────────
+  function setupPreview(inputId, previewImgId, previewWrapperId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowed.includes(file.type)) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Only JPEG, PNG, GIF or WebP allowed.' });
+        this.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Image must be under 5MB.' });
+        this.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById(previewImgId).src = e.target.result;
+        document.getElementById(previewWrapperId).style.display = 'block';
       };
-      console.log('Form data:', data);
+      reader.readAsDataURL(file);
+    });
+  }
 
-      // Validate input
-      const categoryName = data.name.trim();
-      
-      if (!categoryName) {
-        console.error('Validation failed: Category name is required');
-        throw new Error('Category name is required');
-      }
-      
-      // Check minimum and maximum length
-      if (categoryName.length < 3) {
-        console.error('Validation failed: Category name is too short');
-        throw new Error('Category name must be at least 3 characters long');
-      }
-      
-      if (categoryName.length > 50) {
-        console.error('Validation failed: Category name is too long');
-        throw new Error('Category name cannot exceed 50 characters');
-      }
-      
-      // Check if name starts with space
-      if (data.name !== categoryName) {
-        console.error('Validation failed: Category name cannot start or end with spaces');
-        throw new Error('Category name cannot start or end with spaces');
-      }
-      
-      // Check for numbers, underscores, or special characters (only allow letters, spaces, and hyphens)
-      const invalidChars = /[0-9_!@#$%^&*()\[\]{};:'"\\|<>\/=+]/;
-      if (invalidChars.test(categoryName)) {
-        console.error('Validation failed: Category name contains invalid characters');
-        throw new Error('Category name can only contain letters, spaces, and hyphens');
-      }
-      
-      // Check for consecutive spaces or hyphens
-      if (/\s{2,}|-{2,}/.test(categoryName)) {
-        console.error('Validation failed: Category name contains consecutive spaces or hyphens');
-        throw new Error('Category name cannot contain consecutive spaces or hyphens');
-      }
+  setupPreview('addCategoryImage', 'addPreviewImg', 'addImagePreview');
+  setupPreview('editCategoryImage', 'editPreviewImg', 'editImagePreview');
 
-      console.log('Sending request to /admin/categories/add');
-      const response = await fetch('/admin/categories/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const responseData = await response.json().catch(() => ({
-        success: false,
-        message: 'Invalid server response'
-      }));
-
-      if (response.ok && responseData.success) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: responseData.message || 'Category added successfully',
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-        window.location.reload();
-      } else {
-        throw new Error(responseData.message || 'Failed to add category');
-      }
-    } catch (error) {
-      console.error('Add category error:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to add category. Please try again.',
-        confirmButtonText: 'OK'
-      });
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-      }
+  // ── HELPERS ──────────────────────────────────────────
+  function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
+    if (!btn) return;
+    if (isLoading) {
+      btn.dataset.originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalText || 'Submit';
     }
-  };
-}
+  }
 
-  // Edit Category
-const editCategoryForm = document.getElementById('editCategoryForm');
-if (editCategoryForm) {
-  editCategoryForm.onsubmit = async function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Edit category form submitted');
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    
-    try {
-      // Disable submit button and show loading state
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-      
-      // Get form data
-      const formData = new FormData(this);
-      const categoryId = formData.get('categoryId');
-      const data = {
-        name: formData.get('name'),
-        description: formData.get('description')
-      };
-      console.log('Edit form data:', { categoryId, ...data });
+  function validateCategoryName(name) {
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error('Category name is required');
+    if (trimmed.length < 3) throw new Error('Category name must be at least 3 characters long');
+    if (trimmed.length > 50) throw new Error('Category name cannot exceed 50 characters');
+    if (name !== trimmed) throw new Error('Category name cannot start or end with spaces');
+    const invalidChars = /[0-9_!@#$%^&*()\[\]{};:'"\\|<>\/=+]/;
+    if (invalidChars.test(trimmed)) throw new Error('Category name can only contain letters, spaces, and hyphens');
+    if (/\s{2,}|-{2,}/.test(trimmed)) throw new Error('Category name cannot contain consecutive spaces or hyphens');
+    return trimmed;
+  }
 
-      // Validate input
-      const categoryName = data.name.trim();
-      
-      if (!categoryName) {
-        console.error('Validation failed: Category name is required');
-        throw new Error('Category name is required');
-      }
-      
-      // Check minimum and maximum length
-      if (categoryName.length < 3) {
-        console.error('Validation failed: Category name is too short');
-        throw new Error('Category name must be at least 3 characters long');
-      }
-      
-      if (categoryName.length > 50) {
-        console.error('Validation failed: Category name is too long');
-        throw new Error('Category name cannot exceed 50 characters');
-      }
-      
-      // Check if name starts with space
-      if (data.name !== categoryName) {
-        console.error('Validation failed: Category name cannot start or end with spaces');
-        throw new Error('Category name cannot start or end with spaces');
-      }
-      
-      // Check for numbers, underscores, or special characters (only allow letters, spaces, and hyphens)
-      const invalidChars = /[0-9_!@#$%^&*()\[\]{};:'"\\|<>\/=+]/;
-      if (invalidChars.test(categoryName)) {
-        console.error('Validation failed: Category name contains invalid characters');
-        throw new Error('Category name can only contain letters, spaces, and hyphens');
-      }
-      
-      // Check for consecutive spaces or hyphens
-      if (/\s{2,}|-{2,}/.test(categoryName)) {
-        console.error('Validation failed: Category name contains consecutive spaces or hyphens');
-        throw new Error('Category name cannot contain consecutive spaces or hyphens');
-      }
-      
-      if (!categoryId) {
-        console.error('Validation failed: Category ID is missing');
-        throw new Error('Category ID is missing');
-      }
-      
-      console.log(`Sending request to /admin/categories/edit/${categoryId}`);
-      const response = await fetch(`/admin/categories/edit/${categoryId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify(data)
-      });
+  // ── ADD CATEGORY ─────────────────────────────────────
+  const addCategoryForm = document.getElementById('addCategoryForm');
+  if (addCategoryForm) {
+    addCategoryForm.onsubmit = async function (e) {
+      e.preventDefault();
+      const submitBtn = this.querySelector('button[type="submit"]');
 
-      const responseData = await response.json().catch(() => ({
-        success: false,
-        message: 'Invalid server response'
-      }));
+      try {
+        const name = validateCategoryName(document.getElementById('categoryName').value);
+        const description = document.getElementById('categoryDescription').value.trim();
+        const imageFile = document.getElementById('addCategoryImage').files[0];
 
-      if (response.ok && responseData.success) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: responseData.message || 'Category updated successfully',
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false
+        if (!imageFile) throw new Error('Please select a category image');
+
+        setButtonLoading(submitBtn, true, 'Uploading image...');
+        const imageUrl = await uploadToCloudinary(imageFile);
+
+        setButtonLoading(submitBtn, true, 'Adding...');
+        const response = await fetch('/admin/categories/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify({ name, description, image: imageUrl })
         });
-        window.location.reload();
+
+        const data = await response.json().catch(() => ({ success: false, message: 'Invalid server response' }));
+        if (response.ok && (data.success || data.message)) {
+          await Swal.fire({ icon: 'success', title: 'Success!', text: data.message || 'Category added successfully', timer: 1500, timerProgressBar: true, showConfirmButton: false });
+          window.location.reload();
+        } else {
+          throw new Error(data.message || 'Failed to add category');
+        }
+      } catch (error) {
+        await Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to add category.', confirmButtonText: 'OK' });
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    };
+  }
+
+  // ── EDIT CATEGORY ────────────────────────────────────
+  const editCategoryForm = document.getElementById('editCategoryForm');
+  if (editCategoryForm) {
+    editCategoryForm.onsubmit = async function (e) {
+      e.preventDefault();
+      const submitBtn = this.querySelector('button[type="submit"]');
+
+      try {
+        const categoryId = document.getElementById('editCategoryId').value;
+        const name = validateCategoryName(document.getElementById('editCategoryName').value);
+        const description = document.getElementById('editCategoryDescription').value.trim();
+        const imageFile = document.getElementById('editCategoryImage').files[0];
+
+        const payload = { name, description };
+
+        if (imageFile) {
+          setButtonLoading(submitBtn, true, 'Uploading image...');
+          payload.image = await uploadToCloudinary(imageFile);
+        }
+
+        setButtonLoading(submitBtn, true, 'Saving...');
+        const response = await fetch(`/admin/categories/edit/${categoryId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json().catch(() => ({ success: false, message: 'Invalid server response' }));
+        if (response.ok && (data.success || data.message)) {
+          await Swal.fire({ icon: 'success', title: 'Success!', text: data.message || 'Category updated successfully', timer: 1500, timerProgressBar: true, showConfirmButton: false });
+          window.location.reload();
+        } else {
+          throw new Error(data.message || 'Failed to update category');
+        }
+      } catch (error) {
+        await Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to update category.', confirmButtonText: 'OK' });
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    };
+  }
+
+  // ── EDIT BUTTON — populate modal ─────────────────────
+  document.querySelectorAll('.edit-category-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.getElementById('editCategoryId').value = this.getAttribute('data-category-id');
+      document.getElementById('editCategoryName').value = this.getAttribute('data-category-name') || '';
+      document.getElementById('editCategoryDescription').value = this.getAttribute('data-category-description') || '';
+
+      const categoryImage = this.getAttribute('data-category-image');
+      const currentImgWrap = document.getElementById('editCurrentImageWrap');
+      const currentImg = document.getElementById('editCurrentImg');
+      if (categoryImage) {
+        currentImg.src = categoryImage;
+        currentImgWrap.style.display = 'block';
       } else {
-        throw new Error(responseData.message || 'Failed to update category');
+        currentImgWrap.style.display = 'none';
       }
-    } catch (error) {
-      console.error('Update category error:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to update category. Please try again.',
-        confirmButtonText: 'OK'
-      });
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-      }
-    }
-  };
-}
 
-// Helper for edit modal
-function openEditModal(id, categoryName, description) {
-  document.getElementById('editCategoryId').value = id;
-  document.getElementById('editCategoryName').value = categoryName || '';
-  document.getElementById('editCategoryDescription').value = description || '';
-  new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
-}
+      // Reset new image input + preview
+      document.getElementById('editCategoryImage').value = '';
+      document.getElementById('editImagePreview').style.display = 'none';
 
-window.openEditModal = openEditModal;
-
-// Handle Edit Button Click
-document.querySelectorAll('.edit-category-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const categoryId = this.getAttribute('data-category-id');
-    const categoryName = this.getAttribute('data-category-name');
-    const categoryDescription = this.getAttribute('data-category-description');
-    
-    // Set values in the edit form
-    document.getElementById('editCategoryId').value = categoryId;
-    document.getElementById('editCategoryName').value = categoryName || '';
-    document.getElementById('editCategoryDescription').value = categoryDescription || '';
-    
-    // Show the modal
-    const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
-    editModal.show();
+      new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+    });
   });
-});
 
-// Handle Block/Unblock buttons
-document.querySelectorAll('.block-category-btn').forEach(btn => {
-  btn.addEventListener('click', async function() {
-    const categoryId = this.getAttribute('data-category-id');
-    const isBlocked = this.getAttribute('data-blocked') === 'true';
-    const action = isBlocked ? 'unblock' : 'block';
-    const actionText = isBlocked ? 'Unblock' : 'Block';
-    const buttonText = this.innerHTML;
-    
-    try {
-      this.disabled = true;
-      this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-      
-      const result = await Swal.fire({
-        title: `Are you sure?`,
-        text: `You are about to ${action} this category!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: `Yes, ${action} it!`,
-        cancelButtonText: 'No, cancel!',
-        reverseButtons: true,
-        showLoaderOnConfirm: true,
-        preConfirm: async () => {
-          try {
-            const response = await fetch(`/admin/categories/${action}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              body: JSON.stringify({ id: categoryId })
-            });
-            
-            if (!response.ok) {
-              const error = await response.json().catch(() => ({}));
-              throw new Error(error.message || `Failed to ${action} category`);
+  // ── BLOCK / UNBLOCK ───────────────────────────────────
+  document.querySelectorAll('.block-category-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const categoryId = this.getAttribute('data-category-id');
+      const isBlocked = this.getAttribute('data-blocked') === 'true';
+      const action = isBlocked ? 'unblock' : 'block';
+      const actionText = isBlocked ? 'Unblock' : 'Block';
+
+      try {
+        setButtonLoading(this, true, 'Processing...');
+
+        const result = await Swal.fire({
+          title: `${actionText} Category`,
+          text: `Are you sure you want to ${action} this category?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: `Yes, ${actionText}`,
+          cancelButtonText: 'Cancel',
+          reverseButtons: true,
+          showLoaderOnConfirm: true,
+          preConfirm: async () => {
+            try {
+              const response = await fetch(`/admin/categories/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ id: categoryId })
+              });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok) throw new Error(data.message || `Failed to ${action} category`);
+              return data;
+            } catch (error) {
+              Swal.showValidationMessage(`Request failed: ${error.message}`);
+              return false;
             }
-            
-            return response.json();
-          } catch (error) {
-            Swal.showValidationMessage(`Request failed: ${error.message}`);
-            return null;
-          }
-        },
-        allowOutsideClick: () => !Swal.isLoading()
-      });
-
-      if (result.isConfirmed) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: `Category ${action}ed successfully`,
-          timer: 1500,
-          timerProgressBar: true,
-          showConfirmButton: false
+          },
+          allowOutsideClick: () => !Swal.isLoading()
         });
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error('Category action error:', error);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error.message || 'Failed to perform action on category. Please try again.',
-        confirmButtonText: 'OK'
-      });
-    } finally {
-      if (this) {
-        this.disabled = false;
-        this.innerHTML = buttonText;
-      }
-    }
-  });
-});
 
-// Close the DOMContentLoaded event listener
+        if (result.isConfirmed) {
+          await Swal.fire({ icon: 'success', title: 'Success!', text: `Category ${action}ed successfully`, timer: 1500, timerProgressBar: true, showConfirmButton: false });
+          window.location.reload();
+        }
+      } catch (error) {
+        await Swal.fire({ icon: 'error', title: 'Error', text: error.message || `Failed to ${action} category.`, confirmButtonText: 'OK' });
+      } finally {
+        setButtonLoading(this, false);
+      }
+    });
+  });
+
 });

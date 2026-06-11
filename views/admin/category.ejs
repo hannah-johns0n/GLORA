@@ -13,6 +13,7 @@
     <table class="table table-hover table-bordered mt-3">
       <thead class="table-dark">
         <tr>
+          <th scope="col">Image</th>
           <th scope="col">Category Name</th>
           <th scope="col">Description</th>
           <th scope="col">Status</th>
@@ -23,29 +24,40 @@
       <tbody>
         <% categories.forEach(category => { %>
         <tr data-category-id="<%= category._id %>">
-          <td class="category-name"><%= category.categoryName %></td>
-          <td class="category-description"><%= category.description || 'No description available' %></td>
           <td>
+            <% if (category.image) { %>
+              <img src="<%= category.image %>" alt="<%= category.categoryName %>"
+                   style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
+            <% } else { %>
+              <div style="width:48px;height:48px;background:#f0ebe3;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-image" style="color:#bbb;font-size:1.2rem;"></i>
+              </div>
+            <% } %>
+          </td>
+          <td class="category-name align-middle"><%= category.categoryName %></td>
+          <td class="category-description align-middle"><%= category.description || 'No description available' %></td>
+          <td class="align-middle">
             <span class="badge rounded-pill <%= category.isBlocked ? 'bg-danger' : 'bg-success' %> px-3 py-2" style="font-size: 0.9rem;">
               <i class="bi <%= category.isBlocked ? 'bi-x-circle-fill' : 'bi-check-circle-fill' %>"></i>
               <%= category.isBlocked ? 'Blocked' : 'Active' %>
             </span>
           </td>
-          <td>
-            <button type="button" 
-                    class="btn <%= category.isBlocked ? 'btn-success' : 'btn-danger' %> btn-sm block-category-btn" 
-                    data-category-id="<%= category._id %>" 
+          <td class="align-middle">
+            <button type="button"
+                    class="btn <%= category.isBlocked ? 'btn-success' : 'btn-danger' %> btn-sm block-category-btn"
+                    data-category-id="<%= category._id %>"
                     data-blocked="<%= category.isBlocked %>">
               <i class="bi <%= category.isBlocked ? 'bi-unlock' : 'bi-lock' %> me-1"></i>
               <%= category.isBlocked ? 'Unblock' : 'Block' %>
             </button>
           </td>
-          <td>
-            <button type="button" 
+          <td class="align-middle">
+            <button type="button"
                     class="btn btn-info btn-sm edit-category-btn"
                     data-category-id="<%= category._id %>"
                     data-category-name="<%= category.categoryName %>"
-                    data-category-description="<%= category.description %>">
+                    data-category-description="<%= category.description %>"
+                    data-category-image="<%= category.image || '' %>">
               <i class="bi bi-pencil-square me-1"></i> Edit
             </button>
           </td>
@@ -54,21 +66,19 @@
       </tbody>
     </table>
 
-<nav aria-label="Page navigation">
+    <nav aria-label="Page navigation">
       <ul class="pagination justify-content-center">
-        <% for (let i=1; i <=totalPages; i++) { %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
           <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-            <a class="page-link" href="?page=<%= i %>">
-              <%= i %>
-            </a>
+            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
           </li>
-          <% } %>
+        <% } %>
       </ul>
     </nav>
-
   </div>
 </main>
 
+<!-- ── ADD CATEGORY MODAL ─────────────────────────────── -->
 <div class="modal fade" id="addCategoryModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -79,12 +89,20 @@
       <form id="addCategoryForm">
         <div class="modal-body">
           <div class="mb-3">
-            <label for="categoryName" class="form-label">Category Name</label>
+            <label for="categoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="categoryName" name="name" required>
           </div>
           <div class="mb-3">
             <label for="categoryDescription" class="form-label">Description</label>
             <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="addCategoryImage" class="form-label">Category Image <span class="text-danger">*</span></label>
+            <input type="file" class="form-control" id="addCategoryImage" name="image" accept="image/*" required>
+            <div id="addImagePreview" class="mt-2" style="display:none;">
+              <img id="addPreviewImg" src="" alt="Preview"
+                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -96,6 +114,7 @@
   </div>
 </div>
 
+<!-- ── EDIT CATEGORY MODAL ────────────────────────────── -->
 <div class="modal fade" id="editCategoryModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -107,12 +126,27 @@
         <input type="hidden" id="editCategoryId" name="categoryId">
         <div class="modal-body">
           <div class="mb-3">
-            <label for="editCategoryName" class="form-label">Category Name</label>
+            <label for="editCategoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="editCategoryName" name="name" required>
           </div>
           <div class="mb-3">
             <label for="editCategoryDescription" class="form-label">Description</label>
             <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editCategoryImage" class="form-label">Category Image</label>
+            <div id="editCurrentImageWrap" class="mb-2" style="display:none;">
+              <p class="text-muted mb-1" style="font-size:12px;">Current image:</p>
+              <img id="editCurrentImg" src="" alt="Current"
+                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            </div>
+            <input type="file" class="form-control" id="editCategoryImage" name="image" accept="image/*">
+            <small class="text-muted">Leave empty to keep the current image</small>
+            <div id="editImagePreview" class="mt-2" style="display:none;">
+              <p class="text-muted mb-1" style="font-size:12px;">New image preview:</p>
+              <img id="editPreviewImg" src="" alt="Preview"
+                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -127,106 +161,4 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/admin/category.js"></script>
 
-<style>
-  .table {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
 
-  .table thead th {
-    background-color: #343a40;
-    color: white;
-    font-weight: 500;
-    text-align: center;
-    vertical-align: middle;
-    border-bottom: 2px solid #454d55;
-  }
-
-  .table td {
-    vertical-align: middle;
-    text-align: center;
-  }
-
-  .btn-info {
-    background-color: #17a2b8;
-    border-color: #17a2b8;
-    color: white;
-  }
-
-  .btn-info:hover {
-    background-color: #138496;
-    border-color: #117a8b;
-    color: white;
-  }
-
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .modal-content {
-    border: none;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  }
-
-  .modal-header {
-    border-bottom: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    border-radius: 0.5rem 0.5rem 0 0;
-  }
-
-  .modal-footer {
-    border-top: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    border-radius: 0 0 0.5rem 0.5rem;
-  }
-
-  .form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
-  }
-
-  .badge {
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    padding: 0.35em 0.65em;
-  }
-
-  .badge.bg-success {
-    background-color: #198754 !important;
-  }
-
-  .badge.bg-danger {
-    background-color: #dc3545 !important;
-  }
-
-  .category-name {
-    font-weight: 500;
-  }
-
-  .category-description {
-    color: #6c757d;
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 768px) {
-    .table-responsive {
-      border: 1px solid #dee2e6;
-      border-radius: 0.25rem;
-      overflow-x: auto;
-    }
-    
-    .btn-sm {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
-    }
-
-    .category-description {
-      max-width: 150px;
-    }
-  }
-</style>

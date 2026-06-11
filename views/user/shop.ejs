@@ -1,839 +1,696 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop - GLORA</title>
-  <link rel="stylesheet" href="/styles/bootstrap4/bootstrap.min.css">
-  <link rel="stylesheet" href="/styles/main_styles.css">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap"
-    rel="stylesheet">
+  <title>Shop — GLORA</title>
+  <%- include('../partials/user/header', { userName: userName, url: url }) %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    :root {
-      --primary-color: #2c1810;
-      --secondary-color: #8b4513;
-      --accent-color: #d4af37;
-      --text-primary: #1a1a1a;
-      --text-secondary: #666666;
-      --text-muted: #999999;
-      --bg-light: #fafbfc;
-      --bg-white: #ffffff;
-      --border-light: #e8ecef;
-      --shadow-light: 0 2px 12px rgba(0, 0, 0, 0.04);
-      --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
-      --shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.12);
-      --gradient-primary: linear-gradient(135deg, #2c1810 0%, #4a2c1a 100%);
-      --gradient-secondary: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
+    /* ── BASE ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: var(--bg-light);
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-      color: var(--text-primary);
-      overflow-x: hidden;
+      background: #FAF7F4;
+      font-family: 'Poppins', sans-serif;
+      color: #1A1A1A;
     }
 
-    .header {
-      height: 70px;
-      background: var(--bg-white);
-      box-shadow: var(--shadow-light);
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 1000;
+    /* ── SHOP HERO BANNER ────────────────────────────── */
+    .shop-banner {
+      background: #1A1A1A;
+      padding: 30px 0 25px;
+      text-align: center;
+      margin-top: 65px;
     }
 
-    .header_inner {
-      padding: 8px 30px !important;
+    .shop-banner__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #efc380;
+      margin-bottom: 10px;
     }
 
-    .container-fluid {
-      margin-top: 90px;
-      padding: 0 30px;
+    .shop-banner__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(36px, 5vw, 60px);
+      font-weight: 600;
+      color: #FAF7F4;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
     }
 
-    /* Search Bar Enhancement */
-    .search-bar-container {
-      margin-bottom: 40px;
-      position: relative;
+    .shop-banner__title em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    /* ── SEARCH BAR ──────────────────────────────────── */
+    .glora-search-wrap {
+      background: #FAF7F4;
+      padding: 15px 40px 0;
       display: flex;
       justify-content: center;
     }
 
-    .search-bar-container input {
-      max-width: 600px;
+    .glora-search {
+      position: relative;
       width: 100%;
-      padding: 16px 50px 16px 20px;
-      border-radius: 50px;
-      border: 2px solid var(--border-light);
-      background: var(--bg-white);
-      box-shadow: var(--shadow-light);
-      font-size: 16px;
-      transition: all 0.3s ease;
+      max-width: 560px;
+    }
+
+    .glora-search input {
+      width: 100%;
+      padding: 14px 48px 14px 20px;
+      border: 1.5px solid #E0D8D0;
+      border-radius: 2px;
+      background: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: #1A1A1A;
       outline: none;
+      transition: border-color 0.2s ease;
     }
 
-    .search-bar-container input:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(44, 24, 16, 0.1);
-      transform: translateY(-2px);
-    }
+    .glora-search input::placeholder { color: #aaa; }
+    .glora-search input:focus { border-color: #8B1A1A; }
 
-    .search-bar-container::after {
-      content: '\1F50D';
+    .glora-search__icon {
       position: absolute;
-      right: calc(50% - 280px);
+      right: 16px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 18px;
-      color: var(--text-muted);
+      color: #999;
+      font-size: 14px;
       pointer-events: none;
     }
 
-    /* Sidebar Styling */
-    aside .card {
-      background: var(--bg-white);
-      box-shadow: var(--shadow-medium);
-      border: none;
-      border-radius: 20px;
-      overflow: hidden;
-      position: sticky;
-      top: 110px;
+    .glora-shop-layout {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 20px 40px 80px;
+      align-items: start;
     }
 
-    aside .card .card-body {
-      padding: 30px;
+    /* ── SIDEBAR ─────────────────────────────────────── */
+    .glora-sidebar {
+      top: 50px;
+      padding-right: 36px;
+      border-right: 2px solid #E0D8D0;
     }
 
-    aside h5 {
-      font-family: 'Playfair Display', serif;
-      font-weight: 600;
-      color: var(--primary-color);
+    .glora-sidebar__section {
       margin-bottom: 20px;
-      font-size: 20px;
-      position: relative;
+    }
+
+    .glora-sidebar__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 25px;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 16px;
       padding-bottom: 10px;
+      border-bottom: 1px solid #E0D8D0;
+      letter-spacing: 0.2px;
     }
 
-    aside h5::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 40px;
-      height: 3px;
-      background: var(--gradient-primary);
-      border-radius: 2px;
+    .glora-cat-list {
+      list-style: none;
     }
 
-    #categoryList {
-      border: none;
-      margin-bottom: 35px;
+    .glora-cat-list li {
+      margin-bottom: 4px;
     }
 
-    #categoryList .list-group-item {
-      border: none;
-      padding: 12px 20px;
-      margin-bottom: 8px;
-      border-radius: 12px;
-      background: var(--gradient-secondary);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #categoryList .list-group-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      color: #1a1a1a;
-      /* background: var(--gradient-primary); */
-      transition: left 0.3s ease;
-      z-index: 0;
-    }
-
-    #categoryList .list-group-item a {
-      position: relative;
-      z-index: 1;
+    .glora-cat-list a {
+      display: block;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
       text-decoration: none;
-      color: #1a1a1a;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-
-    #categoryList .list-group-item:hover {
-      transform: translateX(5px);
-      box-shadow: var(--shadow-light);
-    }
-
-    #categoryList .list-group-item:hover::before {
-      left: 0;
-    }
-
-    #categoryList .list-group-item:hover a {
-      color: var(--bg-black);
-    }
-
-    #categoryList .list-group-item.active {
-      background: var(--gradient-primary) !important;
-      transform: translateX(5px);
-      box-shadow: var(--shadow-medium);
-    }
-
-    #categoryList .list-group-item.active::before {
-      left: 0;
-    }
-
-    #categoryList .list-group-item.active a {
-      color: var(--bg-white) !important;
-      font-weight: 600;
-    }
-
-    /* Form Elements */
-    .form-select,
-    .form-control {
-      border: 2px solid var(--border-light);
-      border-radius: 12px;
-      padding: 12px 16px;
-      background: var(--bg-white);
-      transition: all 0.3s ease;
-      font-weight: 500;
-    }
-
-    .form-select:focus,
-    .form-control:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(44, 24, 16, 0.1);
-      outline: none;
-    }
-
-    .btn-outline-primary {
-      background: var(--gradient-primary);
-      border: none;
-      color: var(--bg-white);
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
+      border-left: 2px solid transparent;
+      transition: all 0.2s ease;
     }
 
-    .btn-outline-primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #4a2c1a 0%, #2c1810 100%);
-      transition: left 0.3s ease;
-      z-index: 0;
+    .glora-cat-list a:hover {
+      color: #8B1A1A;
+      border-left-color: #8B1A1A;
+      padding-left: 16px;
     }
 
-    .btn-outline-primary span {
-      position: relative;
-      z-index: 1;
-    }
-
-    .btn-outline-primary:hover::before {
-      left: 0;
-    }
-
-    .btn-outline-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-medium);
-    }
-
-    /* Product Grid */
-    .product-card {
-      background: var(--bg-white);
-      border-radius: 10px;
-      box-shadow: var(--shadow-light);
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      height: 100%;
-      text-align: center;
-      position: relative;
-      border: 1px solid transparent;
-    }
-
-    .product-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(44, 24, 16, 0.1) 100%);
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-
-
-    .product-card:hover {
-      transform: translateY(-12px) scale(1.02);
-      box-shadow: var(--shadow-heavy);
-      border-color: var(--accent-color);
-    }
-
-    .product-card:hover::before {
-      content: none;
-    }
-
-    .product-image-container {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      padding: 5px;
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .product-image {
-      max-width: 95%;
-      max-height: 95%;
-      object-fit: cover;
-      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      border-radius: 12px;
-    }
-
-    .product-card:hover .product-image {
-      transform: scale(1.1) rotate(2deg);
-    }
-
-    .wishlist-icon {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 20px;
-      cursor: pointer;
-      color: #ff6b7a;
-      background: rgba(255, 255, 255, 0.95);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: var(--shadow-light);
-      z-index: 2;
-      border: 2px solid transparent;
-      outline: none;
-      padding: 0;
-      margin: 0;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(10px);
-    }
-
-    .wishlist-icon:hover {
-      transform: scale(1.1);
-      background: #ff6b7a;
-      color: white;
-      box-shadow: var(--shadow-medium);
-    }
-
-    .wishlist-icon.active {
-      background: #ff6b7a;
-      color: white;
-      border-color: #ff6b7a;
-    }
-
-    .product-card .p-2 {
-      padding: 15px 12px !important;
-      position: relative;
-      z-index: 2;
-    }
-
-    .product-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
+    .glora-cat-list li.active a {
+      color: #8B1A1A;
+      border-left-color: #8B1A1A;
       font-weight: 600;
-      margin: 0 0 12px 0;
-      min-height: 35px;
-      color: var(--text-primary);
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      padding-left: 16px;
     }
 
-    .product-price {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 10px;
+    .glora-select {
+      width: 100%;
+      padding: 10px 10px;
+      border: 1.5px solid #E0D8D0;
+      border-radius: 2px;
+      background: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      color: #1A1A1A;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .glora-select:focus { border-color: #8B1A1A; }
+
+    .glora-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  overflow: hidden;
+}
+
+    .glora-price-row input {
+      flex: 1;
+      min-width: 0;        
+      padding: 10px 8px;  
+      border: 1.5px solid #E0D8D0;
+      border-radius: 2px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .glora-price-row input:focus { border-color: #8B1A1A; }
+    .glora-price-row span { color: #aaa; font-size: 13px; }
+
+    .glora-apply-btn {
+      width: 100%;
+      padding: 11px;
+      background: #1A1A1A;
+      color: #fff;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .glora-apply-btn:hover { background: #8B1A1A; }
+
+    /* ── PRODUCT GRID ────────────────────────────────── */
+    .glora-grid-wrap {
+      padding-left: 36px;
+    }
+
+    .glora-grid-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #E0D8D0;
+    }
+
+    .glora-grid-header__count {
+      font-size: 12px;
+      color: #999;
       letter-spacing: 0.5px;
     }
 
-    .original-price {
-      text-decoration: line-through;
-      font-size: 16px;
-      color: var(--text-muted);
-      margin-left: 8px;
-      font-weight: 500;
+    .glora-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
     }
 
-    .btn-view-details {
-      background: var(--gradient-primary);
-      color: var(--bg-white);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 8px 20px;
-      border-radius: 25px;
-      display: inline-block;
-      margin-top: 12px;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+    /* ── PRODUCT CARD ────────────────────────────────── */
+    .glora-card {
+      background: #fff;
+      border-radius: 2px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       position: relative;
+    }
+
+    .glora-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+    }
+
+    .glora-card__img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #F0EBE3;
       overflow: hidden;
     }
 
-    .btn-view-details::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
+    .glora-card__img-wrap img {
       width: 100%;
       height: 100%;
-      background: #4a2c1a;
-      transition: left 0.3s ease;
-      z-index: 0;
+      object-fit: cover;
+      transition: transform 0.4s ease;
     }
 
-    .btn-view-details span {
-      position: relative;
-      z-index: 1;
+    .glora-card:hover .glora-card__img-wrap img {
+      transform: scale(1.06);
     }
 
-    .btn-view-details:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-medium);
-      color: var(--bg-white);
+    /* wishlist */
+    .glora-wishlist-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+
+    .glora-wishlist-btn i { font-size: 14px; color: #aaa; transition: color 0.2s ease; }
+    .glora-wishlist-btn:hover { background: #fff; transform: scale(1.1); }
+    .glora-wishlist-btn:hover i { color: #8B1A1A; }
+    .glora-wishlist-btn.active i { color: #8B1A1A; }
+    .glora-wishlist-btn.active { background: #fff; }
+
+    .glora-card__body {
+      padding: 16px 16px 20px;
+    }
+
+    .glora-card__name {
+      font-size: 13px;
+      font-weight: 500;
+      color: #1A1A1A;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .glora-card__price {
+      font-size: 14px;
+      font-weight: 600;
+      color: #8B1A1A;
+      margin-bottom: 14px;
+    }
+
+    .glora-card__price .original {
+      font-size: 12px;
+      font-weight: 400;
+      color: #bbb;
+      text-decoration: line-through;
+      margin-left: 6px;
+    }
+
+    .glora-card__btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #1A1A1A;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      border: none;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .glora-card__btn:hover {
+      background: #8B1A1A;
+      color: #fff;
       text-decoration: none;
     }
 
-    .btn-view-details:hover::before {
-      left: 0;
+    /* ── EMPTY STATE ─────────────────────────────────── */
+    .glora-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
     }
 
-    /* Pagination */
-    .pagination {
-      list-style: none;
-      padding: 0;
+    .glora-empty i {
+      font-size: 3rem;
+      color: #D4A96A;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .glora-empty h3 {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .glora-empty p {
+      font-size: 13px;
+      color: #999;
+    }
+
+    /* ── PAGINATION ──────────────────────────────────── */
+    .glora-pagination {
       display: flex;
       justify-content: center;
-      gap: 12px;
-      margin-top: 50px;
+      gap: 8px;
+      margin-top: 48px;
+      list-style: none;
     }
 
-    .pagination li {
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: var(--shadow-light);
-      transition: all 0.3s ease;
-    }
-
-    .pagination li a {
-      color: var(--text-primary);
+    .glora-pagination li a,
+    .glora-pagination li span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1.5px solid #E0D8D0;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
       text-decoration: none;
-      font-weight: 600;
-      padding: 12px 20px;
-      display: block;
-      background: var(--bg-white);
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
 
-    .pagination li:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-medium);
+    .glora-pagination li a:hover {
+      border-color: #8B1A1A;
+      color: #8B1A1A;
     }
 
-    .pagination li:hover a {
-      background: var(--gradient-primary);
-      color: var(--bg-white);
+    .glora-pagination li.active a {
+      background: #1A1A1A;
+      border-color: #1A1A1A;
+      color: #fff;
     }
 
-    .pagination li.active {
-      background: var(--gradient-primary);
-      box-shadow: var(--shadow-medium);
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .glora-shop-layout {
+        grid-template-columns: 220px 1fr;
+        padding: 28px 24px 60px;
+      }
+      .glora-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    .pagination li.active a {
-      color: var(--bg-white);
-      background: transparent;
-    }
-
-    /* Price Range Inputs */
-    .d-flex.align-items-center {
-      gap: 12px;
-    }
-
-    .d-flex.align-items-center .form-control {
-      flex: 1;
-    }
-
-    .mx-1 {
-      color: var(--text-secondary);
-      font-weight: 600;
-      font-size: 18px;
-    }
-
-    /* Section Headers */
-    .section-header {
-      background: var(--gradient-primary);
-      margin: 0 -30px 40px -30px;
-      padding: 20px 30px;
-      color: var(--bg-white);
-    }
-
-    .section-header h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 32px;
-      margin: 0;
-      font-weight: 600;
-    }
-
-    /* Responsive Design */
     @media (max-width: 768px) {
-      .container-fluid {
-        padding: 0 15px;
-        margin-top: 80px;
+      .glora-shop-layout {
+        grid-template-columns: 1fr;
+        padding: 20px 16px 60px;
       }
-
-      .search-bar-container::after {
-        right: 25px;
+      .glora-sidebar {
+        position: static;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid #E0D8D0;
+        padding-bottom: 28px;
+        margin-bottom: 28px;
       }
-
-      .search-bar-container input {
-        max-width: 100%;
-      }
-
-      .product-card {
-        margin-bottom: 30px;
-      }
-
-      aside {
-        margin-bottom: 40px;
-      }
-
-      .product-image-container {
-        height: 200px;
-      }
-
-      .product-title {
-        font-size: 16px;
-        min-height: 40px;
-      }
+      .glora-grid-wrap { padding-left: 0; }
+      .glora-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .glora-search-wrap { padding: 24px 16px 0; }
     }
 
-    @media (max-width: 576px) {
-      .product-title {
-        font-size: 15px;
-      }
-
-      .product-price {
-        font-size: 18px;
-      }
-
-      .btn-view-details {
-        font-size: 13px;
-        padding: 10px 20px;
-      }
-    }
-
-    /* Loading Animation */
-    .loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .loading::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      margin: -10px 0 0 -10px;
-      border: 2px solid var(--primary-color);
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Smooth transitions for all interactive elements */
-    * {
-      transition: color 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    @media (max-width: 480px) {
+      .glora-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-
 <body>
 
-  <%- include('../partials/user/header', { userName: userName, url: url }) %>
+<!-- ── SHOP BANNER ────────────────────────────────────── -->
+<section class="shop-banner">
+  <p class="shop-banner__eyebrow">Curated for you</p>
+  <h1 class="shop-banner__title">The <em>Collection</em></h1>
+</section>
 
-    <div class="container-fluid py-4">
+<!-- ── SEARCH ─────────────────────────────────────────── -->
+<div class="glora-search-wrap">
+  <div class="glora-search">
+    <input type="text" id="searchInput" placeholder="Search products..." value="<%= search %>">
+    <i class="fas fa-search glora-search__icon"></i>
+  </div>
+</div>
 
-      <div class="search-bar-container mt-5 mb-4 text-center">
-        <input type="text" id="searchInput" placeholder="Discover amazing products...">
-      </div>
+<!-- ── MAIN LAYOUT ────────────────────────────────────── -->
+<div class="glora-shop-layout">
 
-      <div class="row">
-        <aside class="col-lg-3 mb-4 mb-lg-0">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="fw-bold mb-3">Categories</h5>
-              <ul class="list-group mb-4" id="categoryList">
-                <li class="list-group-item <%= selectedCategory === 'all' ? 'active' : '' %>">
-                  <a href="/shop?category=all">All Products</a>
-                </li>
-                <% categories.forEach(function(category) { %>
-                  <li class="list-group-item <%= selectedCategory === category.categoryName ? 'active' : '' %>">
-                    <a href="/shop?category=<%= category.categoryName %>">
-                      <%= category.categoryName %>
-                    </a>
-                  </li>
-                  <% }); %>
-              </ul>
+  <!-- SIDEBAR -->
+  <aside class="glora-sidebar">
 
-              <input type="hidden" name="category" value="<%= selectedCategory %>" />
-
-              <h5 class="fw-bold mb-3">Sort Products</h5>
-              <form method="get">
-                <select name="sort" class="form-select mb-4">
-                  <option value="">Default Sorting</option>
-                  <option value="az" <%=selectedSort==='az' ? 'selected' : '' %>>Name: A to Z</option>
-                  <option value="za" <%=selectedSort==='za' ? 'selected' : '' %>>Name: Z to A</option>
-                  <option value="priceLowHigh" <%=selectedSort==='priceLowHigh' ? 'selected' : '' %>>Price: Low to High
-                  </option>
-                  <option value="priceHighLow" <%=selectedSort==='priceHighLow' ? 'selected' : '' %>>Price: High to Low
-                  </option>
-                </select>
-
-                <h5 class="fw-bold mb-3">Price Range</h5>
-                <div class="d-flex align-items-center mb-4">
-                  <input type="number" name="minPrice" class="form-control" placeholder="Min" min="0"
-                    value="<%= minPrice %>">
-                  <span class="mx-1">—</span>
-                  <input type="number" name="maxPrice" class="form-control" placeholder="Max" min="0"
-                    value="<%= maxPrice %>">
-                </div>
-
-                <button type="submit" class="btn btn-outline-primary w-100">
-                  <span>Apply Filters</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        </aside>
-
-        <section class="col-lg-9">
-          <div class="row" id="productGrid">
-            <% products.forEach(product=> { %>
-              <div class="col-md-4 col-lg-3 mb-4">
-                <div class="product-card">
-                  <div class="product-image-container position-relative">
-                    <button class="wishlist-icon <%= product.inWishlist ? 'active' : '' %>"
-                      data-product-id="<%= product._id %>"
-                      title="<%= product.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
-                      <i class="<%= product.inWishlist ? 'fas' : 'far' %> fa-heart"></i>
-                    </button>
-
-                    <img
-                      src="<%= product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder-product.jpg' %>"
-  alt="<%= product.productName %>" class="product-image">
-                  </div>
-                  <div class="p-2">
-                    <h3 class="product-title">
-                      <%= product.productName %>
-                    </h3>
-                    <!-- ✅ Use var inside EJS scriptlet tags -->
-<%
-  var activeVariant = product.variants && product.variants.find(function(v) { return !v.isBlocked; });
-  var displaySale    = activeVariant ? activeVariant.salesPrice   : null;
-  var displayRegular = activeVariant ? activeVariant.regularPrice : null;
-%>
-                      <div class="product-price">
-                        <% if (displaySale !=null) { %>
-                          ₹<%= displaySale %>
-                            <% if (displayRegular && displayRegular> displaySale) { %>
-                              <span class="original-price">₹<%= displayRegular %></span>
-                              <% } %>
-                                <% } else { %>
-                                  <span class="text-muted">No price available</span>
-                                  <% } %>
-                      </div>
-                      <a href="/product/<%= product._id %>" class="btn-view-details">
-                        <span>View Details</span>
-                      </a>
-                  </div>
-                </div>
-              </div>
-              <% }); %>
-          </div>
-
-          <nav class="mt-4">
-            <ul class="pagination">
-              <% for (let i=1; i <=totalPages; i++) { %>
-                <li class="<%= i === currentPage ? 'active' : '' %>">
-                  <a
-                    href="?page=<%= i %>&category=<%= selectedCategory %>&sort=<%= sort %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>&search=<%= search %>">
-                    <%= i %>
-                  </a>
-                </li>
-                <% } %>
-            </ul>
-          </nav>
-        </section>
-      </div>
+    <div class="glora-sidebar__section">
+      <p class="glora-sidebar__title">Categories</p>
+      <ul class="glora-cat-list">
+        <li class="<%= selectedCategory === 'all' ? 'active' : '' %>">
+          <a href="javascript:void(0)" class="category-link" data-category="all">All Products</a>
+        </li>
+        <% categories.forEach(function(category) { %>
+        <li class="<%= selectedCategory === category.categoryName ? 'active' : '' %>">
+          <a href="javascript:void(0)" class="category-link" data-category="<%= category.categoryName %>">
+            <%= category.categoryName %>
+          </a>
+        </li>
+        <% }); %>
+      </ul>
     </div>
 
-    <%- include('../partials/user/footer') %>
+    <div class="glora-sidebar__section">
+      <p class="glora-sidebar__title">Sort By</p>
+      <select id="sortSelect" class="glora-select">
+        <option value="">Default</option>
+        <option value="az"           <%= selectedSort === 'az'           ? 'selected' : '' %>>Name: A → Z</option>
+        <option value="za"           <%= selectedSort === 'za'           ? 'selected' : '' %>>Name: Z → A</option>
+        <option value="priceLowHigh" <%= selectedSort === 'priceLowHigh' ? 'selected' : '' %>>Price: Low → High</option>
+        <option value="priceHighLow" <%= selectedSort === 'priceHighLow' ? 'selected' : '' %>>Price: High → Low</option>
+      </select>
+    </div>
 
-      <script>
-        // Sort dropdown functionality
-        const sortDropdown = document.querySelector('select[name="sort"]');
-        if (sortDropdown) {
-          sortDropdown.addEventListener('change', function () {
-            this.closest('form').classList.add('loading');
-            this.form.submit();
-          });
-        }
+    <div class="glora-sidebar__section">
+      <p class="glora-sidebar__title">Price Range</p>
+      <div class="glora-price-row">
+        <input type="number" id="minPrice" placeholder="Min ₹" min="0" value="<%= minPrice || '' %>">
+        <span>—</span>
+        <input type="number" id="maxPrice" placeholder="Max ₹" min="0" value="<%= maxPrice || '' %>">
+      </div>
+      <button id="applyFilters" class="glora-apply-btn">Apply Filters</button>
+    </div>
 
-        // Enhanced search functionality
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-          let searchTimeout;
+  </aside>
 
-          searchInput.addEventListener('input', function () {
-            clearTimeout(searchTimeout);
+  <!-- PRODUCT GRID -->
+  <div class="glora-grid-wrap">
+    <div class="glora-grid-header">
+      <span class="glora-grid-header__count"><%= products.length %> product<%= products.length !== 1 ? 's' : '' %></span>
+    </div>
 
-            searchTimeout = setTimeout(() => {
-              const searchTerm = this.value.trim();
-              const url = new URL(window.location.href);
+    <div class="glora-grid" id="productGrid">
+      <% if (products && products.length > 0) { %>
+        <% products.forEach(function(product) { %>
+        <div class="glora-card">
+          <div class="glora-card__img-wrap">
+            <button class="glora-wishlist-btn <%= product.inWishlist ? 'active' : '' %>"
+              data-product-id="<%= product._id %>"
+              title="<%= product.inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' %>">
+              <i class="<%= product.inWishlist ? 'fas' : 'far' %> fa-heart"></i>
+            </button>
+            <img
+              src="<%= product.images && product.images.length > 0 ? product.images[0] : '/images/placeholder-product.jpg' %>"
+              alt="<%= product.productName %>">
+          </div>
+          <div class="glora-card__body">
+            <p class="glora-card__name"><%= product.productName %></p>
+            <%
+              var activeVariant = product.variants && product.variants.find(function(v) { return !v.isBlocked; });
+              var displaySale    = activeVariant ? activeVariant.salesPrice   : null;
+              var displayRegular = activeVariant ? activeVariant.regularPrice : null;
+            %>
+            <div class="glora-card__price">
+              <% if (displaySale != null) { %>
+                ₹<%= displaySale %>
+                <% if (displayRegular && displayRegular > displaySale) { %>
+                  <span class="original">₹<%= displayRegular %></span>
+                <% } %>
+              <% } else { %>
+                <span style="color:#bbb;font-size:12px;">No price available</span>
+              <% } %>
+            </div>
+            <a href="/product/<%= product._id %>" class="glora-card__btn">View Details</a>
+          </div>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <div class="glora-empty">
+          <i class="fas fa-search"></i>
+          <h3>No products found</h3>
+          <p>Try adjusting your filters or search term.</p>
+        </div>
+      <% } %>
+    </div>
 
-              if (searchTerm) {
-                url.searchParams.set('search', searchTerm);
-                url.searchParams.set('page', '1');
-              } else {
-                url.searchParams.delete('search');
-              }
+    <!-- PAGINATION -->
+    <% if (totalPages > 1) { %>
+    <nav>
+      <ul class="glora-pagination">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="<%= i === currentPage ? 'active' : '' %>">
+          <a href="?page=<%= i %>&category=<%= selectedCategory %>&sort=<%= sort %>&minPrice=<%= minPrice %>&maxPrice=<%= maxPrice %>&search=<%= search %>">
+            <%= i %>
+          </a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+    <% } %>
 
-              document.body.classList.add('loading');
-              window.location.href = url.toString();
-            }, 500);
-          });
+  </div>
+</div>
 
-          const urlParams = new URLSearchParams(window.location.search);
-          const searchTerm = urlParams.get('search');
-          if (searchTerm) {
-            searchInput.value = searchTerm;
+<%- include('../partials/user/footer') %>
+
+<script>
+  // ── URL PARAM HELPERS ────────────────────────────────
+  function getParams() {
+    return new URLSearchParams(window.location.search);
+  }
+
+  function navigate(overrides = {}) {
+    const params = getParams();
+    params.set('page', '1');
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === '' || value === null || value === undefined) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    }
+    window.location.href = '/shop?' + params.toString();
+  }
+
+  // ── CATEGORY LINKS ───────────────────────────────────
+  document.querySelectorAll('.category-link').forEach(link => {
+    link.addEventListener('click', function () {
+      navigate({ category: this.dataset.category });
+    });
+  });
+
+  // ── SORT ─────────────────────────────────────────────
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function () {
+      navigate({ sort: this.value });
+    });
+  }
+
+  // ── PRICE FILTER ─────────────────────────────────────
+  const applyBtn = document.getElementById('applyFilters');
+  if (applyBtn) {
+    applyBtn.addEventListener('click', function () {
+      navigate({
+        minPrice: document.getElementById('minPrice').value.trim(),
+        maxPrice: document.getElementById('maxPrice').value.trim()
+      });
+    });
+  }
+
+  // ── SEARCH (debounced) ───────────────────────────────
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    let searchTimeout;
+    searchInput.addEventListener('input', function () {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        navigate({ search: this.value.trim() });
+      }, 500);
+    });
+  }
+
+  // ── WISHLIST TOGGLE ──────────────────────────────────
+  document.querySelectorAll('.glora-wishlist-btn').forEach(button => {
+    button.addEventListener('click', async function (event) {
+      event.preventDefault();
+      const productId = this.dataset.productId;
+      const icon = this.querySelector('i');
+
+      try {
+        const response = await fetch(`/wishlist/toggle/${productId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const isWishlisted = icon.classList.contains('far');
+          icon.classList.toggle('far', !isWishlisted);
+          icon.classList.toggle('fas', isWishlisted);
+          this.classList.toggle('active', isWishlisted);
+          this.title = isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist';
+        } else {
+          const data = await response.json();
+          if (data.redirect) {
+            // Not logged in — prompt to login
+            Swal.fire({
+              icon: 'info',
+              title: 'Login Required',
+              text: 'Please log in to add items to your wishlist.',
+              confirmButtonText: 'Login',
+              confirmButtonColor: '#8B1A1A',
+              showCancelButton: true,
+              cancelButtonText: 'Continue Browsing'
+            }).then(result => {
+              if (result.isConfirmed) window.location.href = data.redirect;
+            });
           }
         }
+      } catch (error) {
+        console.error('Wishlist error:', error);
+      }
+    });
+  });
 
-        // Enhanced wishlist functionality
-        document.querySelectorAll('.wishlist-icon').forEach(button => {
-          button.addEventListener('click', async (event) => {
-            event.preventDefault();
-            const productId = event.currentTarget.dataset.productId;
-            const icon = event.currentTarget.querySelector('i');
-            const originalTransform = event.currentTarget.style.transform;
+  // ── CARD ENTRANCE ANIMATION ──────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.glora-card').forEach((card, index) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(20px)';
+      setTimeout(() => {
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      }, index * 60);
+    });
+  });
+</script>
 
-            // Add click animation
-            event.currentTarget.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-              event.currentTarget.style.transform = originalTransform;
-            }, 150);
-
-            try {
-              const response = await fetch(`/wishlist/toggle/${productId}`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                }
-              });
-
-              if (response.ok) {
-                // Toggle the icon and button state
-                if (icon.classList.contains('far')) {
-                  icon.classList.remove('far');
-                  icon.classList.add('fas');
-                  event.currentTarget.classList.add('active');
-                  event.currentTarget.title = 'Remove from Wishlist';
-                } else {
-                  icon.classList.remove('fas');
-                  icon.classList.add('far');
-                  event.currentTarget.classList.remove('active');
-                  event.currentTarget.title = 'Add to Wishlist';
-                }
-              } else {
-                const data = await response.json();
-                if (data.redirect) {
-                  window.location.href = data.redirect;
-                }
-              }
-            } catch (error) {
-              console.error('Error toggling wishlist:', error);
-            }
-          });
-        });
-
-        // Add smooth scroll animation for page changes
-        document.addEventListener('DOMContentLoaded', function () {
-          // Animate cards on load
-          const cards = document.querySelectorAll('.product-card');
-          cards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            setTimeout(() => {
-              card.style.transition = 'all 0.6s ease';
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(0)';
-            }, index * 100);
-          });
-        });
-
-        // Add loading state to buttons
-        document.querySelectorAll('form').forEach(form => {
-          form.addEventListener('submit', function () {
-            const button = this.querySelector('button[type="submit"]');
-            if (button) {
-              button.style.opacity = '0.7';
-              button.style.pointerEvents = 'none';
-            }
-          });
-        });
-      </script>
-
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
-
 </html>

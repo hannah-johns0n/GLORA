@@ -18,12 +18,11 @@
 
         <% if (orders && orders.length> 0) { %>
             <div class="orders-list">
-                <% orders.forEach(order=> {
+                <% orders.forEach(order => {
                     let statusClass = 'pending';
                     let statusText = 'Pending';
                     let showStatus = true;
 
-                    // Hide the status badge if it's a return request
                     if (order.status === 'Return-Requested' || order.status === 'Return-Request') {
                     showStatus = false;
                     }
@@ -147,14 +146,11 @@
                                     <% } %>
 
 
-                                        <% if(order.paymentStatus==="Paid" ) { %>
-                                            <a href="/my-orders/<%= order.orderId %>/invoice"
-                                                class="btn-invoice">Download Invoice</a>
-                                            <% } else if (order.paymentStatus==="Failed" ) { %>
-                                                <button
-                                                    onclick="retryPayment('<%= order.orderId %>', '<%= order.finalTotal %>', this)"
-                                                    class="btn-invoice">Retry Payment</button>
-                                                <% } %>
+<% if(order.paymentStatus === "Paid" || (order.paymentMethod === "COD" && order.status === "Delivered")) { %>
+    <a href="/my-orders/<%= order.orderId %>/invoice" class="btn-invoice">Download Invoice</a>
+<% } else if (order.paymentStatus === "Failed") { %>
+    <button onclick="retryPayment('<%= order.orderId %>', '<%= order.finalTotal %>', this)" class="btn-invoice">Retry Payment</button>
+<% } %>
                         </div>
                     </div>
 

@@ -4,6 +4,7 @@
     <div class="card shadow p-4" style="max-width: 600px; width: 100%;">
         <h2 class="text-center mb-4">Add New Address</h2>
         <form action="/add-address" method="POST">
+            <input type="hidden" name="fromCheckout" value="<%= typeof fromCheckout !== 'undefined' ? fromCheckout : 'false' %>">
             <div class="mb-3">
                 <label class="form-label">Address Type</label>
                 <input type="text" name="addressType" class="form-control" required>
