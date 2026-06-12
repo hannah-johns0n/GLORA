@@ -9,7 +9,6 @@ const razorpay = require("../../config/razorpay")
 const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose');
-const shipping = 50;
 
 function getVariantPrice(item) {
   const variantIndex = item.variantIndex || 0;
@@ -41,6 +40,7 @@ const getCheckoutPage = async (req, res) => {
 
 
     const discount = 0;
+    const shipping = subtotal >= 999 ? 0 : 100;
     const finalTotal = subtotal + shipping - discount;
     const coupons = await Coupon.find({
       isActive: true,
@@ -112,6 +112,7 @@ const placeOrder = async (req, res) => {
       }
     }
 
+    const shipping = subtotal >= 999 ? 0 : 100;
     const finalTotal = subtotal + shipping - discount;
     const orderId = uuidv4();
 
@@ -170,6 +171,17 @@ if (paymentMethod === 'wallet') {
     });
     await walletOrder.save();
 
+    for (const item of orderItems) {
+    const product = await Product.findById(item.productId);
+    if (product) {
+        const variantIndex = item.variantIndex || 0;
+        if (product.variants[variantIndex]) {
+            product.variants[variantIndex].quantity -= item.quantity;
+            await product.save();
+        }
+    }
+}
+
     cart.items = [];
     await cart.save();
 
@@ -208,6 +220,16 @@ if (paymentMethod === 'wallet') {
     });
 
     await order.save();
+for (const item of orderItems) {
+    const product = await Product.findById(item.productId);
+    if (product) {
+        const variantIndex = item.variantIndex || 0;
+        if (product.variants[variantIndex]) {
+            product.variants[variantIndex].quantity -= item.quantity;
+            await product.save();
+        }
+    }
+}
     cart.items = [];
     await cart.save();
 
@@ -252,7 +274,7 @@ if (paymentMethod === 'wallet') {
             : coupon.discountValue;
         }
       }
-
+      const shipping = subtotal >= 999 ? 0 : 100;
       const finalTotal = subtotal + shipping - discount;
       const orderId = uuidv4();
 
@@ -358,11 +380,90 @@ if (paymentMethod === 'wallet') {
     }
   };
 
+  const retryRazorpayOrder = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, message: 'Order ID is required' });
+    }
+
+    // Load the existing failed order
+    const existingOrder = await Order.findOne({ orderId, userId });
+    if (!existingOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (existingOrder.paymentStatus !== 'Failed') {
+      return res.status(400).json({ success: false, message: 'This order is not eligible for retry' });
+    }
+
+    // Create a fresh Razorpay order for the same amount
+    const razorpayOrder = await razorpay.orders.create({
+      amount:   Math.round(existingOrder.totalPrice * 100),
+      currency: 'INR',
+      receipt:  orderId
+    });
+
+    // Store the new razorpayOrderId on the order for verification later
+    existingOrder.razorpayOrderId = razorpayOrder.id;
+    await existingOrder.save();
+
+    return res.json({
+      success:        true,
+      razorpayOrderId: razorpayOrder.id,
+      amount:          razorpayOrder.amount,
+      currency:        razorpayOrder.currency,
+      orderId:         orderId,
+      key:             process.env.RAZORPAY_KEY_ID
+    });
+
+  } catch (err) {
+    console.error('retryRazorpayOrder error:', err);
+    res.status(500).json({ success: false, message: 'Failed to create retry payment order' });
+  }
+};
+
+const verifyRetryPayment = async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
+    const userId = req.user.id;
+
+    // Cryptographic verification — same as normal flow
+    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+    hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
+    const generatedSignature = hmac.digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.json({ success: false, message: 'Payment verification failed' });
+    }
+
+    const order = await Order.findOne({ orderId, userId });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Mark as paid and restore to Processing
+    order.paymentStatus = 'Paid';
+    order.status        = 'Processing';
+    await order.save();
+
+    return res.json({ success: true, redirectUrl: `/order-success/${order.orderId}` });
+
+  } catch (err) {
+    console.error('verifyRetryPayment error:', err);
+    res.status(500).json({ success: false, message: 'Verification failed' });
+  }
+};
+
   module.exports = {
     orderSuccess,
     placeOrder,
     createRazorpayOrder,
     verifyRazorpayOrder,
-    getCheckoutPage
+    getCheckoutPage,
+    retryRazorpayOrder,   
+    verifyRetryPayment 
   }
 

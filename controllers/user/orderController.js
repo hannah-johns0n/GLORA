@@ -4,6 +4,7 @@ const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Address = require('../../models/addressModel');
 const User = require('../../models/userModel');
+const Wallet = require('../../models/walletModel');
 const STATUS_CODES = require('../../constants/statusCodes');
 const PDFDocument = require('pdfkit');
 
@@ -93,6 +94,11 @@ const cancelOrder = async (req, res) => {
         }
       }
     }
+    order.orderItems.forEach(item => {
+      if (item.status !== 'Cancelled') {
+        item.status = 'Cancelled';
+    }
+});
 
     order.status             = 'Cancelled';
     order.cancellationReason = reason || 'No reason provided';
@@ -114,23 +120,55 @@ const cancelOrder = async (req, res) => {
 
 const cancelProduct = async (req, res) => {
   try {
-    const { reason }            = req.body;
+    const { reason } = req.body;
     const { orderId, productId } = req.params;
 
-    const order = await Order.findOne({
-      orderId: orderId,
-      userId:  req.user.id 
-    });
-
+    const order = await Order.findOne({ orderId, userId: req.user.id });
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
     const item = order.orderItems.find(i => i.productId.toString() === productId);
     if (!item) return res.status(404).json({ success: false, message: 'Item not found in order' });
 
-    if (item.status === 'Cancelled' || item.status === 'Delivered') {
+    // ✅ Proper status validation
+    const cancellableStatuses = ['Pending', 'Processing', 'Shipped'];
+    if (!cancellableStatuses.includes(item.status)) {
       return res.status(400).json({ success: false, message: 'This item cannot be cancelled' });
     }
 
+    // ✅ Proportional refund for Online/Wallet paid orders
+    const shouldRefund = ['Online', 'Wallet'].includes(order.paymentMethod)
+                         && order.paymentStatus === 'Paid';
+
+    if (shouldRefund) {
+      const itemRefund = Number((item.price * item.quantity).toFixed(2));
+
+      // ✅ Proportional discount deduction
+      const paidTotal    = order.orderItems
+        .filter(i => i.status !== 'Cancelled')
+        .reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const discountShare = paidTotal > 0
+        ? Number(((item.price * item.quantity / paidTotal) * (order.discount || 0)).toFixed(2))
+        : 0;
+
+      const refundAmount = Number((itemRefund - discountShare).toFixed(2));
+
+      if (refundAmount > 0) {
+        let wallet = await Wallet.findOne({ user: req.user.id });
+        if (!wallet) {
+          wallet = new Wallet({ user: req.user.id, balance: 0, transactions: [] });
+        }
+        wallet.balance = Number((wallet.balance + refundAmount).toFixed(2));
+        wallet.transactions.push({
+          amount:      refundAmount,
+          type:        'credit',
+          description: `Refund for cancelled item "${item.name}" in order #${order.orderId}`,
+          date:        new Date()
+        });
+        await wallet.save();
+      }
+    }
+
+    // ✅ Restore stock
     const product = await Product.findById(item.productId);
     if (product) {
       const variantIndex = item.variantIndex || 0;
@@ -142,9 +180,20 @@ const cancelProduct = async (req, res) => {
 
     item.status       = 'Cancelled';
     item.cancelReason = reason || 'No reason provided';
+
+    // ✅ If all items cancelled, cancel the whole order too
+    const allCancelled = order.orderItems.every(i => i.status === 'Cancelled');
+    if (allCancelled) {
+      order.status             = 'Cancelled';
+      order.cancellationReason = 'All items cancelled by customer';
+    }
+
     await order.save();
 
-    res.json({ success: true });
+    return res.json({
+      success: true,
+      message: 'Item cancelled successfully.' + (shouldRefund ? ' Refund credited to your wallet.' : '')
+    });
 
   } catch (err) {
     console.error('cancelProduct error:', err);
@@ -200,9 +249,9 @@ const returnOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
-    if (order.returnRequest) {
+    if (order.returnRequest && order.returnRequest.status === 'pending') {
       return res.status(400).json({ success: false, message: 'Return already requested' });
-    }
+  }
     if (order.status !== 'Delivered') {
       return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
     }

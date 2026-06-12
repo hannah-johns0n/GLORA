@@ -819,6 +819,13 @@
           if (span) span.textContent = added ? 'Wishlisted' : 'Wishlist';
         }
         btn.title = added ? 'Remove from Wishlist' : 'Add to Wishlist';
+        Swal.fire({
+    icon: added ? 'success' : 'info',
+    title: added ? 'Wishlisted!' : 'Removed',
+    text: added ? 'Added to your wishlist' : 'Removed from wishlist',
+    timer: 1500,
+    showConfirmButton: false
+  });
       } else if (data.redirect) {
         Swal.fire({
           icon: 'info',

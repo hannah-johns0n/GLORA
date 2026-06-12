@@ -262,7 +262,23 @@ document.querySelector('form[action^="/admin/products/edit/"]')
   .addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    if (!this.checkValidity()) { this.classList.add('was-validated'); return; }
+    // Product name validation
+const productName = document.getElementById('productName').value.trim();
+const category = document.getElementById('category').value;
+const description = document.getElementById('description').value.trim();
+
+if (!productName) {
+  showError('Product name is required.'); return;
+}
+if (!/^[A-Za-z\s]+$/.test(productName)) {
+  showError('Product name should contain only letters and spaces.'); return;
+}
+if (!category) {
+  showError('Please select a category.'); return;
+}
+if (!description) {
+  showError('Please provide a product description.'); return;
+}
     if (!validateVariants())      return;
     if (!updateImageValidation()) return;
 

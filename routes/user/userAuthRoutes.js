@@ -119,7 +119,9 @@ router.post('/cart/validate-checkout', requireAuth, cartController.validateCheck
 router.get("/checkout", requireAuth, checkoutController.getCheckoutPage);
 router.post("/place-order", requireAuth, checkoutController.placeOrder);
 router.post("/create-razorpay-order", requireAuth, checkoutController.createRazorpayOrder);
-router.post('/verify-razorpay-payment', requireAuth, checkoutController.verifyRazorpayOrder)
+router.post('/verify-razorpay-payment', requireAuth, checkoutController.verifyRazorpayOrder);
+router.post('/retry-razorpay-order',   requireAuth, checkoutController.retryRazorpayOrder);
+router.post('/verify-retry-payment',   requireAuth, checkoutController.verifyRetryPayment);
 router.get("/order-success/:orderId", requireAuth, checkoutController.orderSuccess);
 
 router.get('/my-orders', requireAuth, orderController.getMyOrders);
@@ -127,6 +129,7 @@ router.get('/my-orders/:orderId', requireAuth, orderController.getOrderDetails);
 router.post('/my-orders/:orderId/cancel', requireAuth, orderController.cancelOrder);
 router.post('/my-orders/:orderId/cancel-product/:productId', requireAuth, orderController.cancelProduct);
 router.post('/my-orders/:orderId/return', requireAuth, orderController.returnOrder);
+router.post('/my-orders/:orderId/return-item/:productId', requireAuth, orderController.returnOrderItem);
 
 // Wallet routes
 router.get('/wallet/balance', requireAuth, walletController.getWalletBalance);

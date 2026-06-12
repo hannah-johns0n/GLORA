@@ -18,7 +18,7 @@
 
         <% if (orders && orders.length> 0) { %>
             <div class="orders-list">
-                <% orders.forEach(order => {
+                <% orders.forEach(order=> {
                     let statusClass = 'pending';
                     let statusText = 'Pending';
                     let showStatus = true;
@@ -146,11 +146,16 @@
                                     <% } %>
 
 
-<% if(order.paymentStatus === "Paid" || (order.paymentMethod === "COD" && order.status === "Delivered")) { %>
-    <a href="/my-orders/<%= order.orderId %>/invoice" class="btn-invoice">Download Invoice</a>
-<% } else if (order.paymentStatus === "Failed") { %>
-    <button onclick="retryPayment('<%= order.orderId %>', '<%= order.finalTotal %>', this)" class="btn-invoice">Retry Payment</button>
-<% } %>
+                                        <% if(order.paymentStatus==="Paid" || (order.paymentMethod==="COD" &&
+                                            order.status==="Delivered" )) { %>
+                                            <a href="/my-orders/<%= order.orderId %>/invoice"
+                                                class="btn-invoice">Download Invoice</a>
+                                            <% } else if (order.paymentStatus==="Failed" ) { %>
+                                                <button onclick="retryPayment('<%= order.orderId %>', this)"
+                                                    class="btn-invoice">
+                                                    Retry Payment
+                                                </button>
+                                                <% } %>
                         </div>
                     </div>
 
@@ -203,7 +208,7 @@
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-        async function retryPayment(orderId, amount, buttonElement) {
+        async function retryPayment(orderId, buttonElement) {
             const button = buttonElement || event?.target?.closest('button');
 
             try {
@@ -212,85 +217,81 @@
                     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                 }
 
-                const response = await fetch('/create-razorpay-order', {
+                // Step 1: Create a new Razorpay order from the existing failed order
+                const response = await fetch('/retry-razorpay-order', {
                     method: 'POST',
                     credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({
-                        orderId: orderId,
-                        amount: amount,
-                        paymentMethod: 'razorpay'
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Failed to create payment order');
-                }
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message || 'Failed to initiate retry');
 
-                const order = await response.json();
-
+                // Step 2: Open Razorpay
                 const options = {
-                    key: '<%= process.env.RAZORPAY_KEY_ID %>',
-                    amount: order.amount,
-                    currency: order.currency || 'INR',
+                    key: data.key,
+                    amount: data.amount,
+                    currency: data.currency || 'INR',
                     name: 'GLORA',
-                    description: 'Order Payment',
-                    order_id: order.id || order.razorpayOrderId,
+                    description: 'Retry Order Payment',
+                    order_id: data.razorpayOrderId,
+
                     handler: async function (response) {
                         try {
-                            const updateResponse = await fetch(`/update-payment-status`, {
+                            // Step 3: Verify with signature — proper verification
+                            const verifyRes = await fetch('/verify-retry-payment', {
                                 method: 'POST',
                                 credentials: 'same-origin',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                },
+                                headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    orderId: orderId,
                                     razorpay_payment_id: response.razorpay_payment_id,
                                     razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_signature: response.razorpay_signature
+                                    razorpay_signature: response.razorpay_signature,
+                                    orderId: orderId
                                 })
                             });
 
-                            if (updateResponse.ok) {
-                                window.location.href = `/my-orders/${orderId}/invoice`;
+                            const verifyData = await verifyRes.json();
+                            if (verifyData.success) {
+                                window.location.href = verifyData.redirectUrl; // → /order-success/:orderId
                             } else {
-                                throw new Error('Failed to update payment status');
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Verification Failed',
+                                    text: 'Payment received but verification failed. Please contact support.'
+                                });
                             }
-                        } catch (error) {
-                            console.error('Error updating payment status:', error);
+                        } catch (err) {
+                            console.error('Verify retry error:', err);
                             Swal.fire({
                                 icon: 'warning',
                                 title: 'Payment Successful',
-                                text: 'Your payment was successful, but there was an issue updating the order status. Please contact support.',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                window.location.href = '/my-orders';
-                            });
+                                text: 'Payment was received but we could not update your order. Please contact support.',
+                            }).then(() => window.location.href = '/my-orders');
                         }
                     },
-                    prefill: {
-                        name: '<%= userName %>'
-                    },
-                    theme: {
-                        color: '#3399cc'
+
+                    prefill: { name: '<%= userName %>' },
+                    theme: { color: '#3399cc' },
+
+                    modal: {
+                        ondismiss: function () {
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = 'Retry Payment';
+                            }
+                        }
                     }
                 };
 
                 const rzp = new Razorpay(options);
 
                 rzp.on('payment.failed', function (response) {
-                    // Handle failed payment
                     Swal.fire({
                         icon: 'error',
                         title: 'Payment Failed',
-                        text: response.error.description || 'Your payment could not be processed. Please try again.',
-                        confirmButtonText: 'OK'
+                        text: response.error.description || 'Payment could not be processed. Please try again.'
                     });
                     if (button) {
                         button.disabled = false;
@@ -301,12 +302,11 @@
                 rzp.open();
 
             } catch (error) {
-                console.error('Payment error:', error);
+                console.error('Retry payment error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message || 'An error occurred while processing your payment. Please try again.',
-                    confirmButtonText: 'OK'
+                    text: error.message || 'Something went wrong. Please try again.'
                 });
                 if (button) {
                     button.disabled = false;
@@ -360,48 +360,48 @@
             }
         }
         async function returnOrder(orderId) {
-  const { value: reason } = await Swal.fire({
-    title:            'Return Order',
-    input:            'text',
-    inputPlaceholder: 'Enter reason for return',
-    showCancelButton:  true,
-    confirmButtonText: 'Submit Return',
-    cancelButtonText:  'No',
-    inputValidator: function(value) {
-      if (!value) return 'Please provide a reason for return.';
-    }
-  });
+            const { value: reason } = await Swal.fire({
+                title: 'Return Order',
+                input: 'text',
+                inputPlaceholder: 'Enter reason for return',
+                showCancelButton: true,
+                confirmButtonText: 'Submit Return',
+                cancelButtonText: 'No',
+                inputValidator: function (value) {
+                    if (!value) return 'Please provide a reason for return.';
+                }
+            });
 
-  if (!reason) return;
+            if (!reason) return;
 
-  try {
-    const res  = await fetch('/my-orders/' + orderId + '/return', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ reason })
-    });
-    const data = await res.json();
+            try {
+                const res = await fetch('/my-orders/' + orderId + '/return', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                const data = await res.json();
 
-    if (res.ok && data.success) {
-      await Swal.fire({
-        icon:              'success',
-        title:             'Return Requested!',
-        text:              'Your return request has been submitted. Our team will review it shortly.',
-        confirmButtonText: 'OK'
-      });
-      window.location.reload();
-    } else {
-      Swal.fire({
-        icon:  'error',
-        title: 'Error',
-        text:  data.message || 'Failed to submit return request.'
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
-  }
-}
+                if (res.ok && data.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Return Requested!',
+                        text: 'Your return request has been submitted. Our team will review it shortly.',
+                        confirmButtonText: 'OK'
+                    });
+                    window.location.reload();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to submit return request.'
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            }
+        }
     </script>
 
     <%- include('../partials/user/footer') %>

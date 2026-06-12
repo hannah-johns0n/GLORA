@@ -17,12 +17,27 @@ exports.productListPage = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        const productsWithThumb = products.map(product => ({
-            ...product.toObject(),
-            thumb: product.images && product.images.length > 0
-                ? `/uploads/products/${product.images[0]}`
-                : null
-        }));
+        const productsWithThumb = products.map(product => {
+    const productObj = product.toObject();
+    
+    const firstVariant = productObj.variants && productObj.variants.length > 0 
+        ? productObj.variants[0] 
+        : null;
+
+    const totalQuantity = productObj.variants && productObj.variants.length > 0
+        ? productObj.variants.reduce((sum, variant) => sum + variant.quantity, 0)
+        : null;
+
+    return {
+        ...productObj,
+        thumb: product.images && product.images.length > 0
+            ? `/uploads/products/${product.images[0]}`
+            : null,
+        regularPrice: firstVariant ? firstVariant.regularPrice : null,
+        salesPrice: firstVariant ? firstVariant.salesPrice : null,
+        quantity: totalQuantity, 
+    };
+});
 
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -93,7 +108,7 @@ exports.editProduct = async (req, res) => {
             }
             const regular = Number(v.regularPrice);
             const sale = Number(v.salesPrice);
-            if (v.regularPrice <= v.salesPrice) {
+            if (Number(v.regularPrice) <= Number(v.salesPrice)) {
                 return res.status(400).json({
                     success: false,
                     message: "Regular price must be greater than sales price"

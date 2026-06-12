@@ -84,15 +84,15 @@
                                                                 <% if (item.status === 'Cancelled') { %>
                                                                     <span class="badge bg-danger">Cancelled</span>
                                                                     <% if (item.cancelReason) { %>
-                                                                        <br><small class="text-muted"><%= item.cancelReason %></small>
-                                                                        <% } %>
-                                                                        <% } %>
+                                                                        <br><small class="text-muted" style="padding: 17px 10px 10px ;"><h5><%= item.cancelReason %></h5></small>
+                                                                    <% } %>
+                                                                <% } %>
 
                                                                             <% if (item.status === 'Return-Requested') { %>
                                                                                 <span
                                                                                     class="badge bg-warning text-dark">Return Pending</span>
                                                                                 <% if (item.returnRequest && item.returnRequest.reason) { %>
-                                                                                    <br><small class="text-muted">Reason: <%= item.returnRequest.reason %></small>
+                                                                                    <br><small class="text-muted" style="padding: 17px 10px 10px ;"><h5>Reason: <%= item.returnRequest.reason %></h5></small>
                                                                                     <% } %>
                                                                                     <% } %>
 
@@ -173,7 +173,13 @@
 
                             <div class="summary-row">
                                 <span>Shipping</span>
-                                <span>₹<%= (order.shipping || 50).toFixed(2) %></span>
+                                <span>
+  <% if (order.shipping === 0) { %>
+    <span class="text-success">FREE</span>
+  <% } else { %>
+    ₹<%= order.shipping.toFixed(2) %>
+  <% } %>
+</span>
                             </div>
 
                             <% if (order.discount && order.discount> 0) { %>
