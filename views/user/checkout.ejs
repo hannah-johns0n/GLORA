@@ -203,6 +203,18 @@
       font-weight: 500;
     }
 
+    .order-item-offer {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #7d7d7d;
+      line-height: 1.4;
+    }
+
+    .order-item-offer strong {
+      color: #2c2c2c;
+      font-weight: 700;
+    }
+
     .order-item-price {
       font-weight: 700;
       font-size: 1rem;
@@ -594,13 +606,12 @@
                   </div>
                   <div class="order-item-qty">Qty: <%= item.quantity %>
                   </div>
+                  <% if (item.appliedOffer) { %>
+                    <p class="order-item-offer"><strong>Offer applied:</strong> <%= item.appliedOffer.title %></p>
+                  <% } %>
                 </div>
-                <% var itemVariant=item.productId.variants && item.productId.variants[item.variantIndex || 0] ?
-                  item.productId.variants[item.variantIndex || 0] : item.productId.variants &&
-                  item.productId.variants[0]; var itemPrice=itemVariant ? (itemVariant.salesPrice> 0 ?
-                  itemVariant.salesPrice : itemVariant.regularPrice) : 0; %>
-                  <div class="order-item-price">₹<%= (itemPrice * item.quantity).toFixed(2) %>
-                  </div>
+                <div class="order-item-price">₹<%= item.itemTotal.toFixed(2) %>
+                </div>
               </div>
               <% }); %>
           </div>
@@ -610,30 +621,42 @@
               <span>Subtotal (<%= cartItems.reduce((total, item)=> total + item.quantity, 0) %> items)</span>
               <span>₹<%= subtotal.toFixed(2) %></span>
             </div>
+            <% if (offerDiscount > 0) { %>
+              <div class="price-row text-success">
+                <span>Offer Discount</span>
+                <span>-₹<%= offerDiscount.toFixed(2) %></span>
+              </div>
+              <div class="price-row">
+                <span>Price After Offers</span>
+                <span>₹<%= priceAfterOffers.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <% if (couponDiscount > 0) { %>
+              <div class="price-row text-success">
+                <span>Coupon Discount</span>
+                <span>-₹<%= couponDiscount.toFixed(2) %></span>
+              </div>
+            <% } %>
+            <% if (appliedCoupon) { %>
+              <div class="price-row">
+                <span>Applied Coupon</span>
+                <span><%= appliedCoupon %></span>
+              </div>
+            <% } %>
             <div class="price-row">
               <span>Shipping charges</span>
-              <% const shippingCharge=subtotal>= 999 ? 0 : 100; %>
-                <span id="shippingDisplay">
-                  <% if (shippingCharge===0) { %>
-                    <span class="text-success">FREE</span>
-                    <% } else { %>
-                      ₹<%= shippingCharge %>
-                        <% } %>
-                </span>
+              <span id="shippingDisplay">
+                <% if (shipping === 0) { %>
+                  <span class="text-success">FREE</span>
+                <% } else { %>
+                  ₹<%= shipping %>
+                <% } %>
+              </span>
             </div>
-
-            <% if (discount> 0) { %>
-              <div class="price-row text-success">
-                <span>Discount</span>
-                <span>-₹<%= discount %></span>
-              </div>
-              <% } %>
-                <% const calculatedTotal = parseFloat(subtotal) + shippingCharge - parseFloat(discount || 0); %>
-                  %>
-                  <div class="price-row total">
-                    <span>Total</span>
-                    <span>₹<%= calculatedTotal.toFixed(2) %></span>
-                  </div>
+            <div class="price-row total">
+              <span>Total</span>
+              <span>₹<%= finalTotal.toFixed(2) %></span>
+            </div>
           </div>
 
           <button type="submit" class="btn-place-order" <%=addresses && addresses.length===0 ? 'disabled' : '' %>>
@@ -715,10 +738,20 @@
   </body>
   <script>
     var SUBTOTAL = <%= subtotal %>;
-    var SHIPPING = SUBTOTAL >= 999 ? 0 : 100;
-    var DISCOUNT = <%= discount %>;
+    var OFFER_DISCOUNT = <%= offerDiscount || 0 %>;
+    var PRICE_AFTER_OFFERS = <%= priceAfterOffers %>;
+    var COUPON_DISCOUNT = <%= couponDiscount || 0 %>;
+    var SHIPPING = <%= shipping %>;
+    var APPLIED_COUPON = '<%= appliedCoupon || '' %>';
 
     document.addEventListener('DOMContentLoaded', async function () {
+      if (APPLIED_COUPON) {
+        var hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'couponCode';
+        hiddenInput.value = APPLIED_COUPON;
+        document.getElementById('checkoutForm').appendChild(hiddenInput);
+      }
       try {
         const res = await fetch('/wallet/balance');
         const data = await res.json();
@@ -773,20 +806,22 @@
       var discountValue = parseFloat(selected.dataset.discountvalue);
       var minimumPurchase = parseFloat(selected.dataset.minimum);
 
-      if (SUBTOTAL < minimumPurchase) {
+      if (PRICE_AFTER_OFFERS < minimumPurchase) {
         Swal.fire({ icon: 'warning', title: 'Coupon Not Applicable', text: 'This coupon requires a minimum purchase of ₹' + minimumPurchase });
         return;
       }
 
-      var discountAmount = discountType === 'Percentage' ? (SUBTOTAL * discountValue) / 100 : discountValue;
-      var finalTotal = SUBTOTAL + SHIPPING - discountAmount;
+      var discountAmount = discountType === 'Percentage'
+        ? (PRICE_AFTER_OFFERS * discountValue) / 100
+        : discountValue;
+      var finalTotal = PRICE_AFTER_OFFERS + SHIPPING - discountAmount;
 
       document.querySelector('.price-summary').innerHTML = `
       <div class="price-row"><span>Subtotal</span><span>₹${SUBTOTAL.toFixed(2)}</span></div>
+      <div class="price-row text-success"><span>Offer Discount</span><span>-₹${OFFER_DISCOUNT.toFixed(2)}</span></div>
+      <div class="price-row"><span>Price After Offers</span><span>₹${PRICE_AFTER_OFFERS.toFixed(2)}</span></div>
+      <div class="price-row text-success"><span>Coupon Discount</span><span>-₹${discountAmount.toFixed(2)}</span></div>
       <div class="price-row"><span>Shipping charges</span><span>₹${SHIPPING.toFixed(2)}</span></div>
-      <div class="price-row text-success">
-        <span>Discount</span><span>-₹${discountAmount.toFixed(2)}</span>
-      </div>
       <div class="price-row total"><span>Total</span><span>₹${finalTotal.toFixed(2)}</span></div>
       <div id="appliedCouponInfo" class="mt-2 d-flex align-items-center justify-content-between">
         <span>Coupon Applied: ${selected.value}</span>
@@ -809,10 +844,12 @@
 
     document.querySelector('.price-summary').addEventListener('click', function (e) {
       if (e.target && e.target.id === 'removeCouponBtn') {
-        var originalTotal = SUBTOTAL + SHIPPING;
+        var originalTotal = PRICE_AFTER_OFFERS + SHIPPING;
 
         document.querySelector('.price-summary').innerHTML = `
         <div class="price-row"><span>Subtotal</span><span>₹${SUBTOTAL.toFixed(2)}</span></div>
+        <div class="price-row text-success"><span>Offer Discount</span><span>-₹${OFFER_DISCOUNT.toFixed(2)}</span></div>
+        <div class="price-row"><span>Price After Offers</span><span>₹${PRICE_AFTER_OFFERS.toFixed(2)}</span></div>
         <div class="price-row"><span>Shipping charges</span><span>₹${SHIPPING.toFixed(2)}</span></div>
         <div class="price-row total"><span>Total</span><span>₹${originalTotal.toFixed(2)}</span></div>
       `;

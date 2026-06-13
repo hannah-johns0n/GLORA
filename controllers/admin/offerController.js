@@ -70,7 +70,7 @@ const getEditOffer = async (req, res) => {
 
 const postEditOffer = async (req, res) => {
   try {
-    const { title, description, offerType, discountType, discountValue, product, category, totalUses, minPurchase } = req.body;
+    const { title, description, offerType, discountType, discountValue, product, category, totalUses, minPurchase, endDate } = req.body;
 
     await Offer.findByIdAndUpdate(req.params.id, {
       title,
@@ -82,7 +82,6 @@ const postEditOffer = async (req, res) => {
       totalUses,
       product: offerType === "Product" ? product : null,
       category: offerType === "Category" ? category : null,
-      startDate,
       endDate,
     });
 

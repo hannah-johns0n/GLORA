@@ -1,69 +1,218 @@
 <%- include('../partials/user/header', { userName: userName }) %>
 
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-  .success-container {
-    max-width: 600px;
-    margin: 6rem auto 3rem auto; 
-    text-align: center;
-    padding: 2rem;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #FAF7F4;
+    font-family: 'Poppins', sans-serif;
+    color: #1A1A1A;
+  }
+
+  .glora-success-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px 80px;
+  }
+
+  .glora-success-card {
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 560px;
+    width: 100%;
+    padding: 60px 52px;
+    text-align: center;
+    border-top: 4px solid #D4A96A;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.07);
   }
-  .success-container img {
-    max-width: 200px;
-    margin-bottom: 1.5rem;
+
+  .glora-success-icon {
+    width: 72px;
+    height: 72px;
+    background: #F0EBE3;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
   }
-  .success-container h1 {
-    font-size: 1.8rem;
-    color: #2c3e50;
+
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .glora-success-icon svg {
+    width: 36px;
+    height: 36px;
+    stroke: #D4A96A;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .glora-success-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #D4A96A;
+    margin-bottom: 12px;
+  }
+
+  .glora-success-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 40px);
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    color: #1A1A1A;
+    line-height: 1.15;
+    margin-bottom: 16px;
   }
-  .success-container p {
-    font-size: 1rem;
-    color: #555;
-    margin-bottom: 2rem;
+
+  .glora-success-title em {
+    font-style: italic;
+    font-weight: 400;
   }
-  .btn-group {
+
+  .glora-success-divider {
+    width: 48px;
+    height: 1px;
+    background: #D4A96A;
+    margin: 0 auto 28px;
+  }
+
+  .glora-success-msg {
+    font-size: 13px;
+    font-weight: 300;
+    color: #888;
+    line-height: 1.9;
+    margin-bottom: 40px;
+  }
+
+  .glora-success-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .glora-success-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .glora-success-btn--primary {
+    background: #1A1A1A;
+    color: #fff;
+  }
+
+  .glora-success-btn--primary:hover {
+    background: #8B1A1A;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .glora-success-btn--outline {
+    background: transparent;
+    border: 1.5px solid #1A1A1A;
+    color: #1A1A1A;
+  }
+
+  .glora-success-btn--outline:hover {
+    background: #1A1A1A;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .glora-success-trust {
     display: flex;
     justify-content: center;
-    gap: 1rem;
+    gap: 28px;
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px solid #F0EBE3;
+    flex-wrap: wrap;
   }
-  .btn-primary {
-    background: #5a1409;
-    color: #fff;
-    padding: 0.7rem 1.2rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
+
+  .glora-trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
-  .btn-primary:hover {
-    background: #8c3e33;
-  }
-  .btn-outline {
-    background: transparent;
-    border: 1px solid #5a1409;
-    color: #5a1409;
-    padding: 0.7rem 1.2rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .btn-outline:hover {
-    background: #5a1409;
-    color: #fff;
+
+  .glora-trust-item i { font-size: 16px; color: #D4A96A; }
+
+  @media (max-width: 480px) {
+    .glora-success-card { padding: 44px 24px; }
+    .glora-success-trust { gap: 16px; }
   }
 </style>
 
-<div class="success-container">
-  <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Success">
+<div class="glora-success-page">
+  <div class="glora-success-card">
 
-  <h1>Thank you for your order!</h1>
+    <div class="glora-success-icon">
+      <svg viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
 
-  <div class="btn-group">
-    <a href="/my-orders/<%= orderId %>" class="btn-primary">View Order Details</a>
-    <a href="/" class="btn-outline">Continue Shopping</a>
+    <p class="glora-success-eyebrow">Order Confirmed</p>
+
+    <h1 class="glora-success-title">
+      Thank you for<br><em>your order</em>
+    </h1>
+
+    <div class="glora-success-divider"></div>
+
+    <p class="glora-success-msg">
+      Your order has been placed successfully.<br>
+      We'll notify you once it's on its way.
+    </p>
+
+    <div class="glora-success-actions">
+      <a href="/my-orders/<%= orderId %>" class="glora-success-btn glora-success-btn--primary">
+        View Order Details
+      </a>
+      <a href="/shop" class="glora-success-btn glora-success-btn--outline">
+        Continue Shopping
+      </a>
+    </div>
+
+    <div class="glora-success-trust">
+      <div class="glora-trust-item">
+        <i class="fas fa-shield-alt"></i>
+        <span>Secure Order</span>
+      </div>
+      <div class="glora-trust-item">
+        <i class="fas fa-truck"></i>
+        <span>Fast Delivery</span>
+      </div>
+      <div class="glora-trust-item">
+        <i class="fas fa-undo"></i>
+        <span>Easy Returns</span>
+      </div>
+    </div>
+
   </div>
 </div>
 

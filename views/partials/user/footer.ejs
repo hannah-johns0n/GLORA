@@ -1,30 +1,199 @@
-<footer class="footer">
-    <div class="container">
-        <div class="row">
-            <div class="col text-center">
-                <div class="footer_logo"><a href="#">GLORA</a></div>
-                <nav class="footer_nav">
-                    <ul>
-                        <li><a href="/">home</a></li>
-                        <li><a href="/categories">shop</a></li>
-                        <li><a href="/categories">about us</a></li>
-                        <li><a href="/categories">sign in</a></li>
-                        <li><a href="/contact">contact us</a></li>
-                    </ul>
-                </nav>
-                <div class="footer_social">
-                    <ul>
-                        <li><a href="#"><i class="fa fa-pinterest" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-reddit-alien" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
-                    </ul>
-                </div>
-                <div class="copyright">
-                    Copyright © <%= new Date().getFullYear() %> All rights reserved </a>
-                </div>
-            </div>
-        </div>
+<style>
+  /* ── FOOTER ─────────────────────────────────────────── */
+  .glora-footer {
+    background: var(--glora-dark);
+    color: #fff;
+    padding: 60px 0 0;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .glora-footer__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* Brand col */
+  .glora-footer__brand-name {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #fff;
+    display: block;
+    margin-bottom: 14px;
+    text-decoration: none;
+  }
+
+  .glora-footer__brand-tagline {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 1px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    max-width: 220px;
+  }
+
+  .glora-footer__social {
+    display: flex;
+    gap: 12px;
+    list-style: none;
+    padding: 0; margin: 0;
+  }
+
+  .glora-footer__social li a {
+    width: 34px; height: 34px;
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+
+  .glora-footer__social li a:hover {
+    border-color: var(--glora-gold);
+    color: var(--glora-gold);
+  }
+
+  /* Link cols */
+  .glora-footer__col-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .glora-footer__links {
+    list-style: none;
+    padding: 0; margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .glora-footer__links li a {
+    font-size: 12px;
+    color: rgba(255,255,255,0.50);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s ease;
+  }
+
+  .glora-footer__links li a:hover {
+    color: #fff;
+  }
+
+  /* Bottom bar */
+  .glora-footer__bottom {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .glora-footer__copy {
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+
+  .glora-footer__gold-line {
+    width: 40px;
+    height: 1px;
+    background: var(--glora-gold);
+    opacity: 0.5;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .glora-footer__inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .glora-footer__inner {
+      grid-template-columns: 1fr;
+      padding: 0 20px 40px;
+    }
+    .glora-footer__bottom {
+      padding: 20px;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+  }
+</style>
+
+<footer class="glora-footer">
+  <div class="glora-footer__inner">
+
+    <!-- Brand -->
+    <div class="glora-footer__brand">
+      <a href="/" class="glora-footer__brand-name">GLORA</a>
+      <p class="glora-footer__brand-tagline">Luxury beauty, thoughtfully curated. Glow like never before.</p>
+      <ul class="glora-footer__social">
+        <li><a href="#"><i class="fab fa-instagram"></i></a></li>
+        <li><a href="#"><i class="fab fa-pinterest"></i></a></li>
+        <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+        <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
+      </ul>
     </div>
+
+    <!-- Shop -->
+    <div>
+      <span class="glora-footer__col-title">Shop</span>
+      <ul class="glora-footer__links">
+        <li><a href="/shop">All Products</a></li>
+        <li><a href="/shop?category=Skin Care">Skin Care</a></li>
+        <li><a href="/shop?category=Hair Care">Hair Care</a></li>
+        <li><a href="/shop?category=Body Care">Body Care</a></li>
+        <li><a href="/shop?category=Lip Care">Lip Care</a></li>
+      </ul>
+    </div>
+
+    <!-- Help -->
+    <div>
+      <span class="glora-footer__col-title">Help</span>
+      <ul class="glora-footer__links">
+        <li><a href="/profile">My Account</a></li>
+        <li><a href="/orders">My Orders</a></li>
+        <li><a href="/wishlist">Wishlist</a></li>
+        <li><a href="/cart">Cart</a></li>
+      </ul>
+    </div>
+
+    <!-- Info -->
+    <div>
+      <span class="glora-footer__col-title">Info</span>
+      <ul class="glora-footer__links">
+        <li><a href="/aboutUs">About Us</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Use</a></li>
+        <li><a href="#">Shipping Policy</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="glora-footer__bottom">
+    <span class="glora-footer__copy">© <%= new Date().getFullYear() %> GLORA. All rights reserved.</span>
+    <div class="glora-footer__gold-line"></div>
+    <span class="glora-footer__copy">Free shipping · Authentic products · Easy returns</span>
+  </div>
 </footer>

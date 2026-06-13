@@ -325,7 +325,7 @@ const getShopPage = async (req, res) => {
     const minPrice = parseFloat(req.query.minPrice) || 0;
     const maxPrice = parseFloat(req.query.maxPrice) || Infinity;
     const page = parseInt(req.query.page) || 1;
-    const limit = 20;
+    const limit = 12;
     const skip = (page - 1) * limit;
 
     const unblockedCategories = await Category.find({ isBlocked: false }).select('categoryName');

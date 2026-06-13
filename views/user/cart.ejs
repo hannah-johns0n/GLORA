@@ -1,333 +1,711 @@
+
+
+<%- include('../partials/user/header', { userName: userName, url: url }) %>
+
 <style>
-.cart_section {
-  padding: 60px 0;
-  background: #f8f9fa;
-  min-height: calc(100vh - 200px);
-}
+  /* ── CART PAGE ──────────────────────────────────────── */
+  .glora-cart {
+    min-height: calc(100vh - 72px);
+    background: var(--glora-cream);
+    padding: 60px 0 100px;
+  }
 
-.cart_title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1e1e27;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
+  .glora-cart__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
 
-.cart_empty {
-  text-align: center;
-  padding: 60px 0;
-}
+  /* ── PAGE HEADING ───────────────────────────────────── */
+  .glora-cart__heading {
+    margin-bottom: 48px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(26,26,26,0.10);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
 
-.cart_empty_icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
+  .glora-cart__eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
 
-.cart_empty_text {
-  font-size: 18px;
-  color: #6c757d;
-  margin-bottom: 20px;
-}
+  .glora-cart__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 38px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
 
-.cart_table {
-  background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
+  /* ── EMPTY STATE ────────────────────────────────────── */
+  .glora-cart__empty {
+    text-align: center;
+    padding: 100px 40px;
+  }
 
-.cart_table thead {
-  background: #f8f9fa;
-}
+  .glora-cart__empty-icon {
+    width: 72px; height: 72px;
+    border: 1.5px solid rgba(26,26,26,0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+  }
 
-.cart_table th {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  padding: 15px !important;
-  border-bottom: 2px solid #e9ecef !important;
-}
+  .glora-cart__empty-icon i {
+    font-size: 26px;
+    color: var(--glora-muted);
+  }
 
-.cart_table td {
-  padding: 20px 15px !important;
-  vertical-align: middle !important;
-  border-color: #e9ecef !important;
-}
+  .glora-cart__empty-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 10px;
+  }
 
-.quantity {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .glora-cart__empty-sub {
+    font-size: 12px;
+    color: var(--glora-muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 32px;
+  }
 
-.quantity button {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 4px;
-}
+  .glora-cart__empty-cta {
+    display: inline-block;
+    padding: 13px 36px;
+    background: var(--glora-dark);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
 
-.quantity span {
-  min-width: 30px;
-  text-align: center;
-  font-weight: 500;
-}
+  .glora-cart__empty-cta:hover {
+    background: var(--glora-red);
+    color: #fff;
+    text-decoration: none;
+  }
 
-.button {
-  display: flex;               
-  align-items: center;   
-  justify-content: center; 
-  padding: 12px 24px; 
-  min-height: 50px;   
-  min-width: 200px;  
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  text-align: center;
-  white-space: normal;         
-}
+  /* ── LAYOUT: items left, summary right ─────────────── */
+  .glora-cart__layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+  }
 
-.continue_shopping_button {
-  background: #d78c22 !important;
-  color: #1e1e27;
-  margin-right: 15px;
-}
+  /* ── ITEMS TABLE ────────────────────────────────────── */
+  .glora-cart__items {
+    background: #fff;
+  }
 
-.continue_shopping_button:hover {
-  background: #e8e8e8;
-  color: #1e1e27;
-  text-decoration: none;
-}
+  /* Table header */
+  .glora-cart__table-head {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 1.2fr 1fr 40px;
+    padding: 12px 24px;
+    border-bottom: 1px solid rgba(26,26,26,0.08);
+  }
 
-button.checkout_button {
-  background: #480606 !important;
-  color: #fff !important;
-}
+  .glora-cart__table-head span {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+  }
 
-button.checkout_button:hover {
-  background: #300101 !important; 
-  color: #fff !important;
-}
+  .glora-cart__table-head span:not(:first-child) {
+    text-align: center;
+  }
 
+  /* Row */
+  .glora-cart__row {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 1.2fr 1fr 40px;
+    padding: 20px 24px;
+    align-items: center;
+    border-bottom: 1px solid rgba(26,26,26,0.06);
+    transition: background 0.2s ease;
+  }
 
-.quantity button:hover {
-  background: #f8f9fa;
-}
+  .glora-cart__row:hover {
+    background: var(--glora-cream);
+  }
 
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  border-color: #dc3545;
-}
+  .glora-cart__row:last-child {
+    border-bottom: none;
+  }
+
+  .glora-cart__row--unavailable {
+    opacity: 0.45;
+    background: #f9f9f9;
+  }
+
+  /* Product cell */
+  .glora-cart__product {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .glora-cart__img-wrap {
+    width: 72px; height: 72px;
+    background: var(--glora-blush);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .glora-cart__img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .glora-cart__row:hover .glora-cart__img-wrap img {
+    transform: scale(1.05);
+  }
+
+  .glora-cart__img-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--glora-blush);
+  }
+
+  .glora-cart__img-placeholder i {
+    font-size: 20px;
+    color: rgba(26,26,26,0.20);
+  }
+
+  .glora-cart__product-info {
+    min-width: 0;
+  }
+
+  .glora-cart__product-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glora-dark);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .glora-cart__product-variant {
+    font-size: 11px;
+    color: var(--glora-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .glora-cart__offer-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+    background: rgba(217, 179, 102, 0.12);
+    border-radius: 999px;
+  }
+
+  .glora-cart__unavailable-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    border: 1px solid rgba(26,26,26,0.20);
+    padding: 2px 8px;
+    margin-top: 5px;
+  }
+
+  /* Price / Total cells */
+  .glora-cart__cell {
+    text-align: center;
+  }
+
+  .glora-cart__price {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glora-dark);
+  }
+
+  .glora-cart__total {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--glora-red);
+  }
+
+  /* Quantity control */
+  .glora-cart__qty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    border: 1px solid rgba(26,26,26,0.14);
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .glora-cart__qty-btn {
+    width: 30px; height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--glora-dark);
+    transition: background 0.2s ease, color 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .glora-cart__qty-btn:hover:not(:disabled) {
+    background: var(--glora-dark);
+    color: #fff;
+  }
+
+  .glora-cart__qty-btn:disabled {
+    cursor: not-allowed;
+    color: #ccc;
+  }
+
+  .glora-cart__qty-num {
+    min-width: 32px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glora-dark);
+    border-left: 1px solid rgba(26,26,26,0.14);
+    border-right: 1px solid rgba(26,26,26,0.14);
+    padding: 0 4px;
+    line-height: 30px;
+    display: block;
+  }
+
+  /* Remove btn */
+  .glora-cart__remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(26,26,26,0.25);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    transition: color 0.2s ease;
+    margin: 0 auto;
+  }
+
+  .glora-cart__remove:hover {
+    color: var(--glora-red);
+  }
+
+  /* ── ORDER SUMMARY ──────────────────────────────────── */
+  .glora-cart__summary {
+    background: #fff;
+    padding: 32px;
+    position: sticky;
+    top: 92px;
+  }
+
+  .glora-cart__summary-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(26,26,26,0.08);
+  }
+
+  .glora-cart__summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .glora-cart__summary-label {
+    font-size: 11px;
+    color: var(--glora-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .glora-cart__summary-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--glora-dark);
+  }
+
+  .glora-cart__summary-free {
+    font-size: 12px;
+    font-weight: 500;
+    color: #2d7a3a;
+  }
+
+  .glora-cart__summary-divider {
+    height: 1px;
+    background: rgba(26,26,26,0.08);
+    margin: 18px 0;
+  }
+
+  .glora-cart__summary-total-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--glora-dark);
+  }
+
+  .glora-cart__summary-total-value {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--glora-dark);
+  }
+
+  .glora-cart__checkout-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background: var(--glora-dark);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s ease;
+    margin-top: 24px;
+  }
+
+  .glora-cart__checkout-btn:hover {
+    background: var(--glora-red);
+  }
+
+  .glora-cart__continue-link {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 10px;
+    color: var(--glora-muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .glora-cart__continue-link:hover {
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .glora-cart__summary-note {
+    margin-top: 20px;
+    padding: 12px 14px;
+    background: var(--glora-blush);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .glora-cart__summary-note i {
+    font-size: 12px;
+    color: var(--glora-gold);
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .glora-cart__summary-note span {
+    font-size: 10px;
+    color: var(--glora-muted);
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .glora-cart__layout {
+      grid-template-columns: 1fr;
+    }
+    .glora-cart__summary {
+      position: static;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .glora-cart__container { padding: 0 20px; }
+    .glora-cart { padding: 40px 0 80px; }
+
+    .glora-cart__table-head {
+      grid-template-columns: 1fr 80px 90px 40px;
+      padding: 10px 16px;
+    }
+
+    /* hide Price col header on mobile */
+    .glora-cart__table-head .col-price-head { display: none; }
+
+    .glora-cart__row {
+      grid-template-columns: 1fr 80px 90px 40px;
+      padding: 16px;
+      gap: 8px;
+    }
+
+    .glora-cart__cell.col-price { display: none; }
+
+    .glora-cart__img-wrap { width: 56px; height: 56px; }
+    .glora-cart__product { gap: 10px; }
+  }
 </style>
 
-<%- include('../partials/user/header') %>
+<div class="glora-cart">
+  <div class="glora-cart__container">
 
-<body>
-  <div class="super_container">
-  <div class="super_container_inner">
-    <div class="super_overlay"></div>
+    <!-- Heading -->
+    <div class="glora-cart__heading">
+      <span class="glora-cart__eyebrow">Review your selection</span>
+      <h1 class="glora-cart__title">Your Bag</h1>
+    </div>
 
-    <div class="cart_section">
-      <div class="container">
-        <div class="row">
-          <div class="col">
-            <div class="cart_container">
-              <div class="cart_title">Shopping Cart</div>
+    <% if (!cart || cart.length === 0) { %>
+      <!-- Empty state -->
+      <div class="glora-cart__empty">
+        <div class="glora-cart__empty-icon">
+          <i class="fas fa-shopping-bag"></i>
+        </div>
+        <h2 class="glora-cart__empty-title">Your bag is empty</h2>
+        <p class="glora-cart__empty-sub">Discover something you'll love in our collection</p>
+        <a href="/shop" class="glora-cart__empty-cta">Explore the Collection</a>
+      </div>
 
-              <% if (!cart || cart.length === 0) { %>
-                <div class="cart_empty">
-                  <div class="cart_empty_icon">🛒</div>
-                  <div class="cart_empty_text">Your cart is empty</div>
-                  <a href="/shop" class="btn btn-dark">Continue Shopping</a>
-                </div>
+    <% } else { %>
 
-              <% } else { %>
-                <div class="cart_items">
-                  <table class="table cart_table">
-                    <thead>
-                      <tr>
-                        <th class="text-center">Product</th>
-                        <th class="text-center">Variant</th>
-                        <th class="text-center">Price</th>
-                        <th class="text-center">Quantity</th>
-                        <th class="text-center">Total</th>
-                        <th class="text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <%
-                        var subtotal = 0;
-                        cart.forEach(function(item) {
-                          subtotal += item.itemTotal;
-                        });
-                      %>
-                      <% cart.forEach(function(item) { %>
-                        <tr>
-                          <!-- Product name + image -->
-                          <td class="text-center align-middle">
-                            <div class="d-flex align-items-center justify-content-center gap-2">
-                              <% if (item.productId.images && item.productId.images.length > 0) { %>
-                                <!-- ✅ Cloudinary URL used directly -->
-                                <img src="<%= item.productId.images[0] %>"
-                                     alt="<%= item.productId.productName %>"
-                                     style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
-                              <% } %>
-                              <span><%= item.productId.productName %></span>
-                            </div>
-                          </td>
+      <%
+        var subtotal = 0;
+        cart.forEach(function(item) { subtotal += item.itemTotal; });
+        var shippingFree = subtotal >= 999;
+      %>
 
-                          <!-- Variant unit -->
-                          <td class="text-center align-middle">
-                            <%= item.unit || '-' %>
-                          </td>
+      <div class="glora-cart__layout">
 
-                          <!-- ✅ Price from resolved variant -->
-                          <td class="text-center align-middle">
-                            ₹<%= item.price.toFixed(2) %>
-                          </td>
+        <!-- Items panel -->
+        <div class="glora-cart__items">
 
-                          <!-- Quantity controls -->
-                          <td class="text-center align-middle">
-                            <div class="quantity">
-                              <button class="btn btn-sm btn-outline-secondary dec-btn"
-                                data-id="<%= item.productId._id %>">-</button>
-                              <span class="mx-2"><%= item.quantity %></span>
-                              <button class="btn btn-sm btn-outline-secondary inc-btn"
-                                data-id="<%= item.productId._id %>">+</button>
-                            </div>
-                          </td>
+          <!-- Table head -->
+          <div class="glora-cart__table-head">
+            <span>Product</span>
+            <span class="col-price-head">Price</span>
+            <span>Quantity</span>
+            <span>Total</span>
+            <span></span>
+          </div>
 
-                          <!-- ✅ Item total from resolved variant -->
-                          <td class="text-center align-middle">
-                            ₹<%= item.itemTotal.toFixed(2) %>
-                          </td>
+          <!-- Rows -->
+          <% cart.forEach(function(item) { %>
+          <div class="glora-cart__row <%= item.isUnavailable ? 'glora-cart__row--unavailable' : '' %>">
 
-                          <!-- Remove -->
-                          <td class="text-center align-middle">
-                            <button class="btn btn-sm btn-outline-danger remove-btn"
-                              data-id="<%= item.productId._id %>">
-                              <i class="fa fa-trash"></i>
-                            </button>
-                          </td>
-                        </tr>
-                      <% }); %>
-                    </tbody>
-                  </table>
-
-                  <div class="cart_buttons d-flex justify-content-end mt-4">
-                    <a href="/shop" class="button continue_shopping_button">Continue Shopping</a>
-                    <button id="checkout-btn" class="button checkout_button">
-                      Proceed to Checkout (₹<%= subtotal.toFixed(2) %>)
-                    </button>
+            <!-- Product -->
+            <div class="glora-cart__product">
+              <div class="glora-cart__img-wrap">
+                <% if (item.productId.images && item.productId.images.length > 0) { %>
+                  <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>">
+                <% } else { %>
+                  <div class="glora-cart__img-placeholder">
+                    <i class="fas fa-image"></i>
                   </div>
-                </div>
-              <% } %>
-
+                <% } %>
+              </div>
+              <div class="glora-cart__product-info">
+                <p class="glora-cart__product-name"><%= item.productId.productName %></p>
+                <% if (item.unit) { %>
+                  <p class="glora-cart__product-variant"><%= item.unit %></p>
+                <% } %>
+                <% if (item.appliedOffer) { %>
+                  <span class="glora-cart__offer-badge">Offer: <%= item.appliedOffer.title %></span>
+                <% } %>
+                <% if (item.isUnavailable) { %>
+                  <span class="glora-cart__unavailable-badge">Unavailable</span>
+                <% } %>
+              </div>
             </div>
+
+            <!-- Price -->
+            <div class="glora-cart__cell col-price">
+              <span class="glora-cart__price">₹<%= item.price.toFixed(2) %></span>
+            </div>
+
+            <!-- Quantity -->
+            <div class="glora-cart__cell">
+              <div class="glora-cart__qty">
+                <button class="glora-cart__qty-btn dec-btn"
+                  data-id="<%= item.productId._id %>"
+                  data-price="<%= item.price %>"
+                  <%= item.isUnavailable ? 'disabled' : '' %>>−</button>
+                <span class="glora-cart__qty-num"><%= item.quantity %></span>
+                <button class="glora-cart__qty-btn inc-btn"
+                  data-id="<%= item.productId._id %>"
+                  data-price="<%= item.price %>"
+                  <%= item.isUnavailable ? 'disabled' : '' %>>+</button>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="glora-cart__cell">
+              <span class="glora-cart__total">₹<span class="item-total"><%= item.itemTotal.toFixed(2) %></span></span>
+            </div>
+
+            <!-- Remove -->
+            <button class="glora-cart__remove remove-btn" data-id="<%= item.productId._id %>" title="Remove">
+              <i class="fas fa-times"></i>
+            </button>
+
+          </div>
+          <% }); %>
+
+        </div>
+
+        <!-- Order Summary -->
+        <div class="glora-cart__summary">
+          <h2 class="glora-cart__summary-title">Order Summary</h2>
+
+          <div class="glora-cart__summary-row">
+            <span class="glora-cart__summary-label">Subtotal</span>
+            <span class="glora-cart__summary-value">₹<span id="summary-subtotal"><%= subtotal.toFixed(2) %></span></span>
+          </div>
+
+          <div class="glora-cart__summary-row">
+            <span class="glora-cart__summary-label">Shipping</span>
+            <% if (shippingFree) { %>
+              <span class="glora-cart__summary-free">Free</span>
+            <% } else { %>
+              <span class="glora-cart__summary-value">Calculated at checkout</span>
+            <% } %>
+          </div>
+
+          <div class="glora-cart__summary-divider"></div>
+
+          <div class="glora-cart__summary-row">
+            <span class="glora-cart__summary-total-label">Total</span>
+            <span class="glora-cart__summary-total-value">₹<span id="summary-total"><%= subtotal.toFixed(2) %></span></span>
+          </div>
+
+          <button id="checkout-btn" class="glora-cart__checkout-btn">
+            Proceed to Checkout
+          </button>
+
+          <a href="/shop" class="glora-cart__continue-link">← Continue Shopping</a>
+
+          <div class="glora-cart__summary-note">
+            <i class="fas fa-shield-alt"></i>
+            <span>Free shipping on orders above ₹999. Authentic products, easy returns.</span>
           </div>
         </div>
+
       </div>
-    </div>
+    <% } %>
+
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  function updateQuantityUI(btn, newQuantity) {
-    const row       = btn.closest('tr');
-    const priceText = row.querySelector('td:nth-child(3)').textContent.replace('₹', '');
-    const price     = parseFloat(priceText);
-    const qtySpan   = btn.parentElement.querySelector('span');
-    const totalCell = row.querySelector('td:nth-child(5)');
-
-    qtySpan.textContent   = newQuantity;
-    totalCell.textContent = '₹' + (price * newQuantity).toFixed(2);
-    updateCheckoutTotal();
-  }
-
-  function updateCheckoutTotal() {
+  /* ── helpers ──────────────────────────────────────── */
+  function recalcTotals() {
     var subtotal = 0;
-    document.querySelectorAll('tbody tr').forEach(function(row) {
-      var price    = parseFloat(row.querySelector('td:nth-child(3)').textContent.replace('₹', ''));
-      var quantity = parseInt(row.querySelector('.quantity span').textContent);
-      subtotal += price * quantity;
+    document.querySelectorAll('.glora-cart__row:not(.glora-cart__row--unavailable)').forEach(function(row) {
+      var price = parseFloat(row.querySelector('.glora-cart__qty-btn.inc-btn').dataset.price);
+      var qty   = parseInt(row.querySelector('.glora-cart__qty-num').textContent);
+      var lineTotal = price * qty;
+      row.querySelector('.item-total').textContent = lineTotal.toFixed(2);
+      subtotal += lineTotal;
     });
-    var btn = document.getElementById('checkout-btn');
-    if (btn) btn.textContent = 'Proceed to Checkout (₹' + subtotal.toFixed(2) + ')';
+    document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('summary-total').textContent    = subtotal.toFixed(2);
   }
 
-  function showError(message) {
-    Swal.fire({ icon: 'error', title: 'Error', text: message });
+  function showErr(msg) {
+    Swal.fire({ icon: 'error', title: 'Oops', text: msg, confirmButtonColor: '#1A1A1A' });
   }
 
+  /* ── events ───────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function() {
 
-    // Increment
+    /* Increment */
     document.querySelectorAll('.inc-btn').forEach(function(btn) {
       btn.addEventListener('click', async function() {
-        const id = this.dataset.id;
         try {
-          const res    = await fetch('/cart/increment/' + id, { method: 'POST' });
-          const result = await res.json();
+          var res    = await fetch('/cart/increment/' + this.dataset.id, { method: 'POST' });
+          var result = await res.json();
           if (result.success) {
-            const qty = parseInt(this.previousElementSibling.textContent);
-            updateQuantityUI(this, qty + 1);
+            var numEl = this.previousElementSibling;
+            numEl.textContent = parseInt(numEl.textContent) + 1;
+            recalcTotals();
           } else {
-            showError(result.message || 'Failed to increase quantity');
+            showErr(result.message || 'Failed to increase quantity');
           }
-        } catch { showError('Failed to update quantity.'); }
+        } catch { showErr('Failed to update quantity.'); }
       });
     });
 
-    // Decrement
+    /* Decrement */
     document.querySelectorAll('.dec-btn').forEach(function(btn) {
-  btn.addEventListener('click', async function() {
-    const id = this.dataset.id;
-    try {
-      const res    = await fetch('/cart/decrement/' + id, { method: 'POST' });
-      const result = await res.json();
-      if (result.success) {
-        const qty = parseInt(this.nextElementSibling.textContent);
-        updateQuantityUI(this, qty - 1);
-      } else {
-        // ✅ Shows the "minimum 1" message as a toast
-        Swal.fire({
-          toast:             true,
-          position:          'top-end',
-          icon:              'warning',
-          title:             result.message,
-          showConfirmButton: false,
-          timer:             2500,
-          timerProgressBar:  true
-        });
-      }
-    } catch { showError('Failed to update quantity.'); }
-  });
-});
+      btn.addEventListener('click', async function() {
+        try {
+          var res    = await fetch('/cart/decrement/' + this.dataset.id, { method: 'POST' });
+          var result = await res.json();
+          if (result.success) {
+            var numEl = this.nextElementSibling;
+            var current = parseInt(numEl.textContent);
+            if (current > 1) {
+              numEl.textContent = current - 1;
+              recalcTotals();
+            }
+          } else {
+            Swal.fire({
+              toast: true, position: 'top-end', icon: 'warning',
+              title: result.message, showConfirmButton: false,
+              timer: 2500, timerProgressBar: true
+            });
+          }
+        } catch { showErr('Failed to update quantity.'); }
+      });
+    });
 
-    // Remove
+    /* Remove */
     document.querySelectorAll('.remove-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        const id = this.dataset.id;
+        var id = this.dataset.id;
         Swal.fire({
-          title: 'Are you sure?',
-          text:  'This will remove the item from your cart.',
+          title: 'Remove item?',
+          text:  'This item will be removed from your bag.',
           icon:  'warning',
-          showCancelButton:    true,
-          confirmButtonColor:  '#1e1e27',
-          cancelButtonColor:   '#6c757d',
-          confirmButtonText:   'Yes, remove it!'
+          showCancelButton:   true,
+          confirmButtonColor: '#1A1A1A',
+          cancelButtonColor:  '#aaa',
+          confirmButtonText:  'Remove',
+          cancelButtonText:   'Keep it'
         }).then(function(result) {
           if (result.isConfirmed) {
             fetch('/cart/remove/' + id, { method: 'POST' })
@@ -337,17 +715,17 @@ button.checkout_button:hover {
       });
     });
 
-    // Checkout
+    /* Checkout */
     var checkoutBtn = document.getElementById('checkout-btn');
     if (checkoutBtn) {
       checkoutBtn.addEventListener('click', function() {
         fetch('/cart/validate-checkout', { method: 'POST' })
-          .then(function(res) { return res.json(); })
+          .then(function(r) { return r.json(); })
           .then(function(data) {
             if (data.success) {
               window.location.href = '/checkout';
             } else {
-              Swal.fire({ icon: 'error', title: 'Cannot Proceed', text: data.message });
+              showErr(data.message);
             }
           });
       });
@@ -355,5 +733,5 @@ button.checkout_button:hover {
 
   });
 </script>
-</body>
-<%- include('../partials/admin/footer') %>
+
+<%- include('../partials/user/footer') %>

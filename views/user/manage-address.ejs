@@ -1,129 +1,547 @@
-<%- include('../partials/user/header', { userName: userName }) %>
+<%- include('../partials/user/header', { userName: userName, url: '/manage-address' }) %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
-  html {
-    transform: scale(0.9);
-    transform-origin: top center;
+  /* ── BASE ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glora-dark:   #1A1A1A;
+    --glora-cream:  #FAF7F4;
+    --glora-red:    #8B1A1A;
+    --glora-gold:   #D4A96A;
+    --glora-blush:  #F0EBE3;
+    --glora-muted:  #6B6B6B;
+    --glora-border: #E0D8D0;
   }
 
-  .navbar {
-    padding-top: 0.3rem !important;
-    padding-bottom: 0.3rem !important;
-    margin-bottom: 40px; 
+  body {
+    background: var(--glora-cream);
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
   }
 
-  .nav.flex-column .nav-link {
-    font-weight: bold;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: black !important;
+  /* ── PAGE WRAPPER ───────────────────────────────────── */
+  .glora-account {
+    min-height: calc(100vh - 72px);
+    padding: 60px 0 100px;
+    margin-top: 72px;
+  }
+
+  .glora-account__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .glora-account__heading {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--glora-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .glora-account__eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-account__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 600;
+    color: var(--glora-dark);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .glora-account__layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ════════════════════════════════════════════════════
+     SHARED SIDEBAR
+  ════════════════════════════════════════════════════ */
+  .glora-sidebar {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    position: sticky;
+    top: 92px;
+  }
+
+  .glora-sidebar__user {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(26,26,26,0.07);
+    text-align: center;
+  }
+
+  .glora-sidebar__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--glora-blush);
+    border: 2px solid var(--glora-border);
     display: flex;
     align-items: center;
-    font-size: 1rem;
+    justify-content: center;
+    margin: 0 auto 12px;
   }
 
-  .nav.flex-column .nav-link i {
-    margin-right: 8px;
-    font-size: 1.1rem;
+  .glora-sidebar__avatar i { font-size: 22px; color: var(--glora-muted); }
+
+  .glora-sidebar__name {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .btn-logout {
-    background-color: #8B0000;
-    color: white !important;
+  .glora-sidebar__label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-sidebar__nav { padding: 12px 0; }
+
+  .glora-sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 24px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--glora-muted);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+  }
+
+  .glora-sidebar__nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--glora-red);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .glora-sidebar__nav-item.active {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    font-weight: 600;
+  }
+
+  .glora-sidebar__nav-item.active::before { opacity: 1; }
+
+  .glora-sidebar__nav-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--glora-muted);
+    transition: color 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover i,
+  .glora-sidebar__nav-item.active i { color: var(--glora-red); }
+
+  .glora-sidebar__footer {
+    padding: 12px 16px 20px;
+    border-top: 1px solid rgba(26,26,26,0.07);
+  }
+
+  .glora-sidebar__logout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid rgba(26,26,26,0.15);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .glora-sidebar__logout:hover {
+    background: var(--glora-dark);
+    border-color: var(--glora-dark);
+    color: #fff;
+  }
+
+  /* ════════════════════════════════════════════════════
+     ADDRESS PANEL
+  ════════════════════════════════════════════════════ */
+  .address-panel { display: flex; flex-direction: column; gap: 0; }
+
+  /* Panel header row */
+  .address-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .address-panel__count {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+  }
+
+  /* Add address button */
+  .btn-add-address {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 24px;
+    background: var(--glora-dark);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    text-decoration: none;
     border: none;
-    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s ease;
   }
 
-  .btn-logout:hover {
-    background-color: #a30000;
-    color: white !important;
+  .btn-add-address:hover {
+    background: var(--glora-red);
+    color: #fff;
+    text-decoration: none;
   }
 
-  .form-label {
-    font-weight: bold;
+  /* ── ADDRESS GRID ───────────────────────────────────── */
+  .address-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
 
-  .form-control[readonly] {
-    font-weight: normal;
-    color: black !important;
+  /* ── ADDRESS CARD ───────────────────────────────────── */
+  .address-card {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease;
   }
 
-  .content-wrapper {
-    margin-top: 120px; 
+  .address-card:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.07);
   }
 
-  .personal-info-title {
-    font-size: 1.8rem;
-    font-weight: bold;
+  .address-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--glora-cream);
+    border-bottom: 1px solid var(--glora-border);
+  }
+
+  .address-card__type {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--glora-dark);
+  }
+
+  .address-card__type i {
+    font-size: 11px;
+    color: var(--glora-gold);
+  }
+
+  .address-card__body {
+    padding: 18px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .address-card__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--glora-dark);
+    line-height: 1.5;
+  }
+
+  .address-card__row i {
+    font-size: 11px;
+    color: var(--glora-muted);
+    width: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── ADDRESS ACTIONS ────────────────────────────────── */
+  .address-card__footer {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--glora-border);
+  }
+
+  .addr-btn {
+    flex: 1;
+    padding: 9px 12px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    text-align: center;
+  }
+
+  .addr-btn--edit {
+    background: transparent;
+    color: var(--glora-dark);
+    border: 1px solid var(--glora-border);
+  }
+
+  .addr-btn--edit:hover {
+    background: var(--glora-dark);
+    color: #fff;
+    border-color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .addr-btn--delete {
+    background: transparent;
+    color: var(--glora-red);
+    border: 1px solid var(--glora-red);
+  }
+
+  .addr-btn--delete:hover {
+    background: var(--glora-red);
+    color: #fff;
+  }
+
+  /* ── EMPTY STATE ────────────────────────────────────── */
+  .address-empty {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    padding: 80px 40px;
+    text-align: center;
+  }
+
+  .address-empty__icon {
+    font-size: 2.5rem;
+    color: var(--glora-gold);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .address-empty__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 10px;
+  }
+
+  .address-empty__text {
+    font-size: 13px;
+    color: var(--glora-muted);
+    margin-bottom: 28px;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .glora-account__layout { grid-template-columns: 1fr; }
+    .glora-sidebar { position: static; }
+    .glora-sidebar__nav { display: grid; grid-template-columns: 1fr 1fr; }
+    .address-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .glora-account__container { padding: 0 16px; }
+    .glora-sidebar__nav { grid-template-columns: 1fr; }
+    .address-grid { grid-template-columns: 1fr; }
   }
 </style>
 
-<div class="container-fluid content-wrapper">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 bg-light border-end p-3">
-      <ul class="nav flex-column">
-        <li class="nav-item mb-2">
-          <a href="/profile" class="nav-link active"> My Account</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/my-orders" class="nav-link"> My Orders</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/manage-address" class="nav-link"> Manage Addresses</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/wallet" class="nav-link"> Wallet</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/wishlist" class="nav-link"> My Favourite</a>
-        </li>
-        <li class="nav-item mb-2">
-          <a href="/add-account" class="nav-link"> Add Account</a>
-        </li>
-      </ul>
-      <form action="/logout" method="POST" class="mt-4">
-        <button type="submit" class="btn btn-logout w-100">LOG OUT</button>
-      </form>
+<div class="glora-account">
+  <div class="glora-account__container">
+
+    <div class="glora-account__heading">
+      <span class="glora-account__eyebrow">Your account</span>
+      <h1 class="glora-account__title">Manage Addresses</h1>
     </div>
 
-    <div class="col-md-9">
-      <div class="col-md-9 col-lg-10 p-4">
-        <h2 class="fw-bold mb-4 text-center" style="color: #333;">Manage Addresses</h2>
+    <div class="glora-account__layout">
+
+      <!-- ══ SHARED SIDEBAR ══════════════════════════════ -->
+      <aside class="glora-sidebar">
+        <div class="glora-sidebar__user">
+          <div class="glora-sidebar__avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <p class="glora-sidebar__name"><%= userName || 'User' %></p>
+          <span class="glora-sidebar__label">Member</span>
+        </div>
+
+        <nav class="glora-sidebar__nav">
+          <a href="/profile" class="glora-sidebar__nav-item">
+            <i class="fas fa-user"></i> My Account
+          </a>
+          <a href="/my-orders" class="glora-sidebar__nav-item">
+            <i class="fas fa-box"></i> My Orders
+          </a>
+          <a href="/manage-address" class="glora-sidebar__nav-item active">
+            <i class="fas fa-map-marker-alt"></i> Addresses
+          </a>
+          <a href="/wallet" class="glora-sidebar__nav-item">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+          <a href="/wishlist" class="glora-sidebar__nav-item">
+            <i class="fas fa-heart"></i> Wishlist
+          </a>
+          <a href="/add-account" class="glora-sidebar__nav-item">
+            <i class="fas fa-link"></i> Linked Accounts
+          </a>
+        </nav>
+
+        <div class="glora-sidebar__footer">
+          <form action="/logout" method="POST">
+            <button type="submit" class="glora-sidebar__logout">
+              <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- ══ ADDRESS PANEL ═══════════════════════════════ -->
+      <div class="address-panel">
 
         <% if (addresses.length === 0) { %>
-          <div class="text-center py-5">
-            <p class="text-muted">No addresses available.</p>
-            <a href="/add-address" class="btn btn-dark">Add New Address</a>
-          </div>
-        <% } else { %>
-          <a href="/add-address" class="btn btn-dark mb-3">+ Add New Address</a>
-          <div class="row">
-            <% addresses.forEach(address => { %>
-              <div class="col-md-6 mb-3">
-                <div class="border rounded p-3 h-100 bg-light">
-                  <strong><%= address.addressType %></strong><br>
-                  <%= address.city %>, <%= address.state %> - <%= address.pincode %><br>
-                  Landmark: <%= address.landmark %><br>
-                  Phone: <%= address.phoneNumber %><br>
 
-                  <div class="mt-2">
-                    <a href="/edit-address/<%= address._id %>" class="btn btn-warning btn-sm">Edit</a>
-                    <form action="/delete-address/<%= address._id %>" method="POST" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                  </div>
+          <!-- Empty state -->
+          <div class="address-empty">
+            <i class="fas fa-map-marker-alt address-empty__icon"></i>
+            <h3 class="address-empty__title">No Addresses Saved</h3>
+            <p class="address-empty__text">Add a delivery address to make checkout faster.</p>
+            <a href="/add-address" class="btn-add-address">
+              <i class="fas fa-plus"></i> Add New Address
+            </a>
+          </div>
+
+        <% } else { %>
+
+          <div class="address-panel__header">
+            <span class="address-panel__count">
+              <%= addresses.length %> address<%= addresses.length !== 1 ? 'es' : '' %> saved
+            </span>
+            <a href="/add-address" class="btn-add-address">
+              <i class="fas fa-plus"></i> Add New Address
+            </a>
+          </div>
+
+          <div class="address-grid">
+            <% addresses.forEach(function(address) {
+              let typeIcon = 'fas fa-home';
+              if (address.addressType && address.addressType.toLowerCase() === 'work') typeIcon = 'fas fa-briefcase';
+              else if (address.addressType && address.addressType.toLowerCase() === 'other') typeIcon = 'fas fa-map-pin';
+            %>
+            <div class="address-card">
+
+              <div class="address-card__header">
+                <span class="address-card__type">
+                  <i class="<%= typeIcon %>"></i>
+                  <%= address.addressType || 'Address' %>
+                </span>
+              </div>
+
+              <div class="address-card__body">
+                <div class="address-card__row">
+                  <i class="fas fa-city"></i>
+                  <span><%= address.city %>, <%= address.state %> — <%= address.pincode %></span>
+                </div>
+                <% if (address.landmark) { %>
+                <div class="address-card__row">
+                  <i class="fas fa-landmark"></i>
+                  <span>Near <%= address.landmark %></span>
+                </div>
+                <% } %>
+                <div class="address-card__row">
+                  <i class="fas fa-phone"></i>
+                  <span><%= address.phoneNumber %></span>
                 </div>
               </div>
-            <% }) %>
+
+              <div class="address-card__footer">
+                <a href="/edit-address/<%= address._id %>" class="addr-btn addr-btn--edit">
+                  <i class="fas fa-pen"></i> Edit
+                </a>
+                <form action="/delete-address/<%= address._id %>" method="POST" style="flex:1; display:contents;">
+                  <button type="submit" class="addr-btn addr-btn--delete"
+                    onclick="return confirm('Delete this address?')">
+                    <i class="fas fa-trash-alt"></i> Delete
+                  </button>
+                </form>
+              </div>
+
+            </div>
+            <% }); %>
           </div>
+
         <% } %>
+
       </div>
     </div>
   </div>
 </div>
 
 <%- include('../partials/user/footer') %>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   <% if (typeof success !== 'undefined' && success) { %>
@@ -133,9 +551,8 @@
       text: '<%= success %>',
       timer: 2000,
       timerProgressBar: true,
-      showConfirmButton: false
+      showConfirmButton: false,
+      confirmButtonColor: '#8B1A1A'
     });
   <% } %>
 </script>
-
-

@@ -1,700 +1,912 @@
-<%- include('../partials/user/header', { userName: userName }) %>
+<%- include('../partials/user/header', { userName: userName, url: '/my-orders' }) %>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    <div class="container py-5 mt-3">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">My Orders</h2>
-            <form method="get" action="/my-orders" class="d-flex" style="max-width: 300px;">
-                <div class="input-group">
-                    <input type="text" name="search" value="<%= search %>" class="form-control"
-                        placeholder="Search order ID" aria-label="Search orders">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+<style>
+  /* ── BASE ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        <% if (orders && orders.length> 0) { %>
-            <div class="orders-list">
-                <% orders.forEach(order=> {
-                    let statusClass = 'pending';
-                    let statusText = 'Pending';
-                    let showStatus = true;
+  :root {
+    --glora-dark:   #1A1A1A;
+    --glora-cream:  #FAF7F4;
+    --glora-red:    #8B1A1A;
+    --glora-gold:   #D4A96A;
+    --glora-blush:  #F0EBE3;
+    --glora-muted:  #6B6B6B;
+    --glora-border: #E0D8D0;
+  }
 
-                    if (order.status === 'Return-Requested' || order.status === 'Return-Request') {
-                    showStatus = false;
-                    }
+  body {
+    background: var(--glora-cream);
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
+  }
 
-                    switch(order.status) {
-                    case 'Processing':
-                    statusClass = 'processing';
-                    statusText = 'Processing';
-                    break;
-                    case 'Shipped':
-                    statusClass = 'shipped';
-                    statusText = 'Shipped';
-                    break;
-                    case 'Delivered':
-                    statusClass = 'delivered';
-                    statusText = 'Delivered';
-                    break;
-                    case 'Cancelled':
-                    statusClass = 'cancelled';
-                    statusText = 'Cancelled';
-                    break;
-                    case 'Returned':
-                    statusClass = 'returned';
-                    statusText = 'Returned';
-                    break;
-                    case 'Return-Requested':
-                    case 'Return-Request':
-                    statusClass = 'delivered'; // Show as delivered while return is requested
-                    statusText = 'Delivered';
-                    break;
-                    case 'Return-Rejected':
-                    statusClass = 'delivered'; // Show as delivered if return is rejected
-                    statusText = 'Delivered';
-                    break;
-                    }
-                    %>
+  /* ── PAGE WRAPPER ───────────────────────────────────── */
+  .glora-account {
+    min-height: calc(100vh - 72px);
+    padding: 60px 0 100px;
+    margin-top: 72px;
+  }
 
-                    <div class="order-card">
-                        <div class="order-header">
-                            <div class="order-id">Order #<%= order.orderId %>
-                            </div>
-                            <div class="order-date">Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN',
-                                    { day: 'numeric' , month: 'short' , year: 'numeric' }) %>
-                            </div>
-                        </div>
+  .glora-account__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
 
-                        <div class="order-status d-flex align-items-center">
-                            <% if (showStatus) { %>
-                                <div class="order-status">
-                                    <% if (order.status==='Return-Requested' || order.status==='Return-Request' ) { %>
-                                        <span class="status-badge delivered">Delivered</span>
-                                        <% } else { %>
-                                            <span class="status-badge <%= statusClass %>">
-                                                <%= statusText %>
-                                            </span>
-                                            <% } %>
-                                                <% if (order.updatedAt) { %>
-                                                    <span class="status-date ms-auto">
-                                                        Updated on <%= new
-                                                            Date(order.updatedAt).toLocaleDateString('en-IN', {
-                                                            day: 'numeric' , month: 'short' , year: 'numeric' }) %>
-                                                    </span>
-                                                    <% } %>
-                                </div>
-                                <% } %>
-                                    <% if (order.status==='Cancelled' && order.cancellationReason) { %>
-                                        <span class="ms-2 text-muted">
-                                            <i class="fas fa-info-circle"></i> Reason: <%= order.cancellationReason %>
-                                        </span>
-                                        <% } %>
-                        </div>
+  .glora-account__heading {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--glora-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 
-                        <div class="order-details">
-                            <div class="order-items">
-                                <% if (order.orderItems && order.orderItems.length> 0) { %>
-                                    <% order.orderItems.slice(0, 3).forEach(item=> { %>
-                                        <div class="order-item">
-                                            <div class="item-image">
-                                                <img src="<%= item.image || '/images/placeholder.jpg' %>"
-                                                    alt="<%= item.name || 'Product' %>">
-                                            </div>
-                                            <div class="item-details">
-                                                <div class="item-name">
-                                                    <%= item.name || 'Product Name Missing' %>
-                                                </div>
-                                                <div class="item-price">Price: ₹<%= item.price ? item.price.toFixed(2)
-                                                        : '0.00' %>
-                                                </div>
-                                                <div class="item-quantity">Qty: <%= item.quantity %>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <% }) %>
-                                            <% if (order.orderItems.length> 3) { %>
-                                                <div class="more-items">+<%= order.orderItems.length - 3 %> more items
-                                                </div>
-                                                <% } %>
-                                                    <% } %>
-                            </div>
+  .glora-account__eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
 
-                            <div class="order-total">
-                                <div class="total-amount">₹<%= order.totalPrice?.toFixed(2) || '0.00' %>
-                                </div>
-                                <div class="total-label">Total Amount</div>
-                            </div>
-                        </div>
+  .glora-account__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 600;
+    color: var(--glora-dark);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
 
-                        <div class="order-actions">
-                            <a href="/my-orders/<%= order.orderId %>" class="btn-view">View Details</a>
+  .glora-account__layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
 
-                            <% if(order.status==="Delivered" ) { %>
-                                <button type="button" class="btn-return" onclick="returnOrder('<%= order.orderId %>')">
-                                    <i class="fas fa-undo me-1"></i> Return
-                                </button>
-                                <% } else if(order.status==='Pending' || order.status==='Processing' ) { %>
-                                    <button type="button" class="btn-cancel"
-                                        onclick="cancelOrder('<%= order.orderId %>')">
-                                        <i class="fas fa-times-circle me-1"></i> Cancel Order
-                                    </button>
+  /* ════════════════════════════════════════════════════
+     SHARED SIDEBAR
+  ════════════════════════════════════════════════════ */
+  .glora-sidebar {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    position: sticky;
+    top: 92px;
+  }
 
-                                    <% } %>
+  .glora-sidebar__user {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(26,26,26,0.07);
+    text-align: center;
+  }
 
+  .glora-sidebar__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--glora-blush);
+    border: 2px solid var(--glora-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
 
-                                        <% if(order.paymentStatus==="Paid" || (order.paymentMethod==="COD" &&
-                                            order.status==="Delivered" )) { %>
-                                            <a href="/my-orders/<%= order.orderId %>/invoice"
-                                                class="btn-invoice">Download Invoice</a>
-                                            <% } else if (order.paymentStatus==="Failed" ) { %>
-                                                <button onclick="retryPayment('<%= order.orderId %>', this)"
-                                                    class="btn-invoice">
-                                                    Retry Payment
-                                                </button>
-                                                <% } %>
-                        </div>
-                    </div>
+  .glora-sidebar__avatar i { font-size: 22px; color: var(--glora-muted); }
 
-                    <% if(order.status !=="Cancelled" && order.status !=="Delivered" && order.status !=="Returned" ){ %>
-                        <div class="modal fade" id="cancelOrderModal<%= order.orderId %>" tabindex="-1"
-                            aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="btn-cancel" data-orderid="<%= order.orderId %>">
-                                            <i class="fas fa-times-circle me-1"></i> Cancel Order
-                                        </button>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <form action="/my-orders/<%= order.orderId %>/cancel" method="POST"
-                                        class="cancel-form" data-order-id="<%= order.orderId %>">
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label for="reason<%= order.orderId %>" class="form-label">Reason for
-                                                    cancellation (optional)</label>
-                                                <textarea class="form-control" id="reason<%= order.orderId %>"
-                                                    name="reason" rows="3"
-                                                    placeholder="Please let us know why you're cancelling this order"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <% } %>
-                            <% }) %>
-            </div>
-            <% } else { %>
-                <div class="no-orders">
-                    <div class="no-orders-icon">
-                        <i class="fas fa-box-open"></i>
-                    </div>
-                    <h3>No Orders Yet</h3>
-                    <p>You haven't placed any orders yet.</p>
-                    <a href="/shop" class="btn-shop-now">Continue Shopping</a>
-                </div>
-                <% } %>
+  .glora-sidebar__name {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .glora-sidebar__label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-sidebar__nav { padding: 12px 0; }
+
+  .glora-sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 24px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--glora-muted);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+  }
+
+  .glora-sidebar__nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--glora-red);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .glora-sidebar__nav-item.active {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    font-weight: 600;
+  }
+
+  .glora-sidebar__nav-item.active::before { opacity: 1; }
+
+  .glora-sidebar__nav-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--glora-muted);
+    transition: color 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover i,
+  .glora-sidebar__nav-item.active i { color: var(--glora-red); }
+
+  .glora-sidebar__footer {
+    padding: 12px 16px 20px;
+    border-top: 1px solid rgba(26,26,26,0.07);
+  }
+
+  .glora-sidebar__logout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid rgba(26,26,26,0.15);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .glora-sidebar__logout:hover {
+    background: var(--glora-dark);
+    border-color: var(--glora-dark);
+    color: #fff;
+  }
+
+  /* ════════════════════════════════════════════════════
+     ORDERS PANEL
+  ════════════════════════════════════════════════════ */
+  .orders-panel { display: flex; flex-direction: column; gap: 0; }
+
+  /* Search bar */
+  .orders-search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .orders-search__label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+  }
+
+  .orders-search__form {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .orders-search__input {
+    padding: 10px 40px 10px 16px;
+    border: 1px solid var(--glora-border);
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    color: var(--glora-dark);
+    outline: none;
+    width: 240px;
+    transition: border-color 0.2s ease;
+  }
+
+  .orders-search__input::placeholder { color: #bbb; }
+  .orders-search__input:focus { border-color: var(--glora-dark); }
+
+  .orders-search__btn {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    padding: 0 14px;
+    background: var(--glora-dark);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 12px;
+  }
+
+  .orders-search__btn:hover { background: var(--glora-red); }
+
+  /* ── ORDER CARD ─────────────────────────────────────── */
+  .order-card {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .order-card:hover {
+    box-shadow: 0 8px 28px rgba(0,0,0,0.07);
+  }
+
+  .order-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--glora-border);
+    background: var(--glora-cream);
+  }
+
+  .order-card__id {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--glora-dark);
+  }
+
+  .order-card__date {
+    font-size: 11px;
+    color: var(--glora-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .order-card__body {
+    padding: 20px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  /* Items */
+  .order-items { flex: 1; min-width: 0; }
+
+  .order-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
+  .order-item:last-child { margin-bottom: 0; }
+
+  .order-item__img {
+    width: 54px;
+    height: 54px;
+    background: var(--glora-blush);
+    border: 1px solid var(--glora-border);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .order-item__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .order-item__name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--glora-dark);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+
+  .order-item__meta {
+    font-size: 11px;
+    color: var(--glora-muted);
+    display: flex;
+    gap: 12px;
+  }
+
+  .order-more {
+    font-size: 11px;
+    color: var(--glora-gold);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+
+  /* Right side: status + total */
+  .order-card__right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  /* Status badge */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-badge.pending    { background: #FFF8E6; color: #9A6F00; }
+  .status-badge.pending::before { background: #D4A96A; }
+
+  .status-badge.processing { background: #EAF2FF; color: #1A5FAD; }
+  .status-badge.processing::before { background: #1A5FAD; }
+
+  .status-badge.shipped    { background: #F0EBE3; color: #5A4A3A; }
+  .status-badge.shipped::before { background: #9C7A5A; }
+
+  .status-badge.delivered  { background: #EDFAF2; color: #1A6B40; }
+  .status-badge.delivered::before { background: #27AE60; }
+
+  .status-badge.cancelled,
+  .status-badge.returned   { background: #FFF0F0; color: var(--glora-red); }
+  .status-badge.cancelled::before,
+  .status-badge.returned::before { background: var(--glora-red); }
+
+  .order-card__updated {
+    font-size: 10px;
+    color: var(--glora-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .order-card__total-amount {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--glora-dark);
+  }
+
+  .order-card__total-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    text-align: right;
+  }
+
+  .cancel-reason {
+    font-size: 11px;
+    color: var(--glora-muted);
+    padding: 0 24px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cancel-reason i { color: var(--glora-gold); font-size: 11px; }
+
+  /* ── ORDER ACTIONS ──────────────────────────────────── */
+  .order-card__footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--glora-border);
+    background: var(--glora-cream);
+    flex-wrap: wrap;
+  }
+
+  .order-action-btn {
+    padding: 8px 18px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    border: none;
+  }
+
+  .order-action-btn--view {
+    background: var(--glora-dark);
+    color: #fff;
+  }
+
+  .order-action-btn--view:hover {
+    background: var(--glora-red);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .order-action-btn--cancel {
+    background: transparent;
+    color: var(--glora-red);
+    border: 1px solid var(--glora-red);
+  }
+
+  .order-action-btn--cancel:hover {
+    background: var(--glora-red);
+    color: #fff;
+  }
+
+  .order-action-btn--return {
+    background: transparent;
+    color: var(--glora-muted);
+    border: 1px solid var(--glora-border);
+  }
+
+  .order-action-btn--return:hover {
+    border-color: var(--glora-dark);
+    color: var(--glora-dark);
+  }
+
+  .order-action-btn--invoice {
+    background: transparent;
+    color: var(--glora-dark);
+    border: 1px solid var(--glora-border);
+  }
+
+  .order-action-btn--invoice:hover {
+    background: var(--glora-dark);
+    color: #fff;
+    border-color: var(--glora-dark);
+  }
+
+  /* ── EMPTY STATE ────────────────────────────────────── */
+  .orders-empty {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    padding: 80px 40px;
+    text-align: center;
+  }
+
+  .orders-empty__icon {
+    font-size: 2.5rem;
+    color: var(--glora-gold);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .orders-empty__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 10px;
+  }
+
+  .orders-empty__text {
+    font-size: 13px;
+    color: var(--glora-muted);
+    margin-bottom: 28px;
+  }
+
+  .orders-empty__cta {
+    display: inline-block;
+    padding: 13px 32px;
+    background: var(--glora-dark);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+
+  .orders-empty__cta:hover {
+    background: var(--glora-red);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .glora-account__layout { grid-template-columns: 1fr; }
+    .glora-sidebar { position: static; }
+    .glora-sidebar__nav { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .glora-account__container { padding: 0 16px; }
+    .order-card__body { flex-direction: column; }
+    .order-card__right { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+    .orders-search__input { width: 180px; }
+    .glora-sidebar__nav { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="glora-account">
+  <div class="glora-account__container">
+
+    <div class="glora-account__heading">
+      <span class="glora-account__eyebrow">Your account</span>
+      <h1 class="glora-account__title">My Orders</h1>
     </div>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
-        async function retryPayment(orderId, buttonElement) {
-            const button = buttonElement || event?.target?.closest('button');
+    <div class="glora-account__layout">
 
-            try {
-                if (button) {
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                }
+      <!-- ══ SHARED SIDEBAR ══════════════════════════════ -->
+      <aside class="glora-sidebar">
+        <div class="glora-sidebar__user">
+          <div class="glora-sidebar__avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <p class="glora-sidebar__name"><%= userName || 'User' %></p>
+          <span class="glora-sidebar__label">Member</span>
+        </div>
 
-                // Step 1: Create a new Razorpay order from the existing failed order
-                const response = await fetch('/retry-razorpay-order', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ orderId })
-                });
+        <nav class="glora-sidebar__nav">
+          <a href="/profile" class="glora-sidebar__nav-item">
+            <i class="fas fa-user"></i> My Account
+          </a>
+          <a href="/my-orders" class="glora-sidebar__nav-item active">
+            <i class="fas fa-box"></i> My Orders
+          </a>
+          <a href="/manage-address" class="glora-sidebar__nav-item">
+            <i class="fas fa-map-marker-alt"></i> Addresses
+          </a>
+          <a href="/wallet" class="glora-sidebar__nav-item">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+          <a href="/wishlist" class="glora-sidebar__nav-item">
+            <i class="fas fa-heart"></i> Wishlist
+          </a>
+          <a href="/add-account" class="glora-sidebar__nav-item">
+            <i class="fas fa-link"></i> Linked Accounts
+          </a>
+        </nav>
 
-                const data = await response.json();
-                if (!data.success) throw new Error(data.message || 'Failed to initiate retry');
+        <div class="glora-sidebar__footer">
+          <form action="/logout" method="POST">
+            <button type="submit" class="glora-sidebar__logout">
+              <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
+            </button>
+          </form>
+        </div>
+      </aside>
 
-                // Step 2: Open Razorpay
-                const options = {
-                    key: data.key,
-                    amount: data.amount,
-                    currency: data.currency || 'INR',
-                    name: 'GLORA',
-                    description: 'Retry Order Payment',
-                    order_id: data.razorpayOrderId,
+      <!-- ══ ORDERS PANEL ════════════════════════════════ -->
+      <div class="orders-panel">
 
-                    handler: async function (response) {
-                        try {
-                            // Step 3: Verify with signature — proper verification
-                            const verifyRes = await fetch('/verify-retry-payment', {
-                                method: 'POST',
-                                credentials: 'same-origin',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    orderId: orderId
-                                })
-                            });
+        <!-- Search -->
+        <div class="orders-search">
+          <span class="orders-search__label"><%= orders && orders.length ? orders.length + ' order' + (orders.length !== 1 ? 's' : '') : 'No orders' %></span>
+          <form method="get" action="/my-orders" class="orders-search__form">
+            <input
+              type="text"
+              name="search"
+              value="<%= search %>"
+              class="orders-search__input"
+              placeholder="Search by Order ID…"
+            >
+            <button type="submit" class="orders-search__btn">
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
 
-                            const verifyData = await verifyRes.json();
-                            if (verifyData.success) {
-                                window.location.href = verifyData.redirectUrl; // → /order-success/:orderId
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Verification Failed',
-                                    text: 'Payment received but verification failed. Please contact support.'
-                                });
-                            }
-                        } catch (err) {
-                            console.error('Verify retry error:', err);
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Payment Successful',
-                                text: 'Payment was received but we could not update your order. Please contact support.',
-                            }).then(() => window.location.href = '/my-orders');
-                        }
-                    },
+        <!-- Orders list -->
+        <% if (orders && orders.length > 0) { %>
 
-                    prefill: { name: '<%= userName %>' },
-                    theme: { color: '#3399cc' },
+          <% orders.forEach(function(order) {
+            let statusClass = 'pending';
+            let statusText  = 'Pending';
 
-                    modal: {
-                        ondismiss: function () {
-                            if (button) {
-                                button.disabled = false;
-                                button.innerHTML = 'Retry Payment';
-                            }
-                        }
-                    }
-                };
-
-                const rzp = new Razorpay(options);
-
-                rzp.on('payment.failed', function (response) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Payment Failed',
-                        text: response.error.description || 'Payment could not be processed. Please try again.'
-                    });
-                    if (button) {
-                        button.disabled = false;
-                        button.innerHTML = 'Retry Payment';
-                    }
-                });
-
-                rzp.open();
-
-            } catch (error) {
-                console.error('Retry payment error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message || 'Something went wrong. Please try again.'
-                });
-                if (button) {
-                    button.disabled = false;
-                    button.innerHTML = 'Retry Payment';
-                }
+            switch(order.status) {
+              case 'Processing':      statusClass = 'processing'; statusText = 'Processing'; break;
+              case 'Shipped':         statusClass = 'shipped';    statusText = 'Shipped';    break;
+              case 'Delivered':       statusClass = 'delivered';  statusText = 'Delivered';  break;
+              case 'Cancelled':       statusClass = 'cancelled';  statusText = 'Cancelled';  break;
+              case 'Returned':        statusClass = 'returned';   statusText = 'Returned';   break;
+              case 'Return-Requested':
+              case 'Return-Request':
+              case 'Return-Rejected': statusClass = 'delivered';  statusText = 'Delivered';  break;
             }
-        }
-    </script>
-    <script>
-        async function cancelOrder(orderId) {
-            // Step 1: Ask for optional reason
-            const { value: reason } = await Swal.fire({
-                title: 'Reason for cancellation (optional)',
-                input: 'textarea',
-                inputPlaceholder: 'Why are you cancelling this order?',
-                showCancelButton: true,
-                confirmButtonText: 'Submit'
+          %>
+
+          <div class="order-card">
+
+            <!-- Header -->
+            <div class="order-card__header">
+              <span class="order-card__id">Order #<%= order.orderId %></span>
+              <span class="order-card__date">
+                Placed <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="order-card__body">
+
+              <!-- Items -->
+              <div class="order-items">
+                <% if (order.orderItems && order.orderItems.length > 0) { %>
+                  <% order.orderItems.slice(0, 3).forEach(function(item) { %>
+                  <div class="order-item">
+                    <div class="order-item__img">
+                      <img src="<%= item.image || '/images/placeholder.jpg' %>" alt="<%= item.name || 'Product' %>">
+                    </div>
+                    <div>
+                      <p class="order-item__name"><%= item.name || 'Product' %></p>
+                      <div class="order-item__meta">
+                        <span>₹<%= item.price ? item.price.toFixed(2) : '0.00' %></span>
+                        <span>Qty: <%= item.quantity %></span>
+                      </div>
+                    </div>
+                  </div>
+                  <% }); %>
+                  <% if (order.orderItems.length > 3) { %>
+                    <p class="order-more">+<%= order.orderItems.length - 3 %> more item<%= order.orderItems.length - 3 !== 1 ? 's' : '' %></p>
+                  <% } %>
+                <% } %>
+              </div>
+
+              <!-- Right: status + total -->
+              <div class="order-card__right">
+                <span class="status-badge <%= statusClass %>"><%= statusText %></span>
+                <% if (order.updatedAt) { %>
+                  <span class="order-card__updated">
+                    Updated <%= new Date(order.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                  </span>
+                <% } %>
+                <div>
+                  <p class="order-card__total-amount">₹<%= order.totalPrice?.toFixed(2) || '0.00' %></p>
+                  <p class="order-card__total-label">Total</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Cancellation reason -->
+            <% if (order.status === 'Cancelled' && order.cancellationReason) { %>
+              <div class="cancel-reason">
+                <i class="fas fa-info-circle"></i>
+                Reason: <%= order.cancellationReason %>
+              </div>
+            <% } %>
+
+            <!-- Footer actions -->
+            <div class="order-card__footer">
+
+              <a href="/my-orders/<%= order.orderId %>" class="order-action-btn order-action-btn--view">
+                <i class="fas fa-eye"></i> View Details
+              </a>
+
+              <% if (order.status === 'Delivered') { %>
+                <button type="button" class="order-action-btn order-action-btn--return" onclick="returnOrder('<%= order.orderId %>')">
+                  <i class="fas fa-undo"></i> Return
+                </button>
+              <% } else if (order.status === 'Pending' || order.status === 'Processing') { %>
+                <button type="button" class="order-action-btn order-action-btn--cancel" onclick="cancelOrder('<%= order.orderId %>')">
+                  <i class="fas fa-times-circle"></i> Cancel Order
+                </button>
+              <% } %>
+
+              <% if (order.paymentStatus === 'Paid' || (order.paymentMethod === 'COD' && order.status === 'Delivered')) { %>
+                <a href="/my-orders/<%= order.orderId %>/invoice" class="order-action-btn order-action-btn--invoice">
+                  <i class="fas fa-download"></i> Invoice
+                </a>
+              <% } else if (order.paymentMethod === 'Online' && order.paymentStatus !== 'Paid') { %>
+                <button onclick="retryPayment('<%= order.orderId %>', this)" class="order-action-btn order-action-btn--invoice">
+                  <i class="fas fa-redo"></i> Retry Payment
+                </button>
+              <% } %>
+
+            </div>
+          </div>
+
+          <% }); %>
+
+        <% } else { %>
+          <div class="orders-empty">
+            <i class="fas fa-box-open orders-empty__icon"></i>
+            <h3 class="orders-empty__title">No Orders Yet</h3>
+            <p class="orders-empty__text">You haven't placed any orders yet. Start exploring our collection.</p>
+            <a href="/shop" class="orders-empty__cta">Continue Shopping</a>
+          </div>
+        <% } %>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/user/footer') %>
+
+<script>
+  async function retryPayment(orderId, buttonElement) {
+    const button = buttonElement || event?.target?.closest('button');
+    try {
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+      }
+
+      const response = await fetch('/retry-razorpay-order', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+
+      const data = await response.json();
+      if (!data.success) throw new Error(data.message || 'Failed to initiate retry');
+
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency || 'INR',
+        name: 'GLORA',
+        description: 'Retry Order Payment',
+        order_id: data.razorpayOrderId,
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch('/verify-retry-payment', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_signature:  response.razorpay_signature,
+                orderId
+              })
             });
-
-            if (reason === undefined) return; // user cancelled input
-
-            // Step 2: Ask for final confirmation
-            const confirm = await Swal.fire({
-                title: 'Are you sure?',
-                text: 'This will cancel your order.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, cancel it!'
-            });
-
-            if (!confirm.isConfirmed) return;
-
-            // Step 3: Send POST request to cancel
-            try {
-                const res = await fetch(`/my-orders/${orderId}/cancel`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reason })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    Swal.fire('Cancelled!', data.message, 'success').then(() => window.location.reload());
-                } else {
-                    Swal.fire('Error!', data.message, 'error');
-                }
-            } catch (err) {
-                console.error('Error cancelling order:', err);
-                Swal.fire('Error!', 'Something went wrong.', 'error');
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              window.location.href = verifyData.redirectUrl;
+            } else {
+              Swal.fire({ icon: 'error', title: 'Verification Failed', text: 'Payment received but verification failed. Please contact support.' });
             }
+          } catch (err) {
+            Swal.fire({ icon: 'warning', title: 'Payment Successful', text: 'Payment was received but we could not update your order. Please contact support.' })
+              .then(() => window.location.href = '/my-orders');
+          }
+        },
+        prefill: { name: '<%= userName %>' },
+        theme: { color: '#8B1A1A' },
+        modal: {
+          ondismiss: function () {
+            if (button) { button.disabled = false; button.innerHTML = '<i class="fas fa-redo"></i> Retry Payment'; }
+          }
         }
-        async function returnOrder(orderId) {
-            const { value: reason } = await Swal.fire({
-                title: 'Return Order',
-                input: 'text',
-                inputPlaceholder: 'Enter reason for return',
-                showCancelButton: true,
-                confirmButtonText: 'Submit Return',
-                cancelButtonText: 'No',
-                inputValidator: function (value) {
-                    if (!value) return 'Please provide a reason for return.';
-                }
-            });
+      };
 
-            if (!reason) return;
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        Swal.fire({ icon: 'error', title: 'Payment Failed', text: response.error.description || 'Payment could not be processed.' });
+        if (button) { button.disabled = false; button.innerHTML = '<i class="fas fa-redo"></i> Retry Payment'; }
+      });
+      rzp.open();
 
-            try {
-                const res = await fetch('/my-orders/' + orderId + '/return', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ reason })
-                });
-                const data = await res.json();
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Something went wrong.' });
+      if (button) { button.disabled = false; button.innerHTML = '<i class="fas fa-redo"></i> Retry Payment'; }
+    }
+  }
 
-                if (res.ok && data.success) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Return Requested!',
-                        text: 'Your return request has been submitted. Our team will review it shortly.',
-                        confirmButtonText: 'OK'
-                    });
-                    window.location.reload();
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Failed to submit return request.'
-                    });
-                }
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
-            }
-        }
-    </script>
+  async function cancelOrder(orderId) {
+    const { value: reason } = await Swal.fire({
+      title: 'Reason for cancellation',
+      input: 'textarea',
+      inputPlaceholder: 'Why are you cancelling this order? (optional)',
+      showCancelButton: true,
+      confirmButtonText: 'Continue',
+      confirmButtonColor: '#8B1A1A'
+    });
 
-    <%- include('../partials/user/footer') %>
+    if (reason === undefined) return;
 
-        <style>
-            .orders-list {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
-            }
+    const confirm = await Swal.fire({
+      title: 'Cancel this order?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, cancel it',
+      confirmButtonColor: '#8B1A1A'
+    });
 
-            .order-card {
-                background: #fff;
-                border-radius: 6px;
-                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-                padding: 12px 16px;
-                margin-bottom: 8px;
-            }
+    if (!confirm.isConfirmed) return;
 
-            .order-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #f0f0f0;
-                margin-bottom: 10px;
-            }
+    try {
+      const res  = await fetch(`/my-orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        Swal.fire({ icon: 'success', title: 'Order Cancelled', text: data.message, confirmButtonColor: '#8B1A1A' })
+          .then(() => window.location.reload());
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#8B1A1A' });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong.', confirmButtonColor: '#8B1A1A' });
+    }
+  }
 
-            .order-id {
-                font-weight: 600;
-                font-size: 16px;
-                color: #333;
-            }
+  async function returnOrder(orderId) {
+    const { value: reason } = await Swal.fire({
+      title: 'Return Order',
+      input: 'text',
+      inputPlaceholder: 'Enter reason for return',
+      showCancelButton: true,
+      confirmButtonText: 'Submit Return',
+      confirmButtonColor: '#8B1A1A',
+      inputValidator: function (value) {
+        if (!value) return 'Please provide a reason for return.';
+      }
+    });
 
-            .order-date {
-                color: #666;
-                font-size: 14px;
-            }
+    if (!reason) return;
 
-            .order-status {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-            }
-
-            .status-badge {
-                padding: 6px 12px;
-                border-radius: 4px;
-                font-size: 13px;
-                font-weight: 500;
-            }
-
-            .status-badge.pending {
-                background-color: #fff3cd;
-                color: #856404;
-            }
-
-            .status-badge.processing {
-                background-color: #cce5ff;
-                color: #004085;
-            }
-
-            .status-badge.shipped {
-                background-color: #e2e3e5;
-                color: #383d41;
-            }
-
-            .status-badge.delivered {
-                background-color: #d4edda;
-                color: #155724;
-            }
-
-            .status-badge.cancelled,
-            .status-badge.returned {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-
-            .status-badge.return-rejected {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-
-
-            .status-badge.return-request {
-                background-color: #fff3cd;
-                color: #856404;
-            }
-
-
-            .status-date {
-                color: #666;
-                font-size: 13px;
-            }
-
-            .order-details {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 10px;
-                gap: 15px;
-            }
-
-            .order-items {
-                flex: 1;
-                min-width: 0;
-            }
-
-            .order-item {
-                display: flex;
-                margin-bottom: 8px;
-                align-items: center;
-            }
-
-            .item-image {
-                width: 50px;
-                height: 50px;
-                border-radius: 4px;
-                overflow: hidden;
-                margin-right: 10px;
-                background: #f8f9fa;
-                flex-shrink: 0;
-            }
-
-            .item-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .item-details {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .item-name {
-                font-weight: 500;
-                margin-bottom: 2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 100%;
-                font-size: 14px;
-                display: block;
-            }
-
-            .item-price,
-            .item-quantity {
-                font-size: 12px;
-                color: #666;
-                line-height: 1.3;
-            }
-
-            .more-items {
-                color: #666;
-                font-size: 13px;
-                margin-top: 5px;
-            }
-
-            .order-total {
-                text-align: right;
-                min-width: 150px;
-            }
-
-            .total-amount {
-                font-size: 18px;
-                font-weight: 600;
-                color: #333;
-            }
-
-            .total-label {
-                font-size: 13px;
-                color: #666;
-            }
-
-            .order-actions {
-                display: flex;
-                gap: 8px;
-                padding-top: 10px;
-                border-top: 1px solid #f0f0f0;
-                flex-wrap: wrap;
-            }
-
-            .btn-view,
-            .btn-cancel,
-            .btn-return,
-            .btn-invoice {
-                padding: 5px 12px;
-                border-radius: 3px;
-                font-size: 13px;
-                font-weight: 500;
-                cursor: pointer;
-                text-decoration: none;
-                transition: all 0.2s;
-                white-space: nowrap;
-            }
-
-            .btn-view {
-                background: #f8f9fa;
-                color: #333;
-                border: 1px solid #dee2e6;
-            }
-
-            .btn-view:hover {
-                background: #e9ecef;
-            }
-
-            .btn-cancel {
-                background: #fff;
-                color: #dc3545;
-                border: 1px solid #dc3545;
-            }
-
-            .btn-cancel:hover {
-                background: #f8d7da;
-            }
-
-            .btn-return {
-                background: #fff;
-                color: #fd7e14;
-                border: 1px solid #fd7e14;
-            }
-
-            .btn-return:hover {
-                background: #fff3e0;
-            }
-
-            .btn-invoice {
-                background: #f8f9fa;
-                color: #0d6efd;
-                border: 1px solid #dee2e6;
-            }
-
-            .btn-invoice:hover {
-                background: #e9ecef;
-            }
-
-            .no-orders {
-                text-align: center;
-                padding: 50px 20px;
-                background: #fff;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-
-            .no-orders-icon {
-                font-size: 50px;
-                color: #6c757d;
-                margin-bottom: 20px;
-            }
-
-            .no-orders h3 {
-                margin-bottom: 10px;
-                color: #333;
-            }
-
-            .no-orders p {
-                color: #6c757d;
-                margin-bottom: 20px;
-            }
-
-            .btn-shop-now {
-                display: inline-block;
-                padding: 10px 24px;
-                background: #0d6efd;
-                color: white;
-                border-radius: 4px;
-                text-decoration: none;
-                font-weight: 500;
-                transition: background-color 0.2s;
-            }
-
-            .btn-shop-now:hover {
-                background: #0b5ed7;
-                color: white;
-            }
-
-            @media (max-width: 768px) {
-                .order-details {
-                    flex-direction: column;
-                }
-
-                .order-total {
-                    text-align: left;
-                    margin-top: 15px;
-                    padding-top: 15px;
-                    border-top: 1px dashed #eee;
-                }
-
-                .order-actions {
-                    flex-wrap: wrap;
-                }
-
-            }
-        </style>
+    try {
+      const res  = await fetch('/my-orders/' + orderId + '/return', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await Swal.fire({ icon: 'success', title: 'Return Requested', text: 'Your return request has been submitted. Our team will review it shortly.', confirmButtonColor: '#8B1A1A' });
+        window.location.reload();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to submit return request.', confirmButtonColor: '#8B1A1A' });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong. Please try again.', confirmButtonColor: '#8B1A1A' });
+    }
+  }
+</script>

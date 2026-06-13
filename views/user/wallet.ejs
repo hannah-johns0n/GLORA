@@ -1,364 +1,627 @@
-<%- include('../partials/user/header', {userName:userName}) %>
+<%- include('../partials/user/header', { userName: userName, url: '/wallet' }) %>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
-  .wallet-container {
-    max-width: 900px;
+  /* ── BASE ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glora-dark:   #1A1A1A;
+    --glora-cream:  #FAF7F4;
+    --glora-red:    #8B1A1A;
+    --glora-gold:   #D4A96A;
+    --glora-blush:  #F0EBE3;
+    --glora-muted:  #6B6B6B;
+    --glora-border: #E0D8D0;
+  }
+
+  body {
+    background: var(--glora-cream);
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
+  }
+
+  .glora-account {
+    min-height: calc(100vh - 72px);
+    padding: 60px 0 100px;
+    margin-top: 72px;
+  }
+
+  .glora-account__container {
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 4rem 1rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 0 40px;
   }
-  
-  .wallet-card {
-    background: #ffffff;
-    border: 1px solid #e5e5e5;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
-  
-  .wallet-title {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 0.5rem;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 1rem;
-  }
-  
-  .welcome-text {
-    color: #666;
-    margin-bottom: 2rem;
-    font-size: 1rem;
-  }
-  
-  .balance-section {
-    background: #fafafa;
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
-  
-  .balance-label {
-    font-size: 0.9rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-  }
-  
-  .balance-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c5530;
-    margin: 0;
-  }
-  
-  .add-money-section {
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    background: #fff;
-  }
-  
-  .section-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 1rem;
-  }
-  
-  .add-money-form {
+
+  .glora-account__heading {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--glora-border);
     display: flex;
-    gap: 0.75rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 6px;
   }
-  
-  .amount-input {
-    flex: 1;
-    max-width: 200px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 0.75rem;
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
-  }
-  
-  .amount-input:focus {
-    border-color: #333;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(51, 51, 51, 0.1);
-  }
-  
-  .add-money-btn {
-    background: #350505;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+
+  .glora-account__eyebrow {
+    font-size: 10px;
     font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
   }
-  
-  .add-money-btn:hover {
-    background: #555;
-  }
-  
-  .transaction-section {
-    border: 1px solid #e5e5e5;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #fff;
-  }
-  
-  .transaction-header {
-    background: #f8f8f8;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e5e5;
-  }
-  
-  .transaction-title {
-    font-size: 1.1rem;
+
+  .glora-account__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 38px);
     font-weight: 600;
-    color: #333;
-    margin: 0;
+    color: var(--glora-dark);
+    letter-spacing: -0.5px;
+    line-height: 1;
   }
-  
-  .transaction-table {
+
+  .glora-account__layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ════════════════════════════════════════════════════
+     SHARED SIDEBAR
+  ════════════════════════════════════════════════════ */
+  .glora-sidebar {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    position: sticky;
+    top: 92px;
+  }
+
+  .glora-sidebar__user {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(26,26,26,0.07);
+    text-align: center;
+  }
+
+  .glora-sidebar__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--glora-blush);
+    border: 2px solid var(--glora-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .glora-sidebar__avatar i { font-size: 22px; color: var(--glora-muted); }
+
+  .glora-sidebar__name {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .glora-sidebar__label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-sidebar__nav { padding: 12px 0; }
+
+  .glora-sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 24px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--glora-muted);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+  }
+
+  .glora-sidebar__nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--glora-red);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .glora-sidebar__nav-item.active {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    font-weight: 600;
+  }
+
+  .glora-sidebar__nav-item.active::before { opacity: 1; }
+
+  .glora-sidebar__nav-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--glora-muted);
+    transition: color 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover i,
+  .glora-sidebar__nav-item.active i { color: var(--glora-red); }
+
+  .glora-sidebar__footer {
+    padding: 12px 16px 20px;
+    border-top: 1px solid rgba(26,26,26,0.07);
+  }
+
+  .glora-sidebar__logout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid rgba(26,26,26,0.15);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .glora-sidebar__logout:hover {
+    background: var(--glora-dark);
+    border-color: var(--glora-dark);
+    color: #fff;
+  }
+
+  /* ════════════════════════════════════════════════════
+     WALLET PANEL
+  ════════════════════════════════════════════════════ */
+  .wallet-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── BALANCE CARD ───────────────────────────────────── */
+  .wallet-balance {
+    background: var(--glora-dark);
+    padding: 36px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .wallet-balance__left {}
+
+  .wallet-balance__eyebrow {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+    margin-bottom: 10px;
+  }
+
+  .wallet-balance__amount {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(36px, 5vw, 52px);
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .wallet-balance__sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Add money form inside balance card */
+  .wallet-balance__add {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .wallet-balance__input {
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-right: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    color: #fff;
+    outline: none;
+    width: 160px;
+    transition: background 0.2s ease;
+  }
+
+  .wallet-balance__input::placeholder { color: rgba(255,255,255,0.35); }
+  .wallet-balance__input:focus { background: rgba(255,255,255,0.12); }
+
+  /* Remove number input arrows */
+  .wallet-balance__input::-webkit-outer-spin-button,
+  .wallet-balance__input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .wallet-balance__input[type=number] { -moz-appearance: textfield; }
+
+  .wallet-balance__btn {
+    padding: 13px 20px;
+    background: var(--glora-gold);
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--glora-dark);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .wallet-balance__btn:hover { opacity: 0.85; }
+
+  /* ── TRANSACTION TABLE ──────────────────────────────── */
+  .wallet-transactions {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+  }
+
+  .wallet-transactions__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--glora-border);
+    background: var(--glora-cream);
+  }
+
+  .wallet-transactions__title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+  }
+
+  .wallet-transactions__count {
+    font-size: 11px;
+    color: var(--glora-muted);
+  }
+
+  .wallet-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 0;
   }
-  
-  .transaction-table thead {
-    background: #fafafa;
+
+  .wallet-table thead {
+    background: var(--glora-cream);
   }
-  
-  .transaction-table th {
-    padding: 1rem;
+
+  .wallet-table th {
+    padding: 12px 28px;
     text-align: left;
+    font-size: 9px;
     font-weight: 600;
-    color: #555;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #e5e5e5;
-  }
-  
-  .transaction-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f0f0f0;
-    color: #333;
-  }
-  
-  .transaction-table tbody tr:hover {
-    background: #fafafa;
-  }
-  
-  .transaction-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-  
-  .transaction-type {
-    font-weight: 500;
-    padding: 0.25rem 0.5rem;
-    border-radius: 3px;
-    font-size: 0.85rem;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    color: var(--glora-muted);
+    border-bottom: 1px solid var(--glora-border);
   }
-  
-  .credit {
-    background: #e8f5e8;
-    color: #2c5530;
+
+  .wallet-table td {
+    padding: 16px 28px;
+    font-size: 12px;
+    color: var(--glora-dark);
+    border-bottom: 1px solid var(--glora-border);
+    vertical-align: middle;
   }
-  
-  .debit {
-    background: #fdf2f2;
-    color: #9b2c2c;
-  }
-  
-  .amount-credit {
-    color: #2c5530;
+
+  .wallet-table tbody tr:last-child td { border-bottom: none; }
+
+  .wallet-table tbody tr:hover { background: var(--glora-cream); }
+
+  /* Type badge */
+  .tx-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 9px;
     font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
   }
-  
-  .amount-debit {
-    color: #9b2c2c;
+
+  .tx-badge--credit {
+    background: #EDFAF2;
+    color: #1A6B40;
+  }
+
+  .tx-badge--debit {
+    background: #FFF0F0;
+    color: var(--glora-red);
+  }
+
+  /* Amount */
+  .tx-amount--credit {
+    font-size: 13px;
     font-weight: 600;
+    color: #1A6B40;
   }
-  
-  .no-transactions {
+
+  .tx-amount--debit {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--glora-red);
+  }
+
+  /* Date */
+  .tx-date {
+    font-size: 11px;
+    color: var(--glora-muted);
+    white-space: nowrap;
+  }
+
+  /* Description */
+  .tx-desc {
+    font-size: 12px;
+    color: var(--glora-muted);
+    max-width: 220px;
+  }
+
+  /* Empty */
+  .wallet-empty {
+    padding: 64px 28px;
     text-align: center;
-    padding: 3rem 1rem;
-    color: #999;
   }
-  
-  .date-column {
-    font-weight: 500;
-    color: #555;
+
+  .wallet-empty i {
+    font-size: 2rem;
+    color: var(--glora-gold);
+    margin-bottom: 16px;
+    display: block;
   }
-  
-  @media (max-width: 768px) {
-    .wallet-container {
-      padding: 1rem 0.5rem;
-    }
-    
-    .wallet-card {
-      padding: 1.5rem;
-    }
-    
-    .add-money-form {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    
-    .amount-input {
-      max-width: none;
-    }
-    
-    .balance-amount {
-      font-size: 1.75rem;
-    }
-    
-    .transaction-table {
-      font-size: 0.9rem;
-    }
-    
-    .transaction-table th,
-    .transaction-table td {
-      padding: 0.75rem 0.5rem;
-    }
+
+  .wallet-empty__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 8px;
+  }
+
+  .wallet-empty__text {
+    font-size: 12px;
+    color: var(--glora-muted);
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .glora-account__layout { grid-template-columns: 1fr; }
+    .glora-sidebar { position: static; }
+    .glora-sidebar__nav { display: grid; grid-template-columns: 1fr 1fr; }
+    .wallet-balance { flex-direction: column; align-items: flex-start; }
+    .wallet-balance__add { width: 100%; }
+    .wallet-balance__input { flex: 1; }
+  }
+
+  @media (max-width: 640px) {
+    .glora-account__container { padding: 0 16px; }
+    .glora-sidebar__nav { grid-template-columns: 1fr; }
+    .wallet-table th,
+    .wallet-table td { padding: 12px 16px; }
+    .wallet-balance { padding: 28px 24px; }
+    .tx-desc { display: none; }
   }
 </style>
 
+<div class="glora-account">
+  <div class="glora-account__container">
 
-<div class="wallet-container">
-  <div class="wallet-card">
-    <h1 class="wallet-title">My Wallet</h1>
-    <p class="welcome-text">Welcome, <strong><%= userName %></strong></p>
-
-    <div class="balance-section">
-      <div class="balance-label">Current Balance</div>
-      <div class="balance-amount">₹ <%= wallet.balance.toLocaleString('en-IN') %></div>
+    <div class="glora-account__heading">
+      <span class="glora-account__eyebrow">Your account</span>
+      <h1 class="glora-account__title">My Wallet</h1>
     </div>
 
-    <div class="add-money-section">
-      <h3 class="section-title">Add Money</h3>
-      <form id="addMoneyForm" class="add-money-form">
-        <input 
-          type="number" 
-          id="amount"
-          name="amount" 
-          class="amount-input" 
-          placeholder="Enter amount" 
-          min="1"
-          required
-        >
-        <button type="submit" class="add-money-btn">Add Money</button>
-      </form>
-    </div>
+    <div class="glora-account__layout">
 
-    <div class="transaction-section">
-      <div class="transaction-header">
-        <h3 class="transaction-title">Transaction History</h3>
-      </div>
-      
-      <table class="transaction-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% if(wallet.transactions.length === 0) { %>
-            <tr>
-              <td colspan="4" class="no-transactions">
-                No transactions found
-              </td>
-            </tr>
+      <!-- ══ SHARED SIDEBAR ══════════════════════════════ -->
+      <aside class="glora-sidebar">
+        <div class="glora-sidebar__user">
+          <div class="glora-sidebar__avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <p class="glora-sidebar__name"><%= userName || 'User' %></p>
+          <span class="glora-sidebar__label">Member</span>
+        </div>
+
+        <nav class="glora-sidebar__nav">
+          <a href="/profile" class="glora-sidebar__nav-item">
+            <i class="fas fa-user"></i> My Account
+          </a>
+          <a href="/my-orders" class="glora-sidebar__nav-item">
+            <i class="fas fa-box"></i> My Orders
+          </a>
+          <a href="/manage-address" class="glora-sidebar__nav-item">
+            <i class="fas fa-map-marker-alt"></i> Addresses
+          </a>
+          <a href="/wallet" class="glora-sidebar__nav-item active">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+          <a href="/wishlist" class="glora-sidebar__nav-item">
+            <i class="fas fa-heart"></i> Wishlist
+          </a>
+          <a href="/add-account" class="glora-sidebar__nav-item">
+            <i class="fas fa-link"></i> Linked Accounts
+          </a>
+        </nav>
+
+        <div class="glora-sidebar__footer">
+          <form action="/logout" method="POST">
+            <button type="submit" class="glora-sidebar__logout">
+              <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- ══ WALLET PANEL ════════════════════════════════ -->
+      <div class="wallet-panel">
+
+        <!-- Balance + Add Money -->
+        <div class="wallet-balance">
+          <div class="wallet-balance__left">
+            <p class="wallet-balance__eyebrow">Available Balance</p>
+            <p class="wallet-balance__amount">₹ <%= wallet.balance.toLocaleString('en-IN') %></p>
+            <p class="wallet-balance__sub">GLORA Wallet · <%= userName %></p>
+          </div>
+
+          <form id="addMoneyForm" class="wallet-balance__add">
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              class="wallet-balance__input"
+              placeholder="Enter amount ₹"
+              min="1"
+              required
+            >
+            <button type="submit" class="wallet-balance__btn">
+              <i class="fas fa-plus" style="margin-right:6px;"></i>Add Money
+            </button>
+          </form>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="wallet-transactions">
+          <div class="wallet-transactions__header">
+            <span class="wallet-transactions__title">Transaction History</span>
+            <span class="wallet-transactions__count">
+              <%= wallet.transactions.length %> transaction<%= wallet.transactions.length !== 1 ? 's' : '' %>
+            </span>
+          </div>
+
+          <% if (wallet.transactions.length === 0) { %>
+            <div class="wallet-empty">
+              <i class="fas fa-receipt"></i>
+              <p class="wallet-empty__title">No Transactions Yet</p>
+              <p class="wallet-empty__text">Add money to your wallet to get started.</p>
+            </div>
           <% } else { %>
-            <% wallet.transactions.slice().reverse().forEach(t => { %>
-              <tr>
-                <td class="date-column"><%= t.date.toLocaleDateString('en-IN') %></td>
-                <td>
-                  <% if(t.type === "credit"){ %>
-                    <span class="transaction-type credit">Credit</span>
-                  <% } else { %>
-                    <span class="transaction-type debit">Debit</span>
-                  <% } %>
-                </td>
-                <td>
-                  <% if(t.type === "credit"){ %>
-                    <span class="amount-credit">+₹ <%= t.amount.toLocaleString('en-IN') %></span>
-                  <% } else { %>
-                    <span class="amount-debit">-₹ <%= t.amount.toLocaleString('en-IN') %></span>
-                  <% } %>
-                </td>
-                <td><%= t.description %></td>
-              </tr>
-            <% }) %>
+            <table class="wallet-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% wallet.transactions.slice().reverse().forEach(function(t) { %>
+                <tr>
+                  <td class="tx-date">
+                    <%= t.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                  </td>
+                  <td>
+                    <% if (t.type === 'credit') { %>
+                      <span class="tx-badge tx-badge--credit"><i class="fas fa-arrow-down" style="font-size:8px;"></i> Credit</span>
+                    <% } else { %>
+                      <span class="tx-badge tx-badge--debit"><i class="fas fa-arrow-up" style="font-size:8px;"></i> Debit</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (t.type === 'credit') { %>
+                      <span class="tx-amount--credit">+₹ <%= t.amount.toLocaleString('en-IN') %></span>
+                    <% } else { %>
+                      <span class="tx-amount--debit">−₹ <%= t.amount.toLocaleString('en-IN') %></span>
+                    <% } %>
+                  </td>
+                  <td class="tx-desc"><%= t.description %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
           <% } %>
-        </tbody>
-      </table>
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
 
 <%- include('../partials/user/footer') %>
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-document.getElementById("addMoneyForm").addEventListener("submit", async function(e) {
+document.getElementById('addMoneyForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
-  const amount = document.getElementById("amount").value;
+  const amount = document.getElementById('amount').value;
+  if (!amount || amount <= 0) return alert('Please enter a valid amount');
 
-  if (!amount || amount <= 0) {
-    return alert("Please enter a valid amount");
-  }
-
-  const res = await fetch("/wallet/create-order", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount }),
+  const res  = await fetch('/wallet/create-order', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ amount })
   });
 
   const data = await res.json();
-  if (!data.success) {
-    return alert("Failed to create payment. Try again.");
-  }
+  if (!data.success) return alert('Failed to create payment. Try again.');
 
   const options = {
-    key: data.key_id,
-    amount: data.order.amount,
-    currency: "INR",
-    name: "My Wallet",
-    description: "Add money to wallet",
-    order_id: data.order.id,
+    key:         data.key_id,
+    amount:      data.order.amount,
+    currency:    'INR',
+    name:        'GLORA Wallet',
+    description: 'Add money to wallet',
+    order_id:    data.order.id,
     handler: async function (response) {
-      const verifyRes = await fetch("/wallet/verify-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          razorpay_order_id: response.razorpay_order_id,
+      const verifyRes = await fetch('/wallet/verify-payment', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          razorpay_order_id:   response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          amount: amount,
-        }),
+          razorpay_signature:  response.razorpay_signature,
+          amount
+        })
       });
-
       const result = await verifyRes.json();
       window.location.href = result.redirectUrl;
     },
-    theme: { color: "#350505" },
+    theme: { color: '#8B1A1A' }
   };
 
-  const rzp1 = new Razorpay(options);
-  rzp1.open();
+  const rzp = new Razorpay(options);
+  rzp.open();
 });
 </script>

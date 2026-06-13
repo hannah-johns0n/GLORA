@@ -2,6 +2,7 @@ const Product = require('../../models/productModel');
 const Cart = require('../../models/cartModel');
 const Wishlist = require('../../models/wishlistModel');
 const STATUS_CODES = require('../../constants/statusCodes');
+const { getActiveOffers, calculateCartPricing } = require('../../utils/discountService');
 
 
 const MAX_QTY = 5; 
@@ -15,33 +16,46 @@ const getCart = async (req, res) => {
       return res.render('user/cart', { cart: [], userName: req.user.name });
     }
 
-    cart.items = cart.items.filter(item => item.productId && !item.productId.isBlocked);
 
-    const cartItems = cart.items.map(item => {
-      const product      = item.productId;
-      const variantIndex = item.variantIndex || 0;
-      const variant      = product.variants && product.variants[variantIndex]
-                           ? product.variants[variantIndex]
-                           : product.variants && product.variants[0];
+cart.items = cart.items.filter(item => item.productId);
 
-      const price = variant ? variant.salesPrice : 0;
-      const unit  = variant ? variant.unit       : '';
+const activeOffers = await getActiveOffers();
+const pricing = calculateCartPricing(cart, activeOffers);
 
-      return {
-        productId:    product,
-        quantity:     item.quantity,
-        variantIndex: variantIndex,
-        price:        price,   
-        unit:         unit,    
-        itemTotal:    price * item.quantity
-      };
-    });
+const cartItems = pricing.items.map(item => {
+  const product      = item.productId;
+  const isUnavailable = product.isBlocked
+    || !item.variantIndex && item.variantIndex !== 0
+    || !product.variants
+    || !product.variants[item.variantIndex || 0]
+    || product.variants[item.variantIndex || 0].isBlocked
+    || product.variants[item.variantIndex || 0].quantity <= 0;
+
+  return {
+    productId:     item.productId,
+    quantity:      item.quantity,
+    variantIndex:  item.variantIndex,
+    price:         item.priceAfterOffer,
+    basePrice:     item.basePrice,
+    unit:          item.unit,
+    itemTotal:     item.itemTotal,
+    itemDiscount:  item.itemDiscount,
+    offerDiscount: item.offerDiscount,
+    appliedOffer:  item.appliedOffer || null,
+    isUnavailable: isUnavailable
+  };
+});
 
     await cart.save();
 
     res.render('user/cart', {
-      cart:     cartItems,
-      userName: req.user.name
+      cart:          cartItems,
+      subtotal:      pricing.subtotal,
+      offerDiscount: pricing.offerDiscount,
+      total:         pricing.priceAfterOffer,
+      userName:      req.user.name,
+      user:          req.user,
+      url:           req.originalUrl 
     });
 
   } catch (err) {
@@ -226,14 +240,27 @@ const validateCheckout = async (req, res) => {
     }
 
     for (let item of cart.items) {
-      if (item.productId.stock < item.quantity) {
-        return res.json({  success: false,  message: `${item.productId.name} is out of stock`});
+      const product = item.productId;
+      if (!product) {
+        return res.json({ success: false, message: 'A product in your cart no longer exists' });
+      }
+      if (product.isBlocked) {
+        return res.json({ success: false, message: `${product.productName} is no longer available` });
+      }
+
+      const variant = product.variants && product.variants[item.variantIndex || 0];
+      if (!variant || variant.isBlocked) {
+        return res.json({ success: false, message: `${product.productName} (${variant ? variant.unit : 'variant'}) is no longer available` });
+      }
+      if (variant.quantity < item.quantity) {
+        return res.json({ success: false, message: `${product.productName} only has ${variant.quantity} left in stock` });
       }
     }
 
     res.json({ success: true });
 
   } catch (err) {
+    console.error('validateCheckout error:', err);
     res.json({ success: false, message: 'Something went wrong' });
   }
 };

@@ -1,307 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>GLORA</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="Wish shop project" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GLORA</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" type="text/css" href="/styles/bootstrap4/bootstrap.min.css" />
-    <link href="/plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.carousel.css" />
-    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/owl.theme.default.css" />
-    <link rel="stylesheet" type="text/css" href="/plugins/OwlCarousel2-2.2.1/animate.css" />
-    <link href="/plugins/colorbox/colorbox.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="/styles/main_styles.css" />
-    <link rel="stylesheet" type="text/css" href="/styles/responsive.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="/styles/bootstrap4/bootstrap.min.css" />
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <style>
+    /* ── RESET & BASE ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            margin-top: 65px;
-        }
+    :root {
+      --glora-dark:   #1A1A1A;
+      --glora-cream:  #FAF7F4;
+      --glora-red:    #8B1A1A;
+      --glora-gold:   #D4A96A;
+      --glora-blush:  #F0EBE3;
+      --glora-muted:  #6B6B6B;
+    }
 
-        header.header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030;
-            width: 100%;
-        }
+    body {
+      background: var(--glora-cream);
+      font-family: 'Poppins', sans-serif;
+      color: var(--glora-dark);
+      margin-top: 72px;
+    }
 
-        .header_inner {
-            padding: 8px 20px;
-            background: #ffffff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            height: 65px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
+    /* ── HEADER ─────────────────────────────────────── */
+    .glora-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1030;
+      background: var(--glora-cream);
+      border-bottom: 1px solid rgba(26,26,26,0.10);
+      height: 72px;
+      display: flex;
+      align-items: center;
+    }
 
-        .logo a {
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #222 !important;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
+    .glora-header__inner {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
 
-        .main_nav {
-            flex: 1;
-            margin: 0 20px;
-            display: flex;
-        }
+    /* Logo */
+    .glora-header__logo a {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--glora-dark);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
 
-        .main_nav ul {
-            display: flex;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            white-space: nowrap;
-            flex-wrap: nowrap;
-            gap: 30px;
-        }
+    .glora-header__logo a:hover {
+      color: var(--glora-red);
+    }
 
-        .main_nav ul li a {
-            color: #444;
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 12px;
-            transition: color 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
+    /* Nav */
+    .glora-header__nav ul {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+      margin: 0; padding: 0;
+    }
 
-        .main_nav ul li a:hover {
-            color: #850101;
-        }
+    .glora-header__nav ul li a {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--glora-muted);
+      text-decoration: none;
+      position: relative;
+      padding-bottom: 3px;
+      transition: color 0.2s ease;
+    }
 
-        .main_nav ul li a.active {
-            color: #7c1818;
-            font-weight: 700;
-        }
+    .glora-header__nav ul li a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 1px;
+      background: var(--glora-red);
+      transition: width 0.3s ease;
+    }
 
-        .shopping img,
-        .avatar img {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.2s ease;
-        }
+    .glora-header__nav ul li a:hover,
+    .glora-header__nav ul li a.active {
+      color: var(--glora-dark);
+    }
 
-        .shopping img:hover,
-        .avatar img:hover {
-            transform: scale(1.1);
-        }
+    .glora-header__nav ul li a:hover::after,
+    .glora-header__nav ul li a.active::after {
+      width: 100%;
+    }
 
-        .avatar span {
-            color: #333;
-            font-weight: 600;
-            font-size: 12px;
-        }
+    .glora-header__nav ul li a.active {
+      color: var(--glora-red);
+    }
 
-        .btn-sm {
-            font-size: 12px;
-            padding: 2px 8px;
-        }
+    /* Actions */
+    .glora-header__actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-        .btn-outline-dark {
-            border: 1px solid #444;
-            color: #444;
-            transition: all 0.3s ease;
-        }
+    .glora-header__icon-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--glora-dark);
+      text-decoration: none;
+      transition: color 0.2s ease;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
 
-        .btn-outline-dark:hover {
-            background: #6b2c22;
-            color: #fff !important;
-            border-color: #6b2c22;
-        }
+    .glora-header__icon-btn:hover {
+      color: var(--glora-red);
+    }
 
-        .btn-outline-primary {
-            border: 1px solid #620000;
-            color: #720606;
-        }
+    .glora-header__icon-btn i {
+      font-size: 16px;
+    }
 
-        .btn-outline-primary:hover {
-            background: #720404;
-            color: #fff;
-        }
+    .glora-header__badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      background: var(--glora-red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 600;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
+    }
 
-        .header_content {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: nowrap;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
+    /* Divider */
+    .glora-header__divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(26,26,26,0.15);
+    }
 
-        .cart-count {
-            background: #b71c1c;
-            color: white;
-            font-size: 10px;
-            padding: 2px 5px;
-            border-radius: 50%;
-            position: relative;
-            top: -8px;
-            left: -8px;
-            font-weight: 600;
-        }
+    /* User area */
+    .glora-header__user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        .shopping {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .glora-header__username {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      color: var(--glora-dark);
+      text-decoration: none;
+    }
 
-        .avatar {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+    .glora-header__username:hover {
+      color: var(--glora-red);
+      text-decoration: none;
+    }
 
-        /* ── RESPONSIVE ────────────────────────────────────────── */
-        @media (max-width: 768px) {
-            .header_inner {
-                padding: 8px 12px;
-                gap: 12px;
-            }
+    .glora-header__logout {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--glora-muted);
+      background: none;
+      border: 1px solid rgba(26,26,26,0.20);
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
 
-            .main_nav {
-                margin: 0 10px;
-                display: none;
-            }
+    .glora-header__logout:hover {
+      background: var(--glora-dark);
+      color: #fff;
+      border-color: var(--glora-dark);
+    }
 
-            .main_nav.active {
-                display: flex;
-            }
+    .glora-header__login {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--glora-dark);
+      border: 1px solid var(--glora-dark);
+      padding: 7px 18px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-block;
+    }
 
-            .main_nav ul {
-                gap: 15px;
-            }
+    .glora-header__login:hover {
+      background: var(--glora-red);
+      border-color: var(--glora-red);
+      color: #fff;
+      text-decoration: none;
+    }
 
-            .logo a {
-                font-size: 18px;
-            }
+    .glora-header__guest {
+      font-size: 11px;
+      color: var(--glora-muted);
+      letter-spacing: 0.5px;
+    }
 
-            body {
-                margin-top: 65px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header_inner {
-                padding: 8px 10px;
-                gap: 8px;
-            }
-
-            .logo a {
-                font-size: 16px;
-            }
-
-            .main_nav ul li a {
-                font-size: 11px;
-            }
-
-            .avatar span {
-                display: none;
-            }
-
-            .btn-sm {
-                padding: 2px 6px;
-                font-size: 11px;
-            }
-
-            body {
-                margin-top: 65px;
-            }
-        }
-    </style>
+    /* ── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      .glora-header__inner { padding: 0 20px; }
+      .glora-header__nav { display: none; }
+      .glora-header__logo a { font-size: 22px; letter-spacing: 3px; }
+    }
+  </style>
 </head>
 
 <body>
-    <header class="header">
-        <div class="header_inner">
-            <div class="logo">
-                <a href="/">GLORA</a>
-            </div>
+  <header class="glora-header">
+    <div class="glora-header__inner">
 
-            <nav class="main_nav">
-                <ul>
-                    <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
-                    <li><a href="/shop" class="<%= url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
-                    <li><a href="/aboutUs" class="<%= url.startsWith('/categories') && !url.includes('signin') ? 'active' : '' %>">About us</a></li>
-                </ul>
-            </nav>
+      <!-- Logo -->
+      <div class="glora-header__logo">
+        <a href="/">GLORA</a>
+      </div>
 
-            <div class="header_content">
-                <div class="shopping">
-                    <a href="/cart" style="position: relative;">
-                        <img src="/images/shopping-bag.svg" alt="Bag" />
-                        <span class="cart-count"><%= cartCount || 0 %></span>
-                    </a>
-                    <a href="/wishlist">
-                        <i class="fas fa-heart" style="font-size: 18px; color: #444;"></i>
-                    </a>
-                </div>
+      <!-- Nav -->
+      <nav class="glora-header__nav">
+        <ul>
+          <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
+          <li><a href="/shop" class="<%= url && url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
+          <li><a href="/aboutUs" class="<%= url && url.startsWith('/aboutUs') ? 'active' : '' %>">About</a></li>
+        </ul>
+      </nav>
 
-                <div class="avatar">
-                    <% if (typeof userName !== 'undefined' && userName) { %>
-                        <a href="/profile" style="display: flex; align-items: center; gap: 6px; text-decoration: none; color: inherit;">
-                            <img src="/images/avatar.svg" alt="Avatar" />
-                            <span><%= userName %></span>
-                        </a>
-                        <form action="/logout" method="POST" style="margin: 0;">
-                            <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
-                        </form>
-                    <% } else { %>
-                        <img src="/images/avatar.svg" alt="Avatar" />
-                        <span style="color: #777;">Guest</span>
-                        <a href="/login" class="btn btn-sm btn-outline-primary">Login</a>
-                    <% } %>
-                </div>
-            </div>
+      <!-- Actions -->
+      <div class="glora-header__actions">
+        <!-- Cart -->
+        <a href="/cart" class="glora-header__icon-btn" title="Cart">
+          <i class="fas fa-shopping-bag"></i>
+          <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+            <span class="glora-header__badge"><%= cartCount %></span>
+          <% } %>
+        </a>
+
+        <!-- Wishlist -->
+        <a href="/wishlist" class="glora-header__icon-btn" title="Wishlist">
+          <i class="fas fa-heart"></i>
+        </a>
+
+        <div class="glora-header__divider"></div>
+
+        <!-- User -->
+        <div class="glora-header__user">
+          <% if (typeof userName !== 'undefined' && userName) { %>
+            <a href="/profile" class="glora-header__username">
+              <i class="fas fa-user" style="font-size:13px; margin-right:6px; color: var(--glora-muted);"></i><%= userName %>
+            </a>
+            <form action="/logout" method="POST" style="margin:0;">
+              <button type="submit" class="glora-header__logout">Logout</button>
+            </form>
+          <% } else { %>
+            <span class="glora-header__guest">Guest</span>
+            <a href="/login" class="glora-header__login">Sign In</a>
+          <% } %>
         </div>
-    </header>
+      </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+    </div>
+  </header>
 
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const productId = this.dataset.id;
-
-                    fetch(`/cart/add/${productId}`, { method: 'POST' })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Added to Cart',
-                                    text: 'Product added successfully!',
-                                    timer: 1500,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Oops!',
-                                    text: data.message || 'Could not add to cart'
-                                });
-                            }
-                        });
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

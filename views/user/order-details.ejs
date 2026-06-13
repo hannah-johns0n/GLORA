@@ -1,613 +1,554 @@
 <%- include('../partials/user/header', { userName: userName }) %>
 
-    <div class="container py-4 mt-3">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <% if (success_msg && success_msg.length> 0) { %>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <%= success_msg %>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <% } %>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-                <% if (error_msg && error_msg.length> 0) { %>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <%= error_msg %>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    <% } %>
+  body {
+    background: #FAF7F4;
+    font-family: 'Poppins', sans-serif;
+    color: #1A1A1A;
+  }
 
-                        <div class="order-container">
+  /* ── PAGE WRAP ───────────────────────────────────────── */
+  .glora-order-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 24px 48px;
+  }
 
-                            <!-- Order Header -->
-                            <div class="order-summary-card mb-4">
-                                <div class="order-header">
-                                    <h2 class="order-title">OrderId: #<%= order.orderId %>
-                                    </h2>
-                                    <div class="order-status-badge <%= order.status.toLowerCase() %>">
-                                        <%= order.status %>
-                                    </div>
-                                </div>
-                                <div class="order-meta">
-                                    <div class="meta-item">
-                                        <i class="far fa-calendar-alt me-2"></i>
-                                        <span>Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', {
-                                                day: 'numeric' , month: 'long' , year: 'numeric' }) %></span>
-                                    </div>
-                                </div>
-                            </div>
+  /* ── BACK LINK ───────────────────────────────────────── */
+  .glora-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #999;
+    text-decoration: none;
+    margin-bottom: 28px;
+    transition: color 0.2s;
+  }
+  .glora-back:hover { color: #8B1A1A; text-decoration: none; }
 
-                            <!-- Order Items -->
-                            <div class="order-section">
-                                <h3 class="section-title">Order Items</h3>
-                                <div class="order-items">
-                                    <% order.orderItems.forEach(function(item) { %>
-                                        <div class="order-item">
+  /* ── ALERTS ──────────────────────────────────────────── */
+  .glora-alert {
+    padding: 14px 18px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    border-left: 3px solid;
+  }
+  .glora-alert--success { background: #f0faf4; border-color: #52b788; color: #2d6a4f; }
+  .glora-alert--danger  { background: #fff0f0; border-color: #c1121f; color: #8b0000; }
 
-                                            <div class="item-image">
-                                                <img src="<%= item.image || '/images/placeholder-product.jpg' %>"
-                                                    alt="<%= item.name || 'Product' %>">
-                                            </div>
+  /* ── SECTION CARD ────────────────────────────────────── */
+  .glora-card {
+    background: #fff;
+    border-top: 3px solid #D4A96A;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+  }
 
-                                            <div class="item-details">
-                                                <h4 class="item-name">
-                                                    <%= item.name || 'Product' %>
-                                                </h4>
-                                                <div class="item-price">₹<%= item.price ? item.price.toFixed(2) : '0.00'
-                                                        %>
-                                                </div>
-                                                <div class="item-quantity">Qty: <%= item.quantity %>
-                                                </div>
-                                                <h4>Status: <%= item.status || 'Pending' %>
-                                                </h4>
-                                            </div>
+  .glora-card__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #F0EBE3;
+    letter-spacing: 0.2px;
+  }
 
-                                            <div class="item-actions">
+  /* ── ORDER HEADER ────────────────────────────────────── */
+  .glora-order-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
 
-                                                <% var canCancel = item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped'; %>
-                                                <% var canReturn = item.status === 'Delivered'; %>
+  .glora-order-id {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 6px;
+  }
 
-                                                <% if (canCancel) { %>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        onclick="cancelItem('<%= item.productId %>')">
-                                                        <i class="fas fa-times me-1"></i> Cancel Item
-                                                    </button>
-                                                    <% } %>
+  .glora-order-date {
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-                                                        <% if (canReturn) { %>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-warning mt-1"
-                                                                onclick="returnItem('<%= item.productId %>')">
-                                                                <i class="fas fa-undo me-1"></i> Return Item
-                                                            </button>
-                                                            <% } %>
+  /* status badges */
+  .glora-status {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .glora-status--pending      { background: #fff8e1; color: #b07d00; }
+  .glora-status--processing   { background: #e8f0fe; color: #1a56db; }
+  .glora-status--shipped      { background: #f0f0f0; color: #555; }
+  .glora-status--delivered    { background: #e8f5e9; color: #1b5e20; }
+  .glora-status--cancelled,
+  .glora-status--returned     { background: #fce4e4; color: #8B1A1A; }
 
-                                                                <% if (item.status === 'Cancelled') { %>
-                                                                    <span class="badge bg-danger">Cancelled</span>
-                                                                    <% if (item.cancelReason) { %>
-                                                                        <br><small class="text-muted" style="padding: 17px 10px 10px ;"><h5><%= item.cancelReason %></h5></small>
-                                                                    <% } %>
-                                                                <% } %>
+  /* ── ORDER ITEMS ─────────────────────────────────────── */
+  .glora-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 0;
+    border-bottom: 1px solid #F0EBE3;
+  }
+  .glora-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .glora-item:first-child { padding-top: 0; }
 
-                                                                            <% if (item.status === 'Return-Requested') { %>
-                                                                                <span
-                                                                                    class="badge bg-warning text-dark">Return Pending</span>
-                                                                                <% if (item.returnRequest && item.returnRequest.reason) { %>
-                                                                                    <br><small class="text-muted" style="padding: 17px 10px 10px ;"><h5>Reason: <%= item.returnRequest.reason %></h5></small>
-                                                                                    <% } %>
-                                                                                    <% } %>
+  .glora-item__img {
+    width: 72px;
+    height: 72px;
+    background: #F0EBE3;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .glora-item__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-                                                                                        <% if (item.status === 'Returned') { %>
-                                                                                            <span
-                                                                                                class="badge bg-success">Returned</span>
-                                                                                            <% } %>
+  .glora-item__info { flex: 1; }
 
-                                                                                                <% if (item.status === 'Delivered' && !item.returnRequest && item.status !== 'Return-Requested') { %>
-                                                                                                    <span class="badge bg-primary">Delivered</span>
-                                                                                                    <% } %>
+  .glora-item__name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1A1A1A;
+    margin-bottom: 4px;
+  }
 
-                                            </div>
+  .glora-item__meta {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+  }
 
-                                        </div>
-                                        <% }); %>
-                                </div>
-                            </div>
+  .glora-item__price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #8B1A1A;
+  }
 
-                            <!-- Shipping Address -->
-                            <div class="shipping-address">
-                                <p class="address-type">Address Type: <%= order.addressId?.addressType || 'N/A' %>
-                                </p>
-                                <h5>Shipped To:</h5>
-                                <p class="address-city">
-                                    <%= order.addressId?.city || 'N/A' %>,
-                                        <%= order.addressId?.state || 'N/A' %> -
-                                            <%= order.addressId?.pincode || 'N/A' %>
-                                </p>
-                                <p class="address-landmark">
-                                    <%= order.addressId?.landmark || 'N/A' %>
-                                </p>
-                                <p class="address-phone">
-                                    <i class="fas fa-phone-alt me-2"></i>+91 <%= order.addressId?.phoneNumber || 'N/A'
-                                        %>
-                                </p>
-                            </div>
+  .glora-item__status {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .glora-item__status--pending,
+  .glora-item__status--processing { background: #fff8e1; color: #b07d00; }
+  .glora-item__status--shipped    { background: #f0f0f0; color: #555; }
+  .glora-item__status--delivered  { background: #e8f5e9; color: #1b5e20; }
+  .glora-item__status--cancelled  { background: #fce4e4; color: #8B1A1A; }
+  .glora-item__status--return-requested { background: #fff3e0; color: #e65100; }
+  .glora-item__status--returned   { background: #e8f5e9; color: #1b5e20; }
 
-                            <!-- Payment Info -->
-                            <% if (order.paymentMethod) { %>
-                                <div class="meta-item">
-                                    <i class="fas fa-credit-card me-2"></i>
-                                    <span>Payment Method: <strong>
-                                            <%= order.paymentMethod %>
-                                        </strong></span>
-                                </div>
-                                <% } %>
+  .glora-item__reason {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 4px;
+    font-style: italic;
+  }
 
-                                    <% if (order.paymentStatus) { %>
-                                        <div class="meta-item">
-                                            <i class="fas fa-check-circle me-2"></i>
-                                            <span>Payment Status:
-                                                <strong class="payment-status <%= order.paymentStatus.toLowerCase() %>">
-                                                    <%= order.paymentStatus %>
-                                                </strong>
-                                            </span>
-                                        </div>
-                                        <% } else { %>
-                                            <div class="meta-item">
-                                                <i class="fas fa-exclamation-circle me-2"></i>
-                                                <span>Payment Status: <strong class="text-muted">N/A</strong></span>
-                                            </div>
-                                            <% } %>
+  .glora-item__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+  }
 
-                        </div>
+  /* ── ACTION BUTTONS ──────────────────────────────────── */
+  .glora-action-btn {
+    padding: 8px 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .glora-action-btn--cancel {
+    background: transparent;
+    border: 1.5px solid #8B1A1A;
+    color: #8B1A1A;
+  }
+  .glora-action-btn--cancel:hover { background: #8B1A1A; color: #fff; }
 
-                        <!-- Order Summary -->
-                        <div class="order-summary">
-                            <h3 class="section-title">Order Summary</h3>
+  .glora-action-btn--return {
+    background: transparent;
+    border: 1.5px solid #D4A96A;
+    color: #D4A96A;
+  }
+  .glora-action-btn--return:hover { background: #D4A96A; color: #fff; }
 
-                            <div class="summary-row">
-                                <span>Subtotal (<%= order.orderItems.reduce(function(t, i) { return t + i.quantity; },
-                                        0) %> items)</span>
-                                <!-- ✅ Use item.price stored in order -->
-                                <span>₹<%= order.orderItems.reduce(function(total, item) { return total + (item.price ||
-                                        0) * item.quantity; }, 0).toFixed(2) %></span>
-                            </div>
+  /* ── TWO-COL GRID ────────────────────────────────────── */
+  .glora-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
 
-                            <div class="summary-row">
-                                <span>Shipping</span>
-                                <span>
-  <% if (order.shipping === 0) { %>
-    <span class="text-success">FREE</span>
-  <% } else { %>
-    ₹<%= order.shipping.toFixed(2) %>
+  /* ── ADDRESS ─────────────────────────────────────────── */
+  .glora-address__type {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #D4A96A;
+    margin-bottom: 10px;
+  }
+
+  .glora-address__line {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.8;
+  }
+
+  .glora-address__phone {
+    font-size: 13px;
+    color: #555;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .glora-address__phone i { color: #D4A96A; font-size: 12px; }
+
+  /* ── PAYMENT INFO ────────────────────────────────────── */
+  .glora-payment-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #555;
+  }
+  .glora-payment-row:last-child { margin-bottom: 0; }
+  .glora-payment-row i { color: #D4A96A; width: 16px; text-align: center; }
+  .glora-payment-row strong { color: #1A1A1A; }
+
+  .glora-payment-status { font-weight: 600; }
+  .glora-payment-status.paid,
+  .glora-payment-status.completed,
+  .glora-payment-status.successful { color: #1b5e20; }
+  .glora-payment-status.pending,
+  .glora-payment-status.processing { color: #b07d00; }
+  .glora-payment-status.failed,
+  .glora-payment-status.cancelled  { color: #8B1A1A; }
+
+  /* ── SUMMARY ─────────────────────────────────────────── */
+  .glora-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 13px;
+    color: #555;
+    border-bottom: 1px solid #F0EBE3;
+  }
+  .glora-summary-row:last-of-type { border-bottom: none; }
+  .glora-summary-row.discount { color: #1b5e20; }
+  .glora-summary-row.discount span:last-child { font-weight: 600; }
+
+  .glora-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 0;
+    margin-top: 8px;
+    border-top: 2px solid #1A1A1A;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1A1A1A;
+  }
+
+  /* ── RESPONSIVE ──────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .glora-card { padding: 20px 16px; }
+    .glora-two-col { grid-template-columns: 1fr; }
+    .glora-item { flex-wrap: wrap; }
+    .glora-item__actions { flex-direction: row; width: 100%; }
+    .glora-action-btn { flex: 1; text-align: center; }
+    .glora-order-header { flex-direction: column; }
+  }
+</style>
+
+<div class="glora-order-page">
+
+  <a href="/my-orders" class="glora-back">
+    <i class="fas fa-arrow-left"></i> Back to Orders
+  </a>
+
+  <% if (success_msg && success_msg.length > 0) { %>
+    <div class="glora-alert glora-alert--success"><%= success_msg %></div>
   <% } %>
-</span>
-                            </div>
+  <% if (error_msg && error_msg.length > 0) { %>
+    <div class="glora-alert glora-alert--danger"><%= error_msg %></div>
+  <% } %>
 
-                            <% if (order.discount && order.discount> 0) { %>
-                                <div class="summary-row discount">
-                                    <span>Discount</span>
-                                    <span>-₹<%= order.discount.toFixed(2) %></span>
-                                </div>
-                                <% } %>
+  <!-- ── ORDER HEADER ──────────────────────────────────── -->
+  <div class="glora-card">
+    <div class="glora-order-header">
+      <div>
+        <p class="glora-order-id">Order #<%= order.orderId %></p>
+        <p class="glora-order-date">
+          <i class="far fa-calendar-alt"></i>
+          Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+        </p>
+      </div>
+      <span class="glora-status glora-status--<%= order.status.toLowerCase() %>">
+        <%= order.status %>
+      </span>
+    </div>
+  </div>
 
-                                    <div class="summary-total">
-                                        <span>Total</span>
-                                        <span>₹<%= order.totalPrice.toFixed(2) %></span>
-                                    </div>
-                        </div>
+  <!-- ── ORDER ITEMS ───────────────────────────────────── -->
+  <div class="glora-card">
+    <p class="glora-card__title">Order Items</p>
+    <div class="glora-items">
+      <% order.orderItems.forEach(function(item) { %>
+        <%
+          var canCancel = item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped';
+          var canReturn = item.status === 'Delivered';
+          var statusClass = item.status.toLowerCase().replace(/\s+/g, '-').replace(/-requested/, '-requested');
+        %>
+        <div class="glora-item">
+          <div class="glora-item__img">
+            <img src="<%= item.image || '/images/placeholder-product.jpg' %>" alt="<%= item.name || 'Product' %>">
+          </div>
 
-                        <!-- Actions -->
-                        <div class="order-actions mt-4 mb-4">
-                            <a href="/my-orders" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Back to Orders
-                            </a>
-                        </div>
+          <div class="glora-item__info">
+            <p class="glora-item__name"><%= item.name || 'Product' %></p>
+            <p class="glora-item__meta">Qty: <%= item.quantity %></p>
+            <p class="glora-item__price">₹<%= item.price ? item.price.toFixed(2) : '0.00' %></p>
+            <span class="glora-item__status glora-item__status--<%= statusClass %>">
+              <%= item.status %>
+            </span>
+            <% if (item.status === 'Cancelled' && item.cancelReason) { %>
+              <p class="glora-item__reason">Reason: <%= item.cancelReason %></p>
+            <% } %>
+            <% if (item.status === 'Return-Requested' && item.returnRequest && item.returnRequest.reason) { %>
+              <p class="glora-item__reason">Return reason: <%= item.returnRequest.reason %></p>
+            <% } %>
+          </div>
 
+          <div class="glora-item__actions">
+            <% if (canCancel) { %>
+              <button class="glora-action-btn glora-action-btn--cancel"
+                onclick="cancelItem('<%= item.productId %>')">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            <% } %>
+            <% if (canReturn) { %>
+              <button class="glora-action-btn glora-action-btn--return"
+                onclick="returnItem('<%= item.productId %>')">
+                <i class="fas fa-undo"></i> Return
+              </button>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- ── ADDRESS + PAYMENT ─────────────────────────────── -->
+  <div class="glora-two-col">
+
+    <div class="glora-card">
+      <p class="glora-card__title">Shipping Address</p>
+      <p class="glora-address__type"><%= order.addressId?.addressType || 'Home' %></p>
+      <p class="glora-address__line">
+        <%= order.addressId?.city || 'N/A' %>,
+        <%= order.addressId?.state || 'N/A' %> — <%= order.addressId?.pincode || 'N/A' %>
+      </p>
+      <% if (order.addressId?.landmark) { %>
+        <p class="glora-address__line"><%= order.addressId.landmark %></p>
+      <% } %>
+      <p class="glora-address__phone">
+        <i class="fas fa-phone-alt"></i>
+        +91 <%= order.addressId?.phoneNumber || 'N/A' %>
+      </p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/user/orders.js"></script>
-    <script>
-        async function cancelItem(productId) {
-            const { value: reason } = await Swal.fire({
-                title: 'Cancel Item?',
-                input: 'text',
-                inputPlaceholder: 'Enter reason for cancellation',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Cancel',
-                cancelButtonText: 'No',
-                inputValidator: function (value) {
-                    if (!value) return 'Reason is required!';
-                }
-            });
+    <div class="glora-card">
+      <p class="glora-card__title">Payment</p>
+      <% if (order.paymentMethod) { %>
+        <div class="glora-payment-row">
+          <i class="fas fa-credit-card"></i>
+          <span>Method: <strong><%= order.paymentMethod %></strong></span>
+        </div>
+      <% } %>
+      <div class="glora-payment-row">
+        <i class="fas fa-check-circle"></i>
+        <% if (order.paymentStatus) { %>
+          <span>Status:
+            <span class="glora-payment-status <%= order.paymentStatus.toLowerCase() %>">
+              <%= order.paymentStatus %>
+            </span>
+          </span>
+        <% } else { %>
+          <span>Status: <strong>N/A</strong></span>
+        <% } %>
+      </div>
+    </div>
 
-            if (!reason) return;
+  </div>
 
-            try {
-                const response = await fetch(
-                    '/my-orders/<%= order.orderId %>/cancel-product/' + productId,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ reason })
-                    }
-                );
+  <!-- ── ORDER SUMMARY ──────────────────────────────────── -->
+  <div class="glora-card">
+    <p class="glora-card__title">Order Summary</p>
 
-                const data = await response.json();
+    <div class="glora-summary-row">
+      <span>Subtotal (<%= order.orderItems.reduce(function(t, i) { return t + i.quantity; }, 0) %> items)</span>
+      <span>₹<%= order.orderItems.reduce(function(total, item) { return total + (item.price || 0) * item.quantity; }, 0).toFixed(2) %></span>
+    </div>
 
-                if (response.ok && data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Cancelled!',
-                        text: 'The item has been cancelled successfully.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(function () {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to cancel item', 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error', 'Something went wrong!', 'error');
-            }
+    <div class="glora-summary-row">
+      <span>Shipping</span>
+      <span>
+        <% if (order.shipping === 0) { %>
+          <span style="color:#1b5e20;font-weight:600;">FREE</span>
+        <% } else { %>
+          ₹<%= order.shipping.toFixed(2) %>
+        <% } %>
+      </span>
+    </div>
+
+    <% if (order.discount && order.discount > 0) { %>
+      <div class="glora-summary-row discount">
+        <span>Discount</span>
+        <span>− ₹<%= order.discount.toFixed(2) %></span>
+      </div>
+    <% } %>
+
+    <div class="glora-summary-total">
+      <span>Total</span>
+      <span>₹<%= order.totalPrice.toFixed(2) %></span>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/user/footer') %>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/js/user/orders.js"></script>
+<script>
+  async function cancelItem(productId) {
+    const { value: reason } = await Swal.fire({
+      title: 'Cancel this item?',
+      input: 'text',
+      inputPlaceholder: 'Enter reason for cancellation',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Cancel',
+      confirmButtonColor: '#8B1A1A',
+      cancelButtonText: 'Keep it',
+      inputValidator: function(value) {
+        if (!value) return 'Please provide a reason.';
+      }
+    });
+
+    if (!reason) return;
+
+    try {
+      const response = await fetch(
+        '/my-orders/<%= order.orderId %>/cancel-product/' + productId,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
         }
-    </script>
-    <script>
-        // ── RETURN ORDER ─────────────────────────────────────────────────
-        var returnBtn = document.querySelector('.btn-return');
-        if (returnBtn) {
-            returnBtn.addEventListener('click', async function () {
-                const orderId = this.dataset.orderId;
+      );
+      const data = await response.json();
 
-                const { value: reason } = await Swal.fire({
-                    title: 'Return Order',
-                    input: 'text',
-                    inputPlaceholder: 'Enter reason for return',
-                    showCancelButton: true,
-                    confirmButtonText: 'Submit Return',
-                    cancelButtonText: 'Cancel',
-                    inputValidator: function (value) {
-                        if (!value) return 'Please provide a reason for return.';
-                    }
-                });
+      if (response.ok && data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Item Cancelled',
+          text: 'The item has been cancelled successfully.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        location.reload();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to cancel item' });
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Something went wrong!', 'error');
+    }
+  }
 
-                if (!reason) return;
+  async function returnItem(productId) {
+    const { value: reason } = await Swal.fire({
+      title: 'Return this item?',
+      input: 'text',
+      inputPlaceholder: 'Enter reason for return',
+      showCancelButton: true,
+      confirmButtonText: 'Submit Return',
+      confirmButtonColor: '#D4A96A',
+      cancelButtonText: 'Cancel',
+      inputValidator: function(v) {
+        if (!v) return 'Please provide a reason.';
+      }
+    });
 
-                try {
-                    const res = await fetch('/my-orders/' + orderId + '/return', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ reason })
-                    });
-                    const data = await res.json();
+    if (!reason) return;
 
-                    if (res.ok && data.success) {
-                        await Swal.fire({
-                            icon: 'success',
-                            title: 'Return Requested!',
-                            text: 'Your return request has been submitted. Our team will review it shortly.',
-                            confirmButtonText: 'View My Orders'
-                        });
-                        window.location.href = '/my-orders';
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: data.message || 'Failed to submit return request.'
-                        });
-                    }
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
-                }
-            });
+    try {
+      const res = await fetch(
+        '/my-orders/<%= order.orderId %>/return-item/' + productId,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
         }
+      );
+      const data = await res.json();
 
-        async function returnItem(productId) {
-            const { value: reason } = await Swal.fire({
-                title: 'Return this item?',
-                input: 'text',
-                inputPlaceholder: 'Enter reason for return',
-                showCancelButton: true,
-                confirmButtonText: 'Submit',
-                inputValidator: function (v) { if (!v) return 'Reason is required'; }
-            });
-
-            if (!reason) return;
-
-            try {
-                const res = await fetch(
-                    '/my-orders/<%= order.orderId %>/return-item/' + productId,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ reason })
-                    }
-                );
-                const data = await res.json();
-
-                if (res.ok && data.success) {
-                    await Swal.fire({
-                        icon: 'success', title: 'Return Requested!',
-                        text: data.message, timer: 2000, showConfirmButton: false
-                    });
-                    location.reload();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message });
-                }
-            } catch (err) {
-                Swal.fire('Error', 'Something went wrong.', 'error');
-            }
-        }
-    </script>
-
-
-    <style>
-        .order-container {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-            padding: 16px;
-            max-width: 800px;
-            margin: 0 auto;
-            padding-top: 50px;
-        }
-
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .order-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-            color: #333;
-        }
-
-        .order-status-badge {
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
-            text-transform: capitalize;
-        }
-
-        .order-status-badge.pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .order-status-badge.processing {
-            background-color: #cce5ff;
-            color: #004085;
-        }
-
-        .order-status-badge.shipped {
-            background-color: #e2e3e5;
-            color: #383d41;
-        }
-
-        .order-status-badge.delivered {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .order-status-badge.cancelled,
-        .order-status-badge.returned {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .order-meta {
-            display: flex;
-            gap: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-        }
-
-        .order-items-section {
-            margin-top: 16px;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .order-items {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .order-item {
-            display: flex;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-            align-items: center;
-        }
-
-        .order-item:last-child {
-            border-bottom: none;
-        }
-
-        .item-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-right: 15px;
-            background: #f8f9fa;
-            flex-shrink: 0;
-        }
-
-        .item-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .item-details {
-            flex: 1;
-        }
-
-        .item-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        .item-price,
-        .item-quantity,
-        .item-subtotal {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 3px;
-        }
-
-        .item-subtotal {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .item-actions {
-            margin-left: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .btn-cancel-item {
-            background: none;
-            border: 1px solid #dc3545;
-            color: #dc3545;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-cancel-item:hover {
-            background-color: #f8d7da;
-        }
-
-        .shipping-section {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .address-name {
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        .address-street,
-        .address-city {
-            color: #666;
-            margin-bottom: 3px;
-        }
-
-        .address-phone {
-            color: #666;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-        }
-
-        .order-summary {
-            margin: 16px 0;
-            padding: 16px 0;
-            border-top: 1px solid #f0f0f0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .summary-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .summary-total {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e9ecef;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .discount {
-            color: #28a745;
-        }
-
-        .payment-status {
-            text-transform: capitalize;
-            font-weight: 500;
-            margin-left: 2px;
-        }
-
-        .payment-status.paid,
-        .payment-status.completed,
-        .payment-status.successful {
-            color: #28a745;
-        }
-
-        .payment-status.pending,
-        .payment-status.processing {
-            color: #ffc107;
-        }
-
-        .payment-status.failed,
-        .payment-status.cancelled,
-        .payment-status.refunded {
-            color: #dc3545;
-        }
-
-        @media (max-width: 768px) {
-            .order-meta {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .order-item {
-                flex-direction: column;
-            }
-
-            .item-actions {
-                margin: 10px 0 0 0;
-                width: 100%;
-            }
-
-            .btn-cancel-item {
-                width: 100%;
-                text-align: center;
-            }
-        }
-    </style>
-
-    <%- include('../partials/user/footer') %>
+      if (res.ok && data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Return Requested',
+          text: data.message,
+          timer: 2000,
+          showConfirmButton: false
+        });
+        location.reload();
+      } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+      }
+    } catch (err) {
+      Swal.fire('Error', 'Something went wrong.', 'error');
+    }
+  }
+</script>

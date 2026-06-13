@@ -1,59 +1,491 @@
-<%- include('../partials/user/header', { userName: userName }) %>
+<%- include('../partials/user/header', { userName: userName, url: '/manage-address' }) %>
 
-<div class="container mt-5 d-flex justify-content-center">
-    <div class="card shadow-lg p-4" style="max-width: 600px; width: 100%;">
-        <h2 class="text-center mb-4">Edit Address</h2>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  /* ── BASE ───────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glora-dark:   #1A1A1A;
+    --glora-cream:  #FAF7F4;
+    --glora-red:    #8B1A1A;
+    --glora-gold:   #D4A96A;
+    --glora-blush:  #F0EBE3;
+    --glora-muted:  #6B6B6B;
+    --glora-border: #E0D8D0;
+  }
+
+  body {
+    background: var(--glora-cream);
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
+  }
+
+  .glora-account {
+    min-height: calc(100vh - 72px);
+    padding: 60px 0 100px;
+    margin-top: 72px;
+  }
+
+  .glora-account__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .glora-account__heading {
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--glora-border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .glora-account__eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-account__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 600;
+    color: var(--glora-dark);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .glora-account__layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* ════════════════════════════════════════════════════
+     SHARED SIDEBAR
+  ════════════════════════════════════════════════════ */
+  .glora-sidebar {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    position: sticky;
+    top: 92px;
+  }
+
+  .glora-sidebar__user {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid rgba(26,26,26,0.07);
+    text-align: center;
+  }
+
+  .glora-sidebar__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--glora-blush);
+    border: 2px solid var(--glora-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+  }
+
+  .glora-sidebar__avatar i { font-size: 22px; color: var(--glora-muted); }
+
+  .glora-sidebar__name {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .glora-sidebar__label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+  }
+
+  .glora-sidebar__nav { padding: 12px 0; }
+
+  .glora-sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 24px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    color: var(--glora-muted);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+    position: relative;
+  }
+
+  .glora-sidebar__nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--glora-red);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  .glora-sidebar__nav-item.active {
+    background: var(--glora-cream);
+    color: var(--glora-dark);
+    font-weight: 600;
+  }
+
+  .glora-sidebar__nav-item.active::before { opacity: 1; }
+
+  .glora-sidebar__nav-item i {
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--glora-muted);
+    transition: color 0.2s ease;
+  }
+
+  .glora-sidebar__nav-item:hover i,
+  .glora-sidebar__nav-item.active i { color: var(--glora-red); }
+
+  .glora-sidebar__footer {
+    padding: 12px 16px 20px;
+    border-top: 1px solid rgba(26,26,26,0.07);
+  }
+
+  .glora-sidebar__logout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid rgba(26,26,26,0.15);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-muted);
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .glora-sidebar__logout:hover {
+    background: var(--glora-dark);
+    border-color: var(--glora-dark);
+    color: #fff;
+  }
+
+  /* ════════════════════════════════════════════════════
+     FORM PANEL
+  ════════════════════════════════════════════════════ */
+  .glora-panel {
+    background: #fff;
+    border: 1px solid var(--glora-border);
+    padding: 40px 44px;
+  }
+
+  .glora-panel__heading {
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--glora-border);
+  }
+
+  .glora-panel__eyebrow {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+    margin-bottom: 6px;
+  }
+
+  .glora-panel__title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--glora-dark);
+    letter-spacing: -0.3px;
+  }
+
+  /* ── FORM ───────────────────────────────────────────── */
+  .glora-form__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 28px;
+  }
+
+  .glora-form__group { display: flex; flex-direction: column; gap: 8px; }
+  .glora-form__group--full { grid-column: 1 / -1; }
+
+  .glora-form__label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--glora-dark);
+  }
+
+  .glora-form__input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--glora-border);
+    background: var(--glora-cream);
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
+    outline: none;
+    border-radius: 0;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    -webkit-appearance: none;
+  }
+
+  .glora-form__input::placeholder { color: #bbb; }
+  .glora-form__input:focus {
+    border-color: var(--glora-dark);
+    background: #fff;
+  }
+
+  .glora-form__select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--glora-border);
+    background: var(--glora-cream);
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--glora-dark);
+    outline: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+  }
+
+  .glora-form__select:focus { border-color: var(--glora-dark); background-color: #fff; }
+
+  /* ── ACTIONS ────────────────────────────────────────── */
+  .glora-form__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--glora-border);
+  }
+
+  .glora-btn {
+    padding: 13px 28px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .glora-btn--primary {
+    background: var(--glora-dark);
+    color: #fff;
+    flex: 1;
+  }
+
+  .glora-btn--primary:hover {
+    background: var(--glora-red);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .glora-btn--ghost {
+    background: none;
+    border: 1px solid var(--glora-border);
+    color: var(--glora-muted);
+    text-decoration: none;
+  }
+
+  .glora-btn--ghost:hover {
+    border-color: var(--glora-dark);
+    color: var(--glora-dark);
+    text-decoration: none;
+  }
+
+  /* ── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .glora-account__layout { grid-template-columns: 1fr; }
+    .glora-sidebar { position: static; }
+    .glora-sidebar__nav { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .glora-account__container { padding: 0 16px; }
+    .glora-panel { padding: 28px 20px; }
+    .glora-form__grid { grid-template-columns: 1fr; }
+    .glora-form__actions { flex-direction: column; }
+    .glora-sidebar__nav { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="glora-account">
+  <div class="glora-account__container">
+
+    <div class="glora-account__heading">
+      <span class="glora-account__eyebrow">Your account</span>
+      <h1 class="glora-account__title">Edit Address</h1>
+    </div>
+
+    <div class="glora-account__layout">
+
+      <!-- ══ SHARED SIDEBAR ══════════════════════════════ -->
+      <aside class="glora-sidebar">
+        <div class="glora-sidebar__user">
+          <div class="glora-sidebar__avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <p class="glora-sidebar__name"><%= userName || 'User' %></p>
+          <span class="glora-sidebar__label">Member</span>
+        </div>
+
+        <nav class="glora-sidebar__nav">
+          <a href="/profile" class="glora-sidebar__nav-item">
+            <i class="fas fa-user"></i> My Account
+          </a>
+          <a href="/my-orders" class="glora-sidebar__nav-item">
+            <i class="fas fa-box"></i> My Orders
+          </a>
+          <a href="/manage-address" class="glora-sidebar__nav-item active">
+            <i class="fas fa-map-marker-alt"></i> Addresses
+          </a>
+          <a href="/wallet" class="glora-sidebar__nav-item">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+          <a href="/wishlist" class="glora-sidebar__nav-item">
+            <i class="fas fa-heart"></i> Wishlist
+          </a>
+          <a href="/add-account" class="glora-sidebar__nav-item">
+            <i class="fas fa-link"></i> Linked Accounts
+          </a>
+        </nav>
+
+        <div class="glora-sidebar__footer">
+          <form action="/logout" method="POST">
+            <button type="submit" class="glora-sidebar__logout">
+              <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- ══ FORM PANEL ══════════════════════════════════ -->
+      <div class="glora-panel">
+
+        <div class="glora-panel__heading">
+          <p class="glora-panel__eyebrow">Delivery details</p>
+          <h2 class="glora-panel__title">Update Address</h2>
+        </div>
 
         <form action="/edit-address/<%= address._id %>" method="POST">
-            <div class="mb-3">
-                <label for="addressType" class="form-label">Address Type</label>
-                <input type="text" id="addressType" name="addressType" value="<%= address.addressType %>" class="form-control" required>
+
+          <div class="glora-form__grid">
+
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="addressType">Address Type</label>
+              <select id="addressType" name="addressType" class="glora-form__select" required>
+                <option value="Home"  <%= address.addressType === 'Home'  ? 'selected' : '' %>>Home</option>
+                <option value="Work"  <%= address.addressType === 'Work'  ? 'selected' : '' %>>Work</option>
+                <option value="Other" <%= address.addressType === 'Other' ? 'selected' : '' %>>Other</option>
+              </select>
             </div>
 
-            <div class="mb-3">
-                <label for="city" class="form-label">City</label>
-                <input type="text" id="city" name="city" value="<%= address.city %>" class="form-control" required>
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="phoneNumber">Phone Number</label>
+              <input type="number" id="phoneNumber" name="phoneNumber"
+                value="<%= address.phoneNumber %>"
+                class="glora-form__input" placeholder="10-digit number" required>
             </div>
 
-            <div class="mb-3">
-                <label for="landmark" class="form-label">Landmark</label>
-                <input type="text" id="landmark" name="landmark" value="<%= address.landmark %>" class="form-control" required>
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="city">City</label>
+              <input type="text" id="city" name="city"
+                value="<%= address.city %>"
+                class="glora-form__input" placeholder="Your city" required>
             </div>
 
-            <div class="mb-3">
-                <label for="state" class="form-label">State</label>
-                <input type="text" id="state" name="state" value="<%= address.state %>" class="form-control" required>
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="state">State</label>
+              <input type="text" id="state" name="state"
+                value="<%= address.state %>"
+                class="glora-form__input" placeholder="Your state" required>
             </div>
 
-            <div class="mb-3">
-                <label for="pincode" class="form-label">Pincode</label>
-                <input type="number" id="pincode" name="pincode" value="<%= address.pincode %>" class="form-control" required>
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="pincode">Pincode</label>
+              <input type="number" id="pincode" name="pincode"
+                value="<%= address.pincode %>"
+                class="glora-form__input" placeholder="6-digit pincode" required>
             </div>
 
-            <div class="mb-3">
-                <label for="phoneNumber" class="form-label">Phone Number</label>
-                <input type="number" id="phoneNumber" name="phoneNumber" value="<%= address.phoneNumber %>" class="form-control" required>
+            <div class="glora-form__group">
+              <label class="glora-form__label" for="landmark">Landmark</label>
+              <input type="text" id="landmark" name="landmark"
+                value="<%= address.landmark %>"
+                class="glora-form__input" placeholder="Nearby landmark" required>
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-success">Update Address</button>
-                <a href="/manage-address" class="btn btn-secondary">Cancel</a>
-            </div>
+          </div>
+
+          <div class="glora-form__actions">
+            <a href="/manage-address" class="glora-btn glora-btn--ghost">
+              <i class="fas fa-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="glora-btn glora-btn--primary">
+              <i class="fas fa-save"></i> Update Address
+            </button>
+          </div>
+
         </form>
+      </div>
+
     </div>
+  </div>
 </div>
 
 <%- include('../partials/user/footer') %>
-
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   <% if (typeof error !== 'undefined' && error) { %>
     Swal.fire({
       icon: 'error',
-      title: 'Oops...',
-      text: '<%= error %>'
+      title: 'Oops…',
+      text: '<%= error %>',
+      confirmButtonColor: '#8B1A1A'
     });
   <% } %>
 
@@ -61,8 +493,8 @@
     Swal.fire({
       icon: 'success',
       title: 'Success!',
-      text: '<%= success %>'
+      text: '<%= success %>',
+      confirmButtonColor: '#8B1A1A'
     });
   <% } %>
 </script>
-
