@@ -2,7 +2,7 @@ const Wishlist = require("../../models/wishlistModel");
 const Product = require("../../models/productModel");
 
 module.exports = {
-  getWishlist: async (req, res) => {
+getWishlist: async (req, res) => {
   try {
     const userName = req.user?.name || "User";
     const wishlistItems = await Wishlist.find({ userId: req.user._id })
@@ -10,10 +10,21 @@ module.exports = {
 
     const wishlist = wishlistItems.map(item => {
       const product = item.productId.toObject();
+
+      let stockStatus = "unavailable";
+      if (!product.isBlocked) {
+        const availableVariant = product.variants.find(
+          v => !v.isBlocked && v.quantity > 0
+        );
+        if (availableVariant) stockStatus = "instock";
+        else stockStatus = "outofstock";
+      }
+
       return {
         ...product,
         inWishlist: true,
-        wishlistId: item._id  
+        wishlistId: item._id,
+        stockStatus   
       };
     });
 
@@ -23,7 +34,6 @@ module.exports = {
     res.status(500).send("Server Error");
   }
 },
-
 
   toggleWishlist: async (req, res) => {
   try {
@@ -92,7 +102,6 @@ module.exports = {
 
   removeFromWishlist: async (req, res) => {
   try {
-    // find by productId, not wishlist doc _id
     await Wishlist.findOneAndDelete({ 
       userId: req.user._id, 
       productId: req.params.id 

@@ -1,5 +1,3 @@
-
-
 <%- include('../partials/user/header', { userName: userName, url: url }) %>
 
 <style>
@@ -11,14 +9,14 @@
   }
 
   .glora-cart__container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 0 40px;
   }
 
   /* ── PAGE HEADING ───────────────────────────────────── */
   .glora-cart__heading {
-    margin-bottom: 48px;
+    margin-bottom: 40px;
     padding-bottom: 20px;
     border-bottom: 1px solid rgba(26,26,26,0.10);
     display: flex;
@@ -50,7 +48,8 @@
   }
 
   .glora-cart__empty-icon {
-    width: 72px; height: 72px;
+    width: 72px;
+    height: 72px;
     border: 1.5px solid rgba(26,26,26,0.12);
     border-radius: 50%;
     display: flex;
@@ -59,10 +58,7 @@
     margin: 0 auto 28px;
   }
 
-  .glora-cart__empty-icon i {
-    font-size: 26px;
-    color: var(--glora-muted);
-  }
+  .glora-cart__empty-icon i { font-size: 26px; color: var(--glora-muted); }
 
   .glora-cart__empty-title {
     font-family: 'Cormorant Garant', serif;
@@ -98,25 +94,28 @@
     text-decoration: none;
   }
 
-  /* ── LAYOUT: items left, summary right ─────────────── */
+  /* ── LAYOUT ─────────────────────────────────────────── */
   .glora-cart__layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 32px;
+    grid-template-columns: 1fr 320px;
+    gap: 28px;
     align-items: start;
   }
 
-  /* ── ITEMS TABLE ────────────────────────────────────── */
+  /* ── ITEMS PANEL ────────────────────────────────────── */
   .glora-cart__items {
     background: #fff;
+    border: 1px solid rgba(26,26,26,0.07);
   }
 
-  /* Table header */
+  /* Table head */
   .glora-cart__table-head {
     display: grid;
-    grid-template-columns: 2.5fr 1fr 1.2fr 1fr 40px;
-    padding: 12px 24px;
+    grid-template-columns: 3fr 1fr 1fr 1fr 36px;
+    padding: 13px 24px;
+    background: var(--glora-blush);
     border-bottom: 1px solid rgba(26,26,26,0.08);
+    gap: 12px;
   }
 
   .glora-cart__table-head span {
@@ -127,45 +126,57 @@
     color: var(--glora-muted);
   }
 
-  .glora-cart__table-head span:not(:first-child) {
-    text-align: center;
-  }
+  .glora-cart__table-head span:not(:first-child) { text-align: center; }
 
-  /* Row */
+  /* ── ROW ────────────────────────────────────────────── */
   .glora-cart__row {
     display: grid;
-    grid-template-columns: 2.5fr 1fr 1.2fr 1fr 40px;
+    grid-template-columns: 3fr 1fr 1fr 1fr 36px;
     padding: 20px 24px;
     align-items: center;
+    gap: 12px;
     border-bottom: 1px solid rgba(26,26,26,0.06);
     transition: background 0.2s ease;
+    position: relative;
   }
 
-  .glora-cart__row:hover {
-    background: var(--glora-cream);
-  }
+  .glora-cart__row:hover { background: #fdfcfb; }
+  .glora-cart__row:last-child { border-bottom: none; }
 
-  .glora-cart__row:last-child {
-    border-bottom: none;
-  }
-
+  /* Out-of-stock / unavailable row */
   .glora-cart__row--unavailable {
-    opacity: 0.45;
-    background: #f9f9f9;
+    background: #f7f5f3;
   }
 
-  /* Product cell */
+  .glora-cart__row--unavailable .glora-cart__product-name,
+  .glora-cart__row--unavailable .glora-cart__product-meta,
+  .glora-cart__row--unavailable .glora-cart__price,
+  .glora-cart__row--unavailable .glora-cart__total,
+  .glora-cart__row--unavailable .glora-cart__qty-num {
+    opacity: 0.4;
+  }
+
+  .glora-cart__row--unavailable .glora-cart__img-wrap {
+    filter: grayscale(60%);
+    opacity: 0.5;
+  }
+
+  /* ── PRODUCT CELL ───────────────────────────────────── */
   .glora-cart__product {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
+    min-width: 0;
   }
 
   .glora-cart__img-wrap {
-    width: 72px; height: 72px;
+    width: 80px;
+    height: 80px;
     background: var(--glora-blush);
     flex-shrink: 0;
     overflow: hidden;
+    border: 1px solid rgba(26,26,26,0.06);
+    transition: filter 0.3s ease, opacity 0.3s ease;
   }
 
   .glora-cart__img-wrap img {
@@ -176,74 +187,140 @@
     transition: transform 0.3s ease;
   }
 
-  .glora-cart__row:hover .glora-cart__img-wrap img {
+  .glora-cart__row:not(.glora-cart__row--unavailable):hover .glora-cart__img-wrap img {
     transform: scale(1.05);
   }
 
   .glora-cart__img-placeholder {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: var(--glora-blush);
   }
 
   .glora-cart__img-placeholder i {
     font-size: 20px;
-    color: rgba(26,26,26,0.20);
+    color: rgba(26,26,26,0.15);
   }
 
   .glora-cart__product-info {
     min-width: 0;
+    flex: 1;
+    padding-top: 2px;
   }
 
+  /* Product name — wraps, no truncation */
   .glora-cart__product-name {
     font-size: 13px;
     font-weight: 500;
     color: var(--glora-dark);
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin-bottom: 5px;
+    line-height: 1.45;
+    white-space: normal;   /* ← wraps */
+    word-break: break-word;
   }
 
-  .glora-cart__product-variant {
-    font-size: 11px;
-    color: var(--glora-muted);
-    letter-spacing: 0.3px;
+  /* Variant row */
+  .glora-cart__product-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 6px;
   }
 
-  .glora-cart__offer-badge {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 5px 12px;
+  .glora-cart__variant {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 500;
+    color: var(--glora-muted);
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    color: var(--glora-gold);
-    background: rgba(217, 179, 102, 0.12);
-    border-radius: 999px;
   }
 
-  .glora-cart__unavailable-badge {
-    display: inline-block;
+  .glora-cart__variant i {
     font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--glora-muted);
-    border: 1px solid rgba(26,26,26,0.20);
-    padding: 2px 8px;
-    margin-top: 5px;
+    color: var(--glora-gold);
+    opacity: 0.8;
   }
 
-  /* Price / Total cells */
-  .glora-cart__cell {
-    text-align: center;
+  /* ── VARIANT CHIP ───────────────────────────────────── */
+.glora-cart__variant-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--glora-border);
+  overflow: hidden;
+  width: fit-content;
+  margin-bottom: 2px;
+}
+
+.glora-cart__variant-key {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--glora-dark);
+  padding: 4px 9px;
+  line-height: 1;
+}
+
+.glora-cart__variant-val {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--glora-dark);
+  background: var(--glora-blush);
+  padding: 4px 10px;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+  /* Offer badge */
+  .glora-cart__offer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--glora-gold);
+    background: rgba(212,169,106,0.10);
+    border: 1px solid rgba(212,169,106,0.25);
+    width: fit-content;
   }
+
+  .glora-cart__offer-badge i { font-size: 9px; }
+
+  /* Out-of-stock badge */
+  .glora-cart__oos-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--glora-red);
+    background: rgba(139,26,26,0.06);
+    border: 1px solid rgba(139,26,26,0.20);
+    width: fit-content;
+    margin-top: 2px;
+  }
+
+  .glora-cart__oos-badge i { font-size: 9px; }
+
+  /* ── PRICE / TOTAL CELLS ────────────────────────────── */
+  .glora-cart__cell { text-align: center; }
 
   .glora-cart__price {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--glora-dark);
   }
 
@@ -253,29 +330,29 @@
     color: var(--glora-red);
   }
 
-  /* Quantity control */
+  /* ── QUANTITY STEPPER ───────────────────────────────── */
   .glora-cart__qty {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0;
     border: 1px solid rgba(26,26,26,0.14);
-    width: fit-content;
-    margin: 0 auto;
+    overflow: hidden;
   }
 
   .glora-cart__qty-btn {
-    width: 30px; height: 30px;
+    width: 28px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 1;
     color: var(--glora-dark);
-    transition: background 0.2s ease, color 0.2s ease;
     font-family: 'Poppins', sans-serif;
+    transition: background 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
   }
 
   .glora-cart__qty-btn:hover:not(:disabled) {
@@ -286,44 +363,55 @@
   .glora-cart__qty-btn:disabled {
     cursor: not-allowed;
     color: #ccc;
+    background: #f5f5f5;
   }
 
   .glora-cart__qty-num {
-    min-width: 32px;
+    min-width: 34px;
     text-align: center;
     font-size: 13px;
     font-weight: 500;
     color: var(--glora-dark);
-    border-left: 1px solid rgba(26,26,26,0.14);
-    border-right: 1px solid rgba(26,26,26,0.14);
+    border-left: 1px solid rgba(26,26,26,0.12);
+    border-right: 1px solid rgba(26,26,26,0.12);
     padding: 0 4px;
     line-height: 30px;
     display: block;
   }
 
-  /* Remove btn */
+  /* Qty cell wrapper for centering */
+  .glora-cart__qty-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ── REMOVE ─────────────────────────────────────────── */
   .glora-cart__remove {
     background: none;
     border: none;
     cursor: pointer;
-    color: rgba(26,26,26,0.25);
-    font-size: 13px;
+    color: rgba(26,26,26,0.22);
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px; height: 32px;
-    transition: color 0.2s ease;
+    width: 28px;
+    height: 28px;
     margin: 0 auto;
+    transition: color 0.2s ease, background 0.2s ease;
+    border-radius: 50%;
   }
 
   .glora-cart__remove:hover {
     color: var(--glora-red);
+    background: rgba(139,26,26,0.06);
   }
 
   /* ── ORDER SUMMARY ──────────────────────────────────── */
   .glora-cart__summary {
     background: #fff;
-    padding: 32px;
+    border: 1px solid rgba(26,26,26,0.07);
+    padding: 28px;
     position: sticky;
     top: 92px;
   }
@@ -333,8 +421,8 @@
     font-size: 22px;
     font-weight: 600;
     color: var(--glora-dark);
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(26,26,26,0.08);
   }
 
@@ -342,7 +430,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .glora-cart__summary-label {
@@ -359,20 +447,23 @@
 
   .glora-cart__summary-free {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     color: #2d7a3a;
+    display: flex;
+    align-items: center;
+    gap: 5px;
   }
 
   .glora-cart__summary-divider {
     height: 1px;
     background: rgba(26,26,26,0.08);
-    margin: 18px 0;
+    margin: 16px 0;
   }
 
   .glora-cart__summary-total-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 2px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
     color: var(--glora-dark);
   }
@@ -382,6 +473,37 @@
     font-size: 26px;
     font-weight: 600;
     color: var(--glora-dark);
+  }
+
+  /* Shipping progress bar */
+  .glora-cart__shipping-bar-wrap {
+    margin: 16px 0 4px;
+  }
+
+  .glora-cart__shipping-bar-label {
+    font-size: 10px;
+    color: var(--glora-muted);
+    margin-bottom: 7px;
+    letter-spacing: 0.3px;
+  }
+
+  .glora-cart__shipping-bar-label strong {
+    color: var(--glora-dark);
+  }
+
+  .glora-cart__shipping-bar-track {
+    width: 100%;
+    height: 3px;
+    background: rgba(26,26,26,0.10);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .glora-cart__shipping-bar-fill {
+    height: 100%;
+    background: var(--glora-gold);
+    border-radius: 99px;
+    transition: width 0.4s ease;
   }
 
   .glora-cart__checkout-btn {
@@ -398,12 +520,10 @@
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
     transition: background 0.3s ease;
-    margin-top: 24px;
+    margin-top: 22px;
   }
 
-  .glora-cart__checkout-btn:hover {
-    background: var(--glora-red);
-  }
+  .glora-cart__checkout-btn:hover { background: var(--glora-red); }
 
   .glora-cart__continue-link {
     display: block;
@@ -423,7 +543,7 @@
   }
 
   .glora-cart__summary-note {
-    margin-top: 20px;
+    margin-top: 18px;
     padding: 12px 14px;
     background: var(--glora-blush);
     display: flex;
@@ -446,36 +566,35 @@
   }
 
   /* ── RESPONSIVE ─────────────────────────────────────── */
-  @media (max-width: 960px) {
-    .glora-cart__layout {
-      grid-template-columns: 1fr;
-    }
-    .glora-cart__summary {
-      position: static;
-    }
+  @media (max-width: 1024px) {
+    .glora-cart__layout { grid-template-columns: 1fr 280px; }
+  }
+
+  @media (max-width: 860px) {
+    .glora-cart__layout { grid-template-columns: 1fr; }
+    .glora-cart__summary { position: static; }
   }
 
   @media (max-width: 640px) {
-    .glora-cart__container { padding: 0 20px; }
-    .glora-cart { padding: 40px 0 80px; }
+    .glora-cart__container { padding: 0 16px; }
+    .glora-cart { padding: 36px 0 80px; }
 
     .glora-cart__table-head {
-      grid-template-columns: 1fr 80px 90px 40px;
-      padding: 10px 16px;
+      grid-template-columns: 1fr 80px 36px;
+      padding: 10px 14px;
     }
-
-    /* hide Price col header on mobile */
-    .glora-cart__table-head .col-price-head { display: none; }
+    .glora-cart__table-head .col-price-head,
+    .glora-cart__table-head .col-total-head { display: none; }
 
     .glora-cart__row {
-      grid-template-columns: 1fr 80px 90px 40px;
-      padding: 16px;
+      grid-template-columns: 1fr 80px 36px;
+      padding: 14px;
       gap: 8px;
     }
+    .glora-cart__cell.col-price,
+    .glora-cart__cell.col-total { display: none; }
 
-    .glora-cart__cell.col-price { display: none; }
-
-    .glora-cart__img-wrap { width: 56px; height: 56px; }
+    .glora-cart__img-wrap { width: 60px; height: 60px; }
     .glora-cart__product { gap: 10px; }
   }
 </style>
@@ -490,6 +609,7 @@
     </div>
 
     <% if (!cart || cart.length === 0) { %>
+
       <!-- Empty state -->
       <div class="glora-cart__empty">
         <div class="glora-cart__empty-icon">
@@ -506,11 +626,13 @@
         var subtotal = 0;
         cart.forEach(function(item) { subtotal += item.itemTotal; });
         var shippingFree = subtotal >= 999;
+        var shippingProgress = Math.min((subtotal / 999) * 100, 100);
+        var remaining = Math.max(999 - subtotal, 0).toFixed(2);
       %>
 
       <div class="glora-cart__layout">
 
-        <!-- Items panel -->
+        <!-- ── ITEMS PANEL ──────────────────────────────── -->
         <div class="glora-cart__items">
 
           <!-- Table head -->
@@ -518,36 +640,67 @@
             <span>Product</span>
             <span class="col-price-head">Price</span>
             <span>Quantity</span>
-            <span>Total</span>
+            <span class="col-total-head">Total</span>
             <span></span>
           </div>
 
           <!-- Rows -->
-          <% cart.forEach(function(item) { %>
-          <div class="glora-cart__row <%= item.isUnavailable ? 'glora-cart__row--unavailable' : '' %>">
+          <% cart.forEach(function(item) {
+            var unavailable = item.isUnavailable;
+          %>
+          <div class="glora-cart__row <%= unavailable ? 'glora-cart__row--unavailable' : '' %>">
 
             <!-- Product -->
             <div class="glora-cart__product">
-              <div class="glora-cart__img-wrap">
+              <a href="/product/<%= item.productId._id %>" class="glora-cart__img-wrap" style="text-decoration:none; display:block;">
                 <% if (item.productId.images && item.productId.images.length > 0) { %>
                   <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>">
                 <% } else { %>
-                  <div class="glora-cart__img-placeholder">
-                    <i class="fas fa-image"></i>
-                  </div>
+                  <div class="glora-cart__img-placeholder"><i class="fas fa-image"></i></div>
                 <% } %>
-              </div>
+              </a>
+
               <div class="glora-cart__product-info">
-                <p class="glora-cart__product-name"><%= item.productId.productName %></p>
-                <% if (item.unit) { %>
-                  <p class="glora-cart__product-variant"><%= item.unit %></p>
-                <% } %>
-                <% if (item.appliedOffer) { %>
-                  <span class="glora-cart__offer-badge">Offer: <%= item.appliedOffer.title %></span>
-                <% } %>
-                <% if (item.isUnavailable) { %>
-                  <span class="glora-cart__unavailable-badge">Unavailable</span>
-                <% } %>
+                <a href="/product/<%= item.productId._id %>" style="text-decoration:none; color:inherit;">
+                  <p class="glora-cart__product-name"><%= item.productId.productName %></p>
+                </a>
+
+                <div class="glora-cart__product-meta">
+                  <% if (item.unit) { %>
+      <div class="glora-cart__variant-chip">
+        <span class="glora-cart__variant-key">Size / Unit</span>
+        <span class="glora-cart__variant-val"><%= item.unit %></span>
+      </div>
+    <% } else { %>
+      <%
+        /* fallback: find the variant from populated product */
+        var matchedVariant = item.productId.variants && item.variantId
+          ? item.productId.variants.find(v => v._id.toString() === item.variantId.toString())
+          : null;
+      %>
+      <% if (matchedVariant) { %>
+        <div class="glora-cart__variant-chip">
+          <span class="glora-cart__variant-key">Size / Unit</span>
+          <span class="glora-cart__variant-val"><%= matchedVariant.unit %></span>
+        </div>
+      <% } %>
+    <% } %>
+
+
+                  <% if (item.appliedOffer) { %>
+                    <span class="glora-cart__offer-badge">
+                      <i class="fas fa-bolt"></i>
+                      <%= item.appliedOffer.title %>
+                    </span>
+                  <% } %>
+
+                  <% if (unavailable) { %>
+                    <span class="glora-cart__oos-badge">
+                      <i class="fas fa-ban"></i>
+                      Out of Stock
+                    </span>
+                  <% } %>
+                </div>
               </div>
             </div>
 
@@ -558,26 +711,30 @@
 
             <!-- Quantity -->
             <div class="glora-cart__cell">
-              <div class="glora-cart__qty">
-                <button class="glora-cart__qty-btn dec-btn"
-                  data-id="<%= item.productId._id %>"
-                  data-price="<%= item.price %>"
-                  <%= item.isUnavailable ? 'disabled' : '' %>>−</button>
-                <span class="glora-cart__qty-num"><%= item.quantity %></span>
-                <button class="glora-cart__qty-btn inc-btn"
-                  data-id="<%= item.productId._id %>"
-                  data-price="<%= item.price %>"
-                  <%= item.isUnavailable ? 'disabled' : '' %>>+</button>
+              <div class="glora-cart__qty-wrap">
+                <div class="glora-cart__qty">
+                  <button class="glora-cart__qty-btn dec-btn"
+                    data-id="<%= item.productId._id %>"
+                    data-price="<%= item.price %>"
+                    <%= unavailable ? 'disabled' : '' %>>−</button>
+                  <span class="glora-cart__qty-num"><%= item.quantity %></span>
+                  <button class="glora-cart__qty-btn inc-btn"
+                    data-id="<%= item.productId._id %>"
+                    data-price="<%= item.price %>"
+                    <%= unavailable ? 'disabled' : '' %>>+</button>
+                </div>
               </div>
             </div>
 
             <!-- Total -->
-            <div class="glora-cart__cell">
-              <span class="glora-cart__total">₹<span class="item-total"><%= item.itemTotal.toFixed(2) %></span></span>
+            <div class="glora-cart__cell col-total">
+              <span class="glora-cart__total">
+                ₹<span class="item-total"><%= item.itemTotal.toFixed(2) %></span>
+              </span>
             </div>
 
             <!-- Remove -->
-            <button class="glora-cart__remove remove-btn" data-id="<%= item.productId._id %>" title="Remove">
+            <button class="glora-cart__remove remove-btn" data-id="<%= item.productId._id %>" title="Remove item">
               <i class="fas fa-times"></i>
             </button>
 
@@ -586,7 +743,7 @@
 
         </div>
 
-        <!-- Order Summary -->
+        <!-- ── ORDER SUMMARY ───────────────────────────── -->
         <div class="glora-cart__summary">
           <h2 class="glora-cart__summary-title">Order Summary</h2>
 
@@ -598,11 +755,23 @@
           <div class="glora-cart__summary-row">
             <span class="glora-cart__summary-label">Shipping</span>
             <% if (shippingFree) { %>
-              <span class="glora-cart__summary-free">Free</span>
+              <span class="glora-cart__summary-free"><i class="fas fa-check-circle"></i> Free</span>
             <% } else { %>
-              <span class="glora-cart__summary-value">Calculated at checkout</span>
+              <span class="glora-cart__summary-value" style="font-size:11px; color:var(--glora-muted);">At checkout</span>
             <% } %>
           </div>
+
+          <!-- Shipping progress bar -->
+          <% if (!shippingFree) { %>
+          <div class="glora-cart__shipping-bar-wrap">
+            <p class="glora-cart__shipping-bar-label">
+              Add <strong>₹<%= remaining %></strong> more for free shipping
+            </p>
+            <div class="glora-cart__shipping-bar-track">
+              <div class="glora-cart__shipping-bar-fill" style="width:<%= shippingProgress %>%"></div>
+            </div>
+          </div>
+          <% } %>
 
           <div class="glora-cart__summary-divider"></div>
 
@@ -612,7 +781,7 @@
           </div>
 
           <button id="checkout-btn" class="glora-cart__checkout-btn">
-            Proceed to Checkout
+            <i class="fas fa-lock" style="margin-right:8px; font-size:9px;"></i>Proceed to Checkout
           </button>
 
           <a href="/shop" class="glora-cart__continue-link">← Continue Shopping</a>
@@ -635,11 +804,11 @@
   function recalcTotals() {
     var subtotal = 0;
     document.querySelectorAll('.glora-cart__row:not(.glora-cart__row--unavailable)').forEach(function(row) {
-      var price = parseFloat(row.querySelector('.glora-cart__qty-btn.inc-btn').dataset.price);
+      var price = parseFloat(row.querySelector('.inc-btn').dataset.price);
       var qty   = parseInt(row.querySelector('.glora-cart__qty-num').textContent);
-      var lineTotal = price * qty;
-      row.querySelector('.item-total').textContent = lineTotal.toFixed(2);
-      subtotal += lineTotal;
+      var line  = price * qty;
+      row.querySelector('.item-total').textContent = line.toFixed(2);
+      subtotal += line;
     });
     document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
     document.getElementById('summary-total').textContent    = subtotal.toFixed(2);
@@ -676,7 +845,7 @@
           var res    = await fetch('/cart/decrement/' + this.dataset.id, { method: 'POST' });
           var result = await res.json();
           if (result.success) {
-            var numEl = this.nextElementSibling;
+            var numEl  = this.nextElementSibling;
             var current = parseInt(numEl.textContent);
             if (current > 1) {
               numEl.textContent = current - 1;
@@ -699,13 +868,13 @@
         var id = this.dataset.id;
         Swal.fire({
           title: 'Remove item?',
-          text:  'This item will be removed from your bag.',
-          icon:  'warning',
-          showCancelButton:   true,
+          text: 'This item will be removed from your bag.',
+          icon: 'warning',
+          showCancelButton: true,
           confirmButtonColor: '#1A1A1A',
-          cancelButtonColor:  '#aaa',
-          confirmButtonText:  'Remove',
-          cancelButtonText:   'Keep it'
+          cancelButtonColor: '#aaa',
+          confirmButtonText: 'Remove',
+          cancelButtonText: 'Keep it'
         }).then(function(result) {
           if (result.isConfirmed) {
             fetch('/cart/remove/' + id, { method: 'POST' })

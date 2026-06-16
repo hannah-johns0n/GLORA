@@ -9,6 +9,8 @@ const Category = require('../../models/categoryModel');
 const TempUser = require('../../models/TempUser');
 const Wishlist = require('../../models/wishlistModel');
 const Address = require('../../models/addressModel');
+const Order = require('../../models/orderModel');
+const Coupon = require('../../models/coupensModel');
 const STATUS_CODES = require('../../constants/statusCodes');
 const fs = require('fs');
 
@@ -43,7 +45,7 @@ const getSignup = (req, res) => {
 };
 
 const signup = async (req, res) => {
-  const { name, email, password, confirmPassword, phoneNumber } = req.body;
+  const { name, email, password, confirmPassword, phoneNumber, referralCode } = req.body;
 
   try {
     if (!email || !password || !confirmPassword || !name || !phoneNumber) {
@@ -59,6 +61,34 @@ const signup = async (req, res) => {
       return res.render("user/signup", { error: "Email already registered" });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nameRegex  = /^[A-Za-z ]+$/;
+
+if (!nameRegex.test(name) || name.trim().startsWith(' ')) {
+  return res.render("user/signup", { error: "Invalid name. No special characters allowed." });
+}
+
+if (!emailRegex.test(email)) {
+  return res.render("user/signup", { error: "Invalid email format." });
+}
+
+if (!/^\d{10}$/.test(phoneNumber)) {
+  return res.render("user/signup", { error: "Phone number must be exactly 10 digits." });
+}
+
+if (password.length < 8) {
+  return res.render("user/signup", { error: "Password must be at least 8 characters." });
+}
+
+    let validReferralCode = null;
+
+    if (referralCode && referralCode.trim() !== "") {
+      const referrer = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+      if (referrer) {
+        validReferralCode = referralCode.trim().toUpperCase(); 
+      }
+    }
+
     const otp = generateOTP();
     const hashedPassword = await bcrypt.hash(password, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -71,7 +101,8 @@ const signup = async (req, res) => {
       password: hashedPassword,
       phoneNumber,
       otp,
-      otpExpires: expiresAt
+      otpExpires: expiresAt,
+      referredBy: validReferralCode  
     });
 
     await transporter.sendMail({
@@ -82,9 +113,9 @@ const signup = async (req, res) => {
     });
 
     res.redirect(`/verify-otp?email=${email}`);
-  }
 
-  catch (error) {
+  } catch (error) {
+    console.log("Signup error:", error);
     res.render("user/signup", { error: "Internal server error" });
   }
 };
@@ -94,7 +125,6 @@ const getVerifyOtp = async (req, res) => {
   const tempUser = await TempUser.findOne({ email });
   console.log(`OTP for ${email}: ${tempUser.otp}`);
 
-  // Calculate remaining time from database expiry time
   const now = Date.now();
   const expiryTime = new Date(tempUser.otpExpires).getTime();
   const remainingMs = Math.max(0, expiryTime - now);
@@ -124,7 +154,6 @@ const postVerifyOtp = async (req, res) => {
   }
 
   if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
-    // Calculate remaining time from database expiry time
     const now = Date.now();
     const expiryTime = new Date(tempUser.otpExpires).getTime();
     const remainingMs = Math.max(0, expiryTime - now);
@@ -138,16 +167,47 @@ const postVerifyOtp = async (req, res) => {
     });
   }
 
-  await User.create({
+  const generateReferralCode = (name) => {
+    const cleanName = name.replace(/\s+/g, '').toUpperCase().slice(0, 5);
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return cleanName + randomNum;
+  };
+
+  const newUser = await User.create({
     name: tempUser.name,
     email: tempUser.email,
     password: tempUser.password,
-    phoneNumber: tempUser.phoneNumber
+    phoneNumber: tempUser.phoneNumber,
+    referralCode: generateReferralCode(tempUser.name)
   });
+
+  if (tempUser.referredBy) {
+    const referrer = await User.findOne({ referralCode: tempUser.referredBy });
+
+    if (referrer) {
+      referrer.redeemedUser.push(newUser._id);
+      await referrer.save();
+
+      const couponCode = "REF-" + referrer.referralCode + "-" + Math.floor(1000 + Math.random() * 9000);
+
+      await Coupon.create({
+        couponCode: couponCode,
+        description: "Referral reward coupon",
+        discountType: "Percentage",
+        discountValue: 10,
+        minimumPurchaseAmount: 500,
+        perUserLimit: 1,
+        maxUses: 1,
+        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        isActive: true,
+        usedBy: []
+      });
+    }
+  }
 
   await TempUser.deleteOne({ email });
 
-  res.redirect("/login?signupSuccess=1",);
+  res.redirect("/login?signupSuccess=1");
 };
 
 const resendOtp = async (req, res) => {
@@ -257,13 +317,47 @@ const loadHomePage = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-    const bestSellers = await Product.find({ isBlocked: false })
-      .sort({ createdAt: -1 })
-      .limit(8);
+
+let bestSellers = [];
+
+const bestSellerAgg = await Order.aggregate([
+  
+  { $match: { status: { $ne: 'Cancelled' } } },
+  { $unwind: '$orderItems' },
+  
+  { $match: { 'orderItems.status': { $nin: ['Cancelled', 'Returned', 'Return-Rejected'] } } },
+  {
+    $group: {
+      _id: '$orderItems.productId',
+      totalSold: { $sum: '$orderItems.quantity' }
+    }
+  },
+  { $sort: { totalSold: -1 } },
+  { $limit: 8 }
+]);
+
+if (bestSellerAgg.length > 0) {
+
+  const bestSellerIds = bestSellerAgg.map(item => item._id);
+
+  const bestSellersFromDb = await Product.find({
+    _id: { $in: bestSellerIds },
+    isBlocked: false
+  });
+
+  bestSellers = bestSellerIds
+    .map(id => bestSellersFromDb.find(p => p._id.toString() === id.toString()))
+    .filter(Boolean);
+}
+
+if (bestSellers.length === 0) {
+  bestSellers = await Product.find({ isBlocked: false })
+    .sort({ createdAt: -1 })
+    .limit(8);
+}
 
     const newLaunches = await Product.find({ isBlocked: false })
       .sort({ createdAt: -1 })
-      .skip(8)
       .limit(8);
 
     res.render('user/home', {
@@ -274,6 +368,7 @@ const loadHomePage = async (req, res) => {
       newLaunches,
       loginSuccess: false
     });
+
   } catch (error) {
     console.error("Home page error:", error);
     res.render("user/home", {
@@ -282,6 +377,7 @@ const loadHomePage = async (req, res) => {
       categories: [],
       bestSellers: [],
       newLaunches: [],
+      loginSuccess: false
     });
   }
 };
@@ -302,10 +398,23 @@ const getAbout = (req, res) => {
   res.render("user/aboutUs"), { userName };
 };
 
+const getContact = (req, res) => {
+  let userName = null;
+  const token = req.cookies.jwt;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userName = decoded.name || null;
+    } catch (err) {
+      userName = null;
+    }
+  }
+  res.render("user/contactUs", { userName, url: '/contact' });
+};
+
 const getShopPage = async (req, res) => {
   const sort = req.query.sort || '';
 
-  // ── decode user from JWT cookie once, use everywhere ──
   let loggedInUserId = null;
   let userName = null;
   try {
@@ -316,7 +425,6 @@ const getShopPage = async (req, res) => {
       userName = decoded.name || null;
     }
   } catch (e) {
-    // invalid/expired token — treat as guest
   }
 
   try {
@@ -356,7 +464,6 @@ const getShopPage = async (req, res) => {
 
     products = products.map(p => p.toObject());
 
-    // ── wishlist state — uses JWT-decoded userId, not req.user ──
     if (loggedInUserId) {
       const wishlistItems = await Wishlist.find({
         userId: loggedInUserId,
@@ -524,7 +631,6 @@ const verifyPasswordOtp = (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const email = decoded.email;
 
-    // Calculate remaining time (5 minutes from now = 300 seconds)
     const remainingSeconds = 300;
 
     res.render("user/otp", {
@@ -547,7 +653,6 @@ const postVerifyPasswordOtp = async (req, res) => {
     const record = await PasswordReset.findOne({ email });
 
     if (!record || record.otp !== otp || record.otpExpires < Date.now()) {
-      // Calculate remaining time from database expiry time
       let remainingSeconds = 0;
       if (record && record.otpExpires) {
         const now = Date.now();
@@ -593,7 +698,6 @@ const postResetPassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
 
-    // Check if user is a Google OAuth user
     const user = await User.findOne({ email });
     if (user && user.googleId && !user.password) {
       return res.render("user/resetPassword", {
@@ -730,53 +834,58 @@ const getManageAddressPage = async (req, res) => {
 
 const getAddAddressPage = (req, res) => {
   const fromCheckout = req.query.fromCheckout === "true";
-  res.render('user/add-address', { userName: req.user.name, fromCheckout: fromCheckout ? 'true' : 'false' });
+  res.render('user/add-address', {
+    userName: req.user.name,
+    fromCheckout: fromCheckout ? 'true' : 'false'
+  });
 };
 
 const postAddAddress = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
-    const addresses = await Address.find({ userId: req.user._id });
+    if (!req.user.id) return res.redirect('/login');
 
     const fromCheckout = req.body.fromCheckout === "true";
 
-    if (!req.user.id) {
-      return res.redirect('/login');
+    const addressType  = req.body.addressType?.trim();
+    const city         = req.body.city?.trim();
+    const landmark     = req.body.landmark?.trim();
+    const state        = req.body.state?.trim();
+    const pincodeStr   = String(req.body.pincode || '').trim();
+    const phoneStr     = String(req.body.phoneNumber || '').trim();
+
+    const renderError = (error) =>
+      res.render('user/add-address', {
+        userName: req.user.name,
+        fromCheckout: fromCheckout ? 'true' : 'false',
+        formData: { addressType, city, landmark, state, pincode: pincodeStr, phoneNumber: phoneStr },
+        error
+      });
+
+    if (!addressType || !city || !landmark || !state || !pincodeStr || !phoneStr) {
+      return renderError('All fields are required and cannot be blank or spaces only.');
     }
 
-    const { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
+    const onlyLetters = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
 
-    const noSpecialChars = /^[a-zA-Z0-9\s]+$/;
-
-    if (!addressType || !city || !landmark || !state || !pincode || !phoneNumber) {
-      return res.render('user/add-address', {
-        userName: req.user.name,
-        error: 'All fields are required.'
-      });
+    if (!onlyLetters.test(addressType)) {
+      return renderError('Address Type must contain letters only (no numbers or special characters).');
+    }
+    if (!onlyLetters.test(city)) {
+      return renderError('City must contain letters only (no numbers or special characters).');
+    }
+    if (!onlyLetters.test(landmark)) {
+      return renderError('Landmark must contain letters only (no numbers or special characters).');
+    }
+    if (!onlyLetters.test(state)) {
+      return renderError('State must contain letters only (no numbers or special characters).');
     }
 
-    if (!noSpecialChars.test(addressType) ||
-      !noSpecialChars.test(city) ||
-      !noSpecialChars.test(landmark) ||
-      !noSpecialChars.test(state)) {
-      return res.render('user/add-address', {
-        userName: req.user.name,
-        error: 'No special characters allowed in Address Type, City, Landmark, or State.'
-      });
+    if (!/^[1-9]\d{5}$/.test(pincodeStr)) {
+      return renderError('Pincode must be exactly 6 digits and cannot start with 0.');
     }
 
-    if (!/^\d{6}$/.test(pincode)) {
-      return res.render('user/add-address', {
-        userName: req.user.name,
-        error: 'Pincode must be exactly 6 digits.'
-      });
-    }
-
-    if (!/^\d{10}$/.test(phoneNumber)) {
-      return res.render('user/add-address', {
-        userName: req.user.name,
-        error: 'Phone number must be exactly 10 digits.'
-      });
+    if (!/^[6-9]\d{9}$/.test(phoneStr)) {
+      return renderError('Phone number must be 10 digits and start with 6, 7, 8, or 9.');
     }
 
     await Address.create({
@@ -785,13 +894,14 @@ const postAddAddress = async (req, res) => {
       city,
       landmark,
       state,
-      pincode,
-      phoneNumber
+      pincode: Number(pincodeStr),
+      phoneNumber: Number(phoneStr)
     });
 
-    if (fromCheckout) {
-      return res.redirect('/checkout');
-    }
+    if (fromCheckout) return res.redirect('/checkout');
+
+    const user      = await User.findById(req.user._id);
+    const addresses = await Address.find({ userId: req.user._id });
 
     return res.render('user/manage-address', {
       user,
@@ -800,13 +910,12 @@ const postAddAddress = async (req, res) => {
       success: 'Address added successfully!'
     });
 
-
   } catch (err) {
     console.error(err);
     res.status(500).render('user/add-address', {
       userName: req.user.name,
       fromCheckout: req.body.fromCheckout || 'false',
-      error: 'Server error. Failed to add address.'
+      error: 'Server error. Please try again.'
     });
   }
 };
@@ -814,78 +923,61 @@ const postAddAddress = async (req, res) => {
 const getEditAddressPage = async (req, res) => {
   try {
     const address = await Address.findOne({ _id: req.params.id, userId: req.user._id }).lean();
-
     if (!address) return res.redirect('/manage-address');
     res.render('user/edit-address', { address, userName: req.user.name });
-  }
-  catch (err) {
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+  } catch (err) {
+    res.status(500).send("Server error");
   }
 };
 
 const postEditAddress = async (req, res) => {
   try {
-    if (!req.user._id) {
-      return res.status(STATUS_CODES.BAD_REQUEST).send("Unauthorized");
-    }
+    if (!req.user._id) return res.status(401).send("Unauthorized");
 
-    let { addressType, city, landmark, state, pincode, phoneNumber } = req.body;
-    addressType = addressType?.trim();
-    city = city?.trim();
-    landmark = landmark?.trim();
-    state = state?.trim();
-    const pincodeStr = String(pincode).trim();
-    const phoneStr = String(phoneNumber).trim();
+    const addressType  = req.body.addressType?.trim();
+    const city         = req.body.city?.trim();
+    const landmark     = req.body.landmark?.trim();
+    const state        = req.body.state?.trim();
+    const pincodeStr   = String(req.body.pincode || '').trim();
+    const phoneStr     = String(req.body.phoneNumber || '').trim();
 
-    const onlyLetters = /^[a-zA-Z\s]+$/;
+    const renderError = (error) =>
+      res.render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error,
+        userName: req.user.name
+      });
 
     if (!addressType || !city || !landmark || !state || !pincodeStr || !phoneStr) {
-      return res.render('user/edit-address', {
-        address: { ...req.body, _id: req.params.id },
-        error: 'All fields are required.',
-        userName: req.user.name
-      });
+      return renderError('All fields are required and cannot be blank or spaces only.');
     }
 
-    if (
-      !onlyLetters.test(addressType) ||
-      !onlyLetters.test(city) ||
-      !onlyLetters.test(landmark) ||
-      !onlyLetters.test(state)
-    ) {
-      return res.render('user/edit-address', {
-        address: { ...req.body, _id: req.params.id },
-        error: 'Address Type, City, Landmark, and State must contain letters and spaces only.',
-        userName: req.user.name
-      });
+    const onlyLetters = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
+
+    if (!onlyLetters.test(addressType)) {
+      return renderError('Address Type must contain letters only.');
+    }
+    if (!onlyLetters.test(city)) {
+      return renderError('City must contain letters only (no numbers or special characters).');
+    }
+    if (!onlyLetters.test(landmark)) {
+      return renderError('Landmark must contain letters only (no numbers or special characters).');
+    }
+    if (!onlyLetters.test(state)) {
+      return renderError('State must contain letters only (no numbers or special characters).');
     }
 
-    if (!/^\d{6}$/.test(pincodeStr)) {
-      return res.render('user/edit-address', {
-        address: { ...req.body, _id: req.params.id },
-        error: 'Pincode must be exactly 6 digits.',
-        userName: req.user.name
-      });
+    if (!/^[1-9]\d{5}$/.test(pincodeStr)) {
+      return renderError('Pincode must be exactly 6 digits and cannot start with 0.');
     }
 
-    if (!/^\d{10}$/.test(phoneStr)) {
-      return res.render('user/edit-address', {
-        address: { ...req.body, _id: req.params.id },
-        error: 'Phone number must be exactly 10 digits.',
-        userName: req.user.name
-      });
+    if (!/^[6-9]\d{9}$/.test(phoneStr)) {
+      return renderError('Phone number must be 10 digits and start with 6, 7, 8, or 9.');
     }
 
     await Address.updateOne(
       { _id: req.params.id, userId: req.user._id },
-      {
-        addressType,
-        city,
-        landmark,
-        state,
-        pincode: Number(pincodeStr),
-        phoneNumber: Number(phoneStr)
-      }
+      { addressType, city, landmark, state, pincode: Number(pincodeStr), phoneNumber: Number(phoneStr) }
     );
 
     return res.render('user/edit-address', {
@@ -896,7 +988,7 @@ const postEditAddress = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
+    res.status(500).send("Server error");
   }
 };
 
@@ -912,7 +1004,6 @@ const deleteAddress = async (req, res) => {
 };
 
 const getChangeEmailPage = (req, res) => {
-  // Check if user is a Google OAuth user
   if (req.user && req.user.googleId && !req.user.password) {
     return res.render('user/change-email', {
       error: 'Email change is not available for Google-authenticated accounts.'
@@ -932,7 +1023,6 @@ const sendChangeEmailOtp = async (req, res) => {
     const { email } = req.body;
     const userId = req.user?._id || req.user?.id;
 
-    // Check if user is a Google OAuth user
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
       return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
@@ -944,7 +1034,6 @@ const sendChangeEmailOtp = async (req, res) => {
     const expiresAt = Date.now() + 5 * 60 * 1000;
     otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
 
-    // Calculate remaining time (5 minutes = 300 seconds)
     const remainingSeconds = 300;
 
     await transporter.sendMail({
@@ -974,7 +1063,6 @@ const verifyChangeEmailOtp = async (req, res) => {
     const { otp, email } = req.body;
     const userId = req.user?._id || req.user?.id;
 
-    // Check if user is a Google OAuth user
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
       return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
@@ -995,7 +1083,6 @@ const verifyChangeEmailOtp = async (req, res) => {
     }
 
     if (stored.otp !== otp || Date.now() > stored.expires) {
-      // Calculate remaining time from in-memory store
       const now = Date.now();
       const remainingMs = Math.max(0, stored.expires - now);
       const remainingSeconds = Math.floor(remainingMs / 1000);
@@ -1076,7 +1163,6 @@ const resendForgotPasswordOtp = async (req, res) => {
 
     await sendOTP(email, otp);
 
-    // Calculate remaining time (5 minutes = 300 seconds)
     const remainingSeconds = 300;
 
     res.render("user/otp", {
@@ -1100,7 +1186,6 @@ const resendChangeEmailOtp = async (req, res) => {
       return res.redirect('/profile');
     }
 
-    // Check if user is a Google OAuth user
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
       return res.render('user/change-email', {
@@ -1112,7 +1197,6 @@ const resendChangeEmailOtp = async (req, res) => {
     const expiresAt = Date.now() + 5 * 60 * 1000;
     otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
 
-    // Calculate remaining time (5 minutes = 300 seconds)
     const remainingSeconds = 300;
 
     await transporter.sendMail({
@@ -1148,6 +1232,7 @@ module.exports = {
   logout,
   loadHomePage,
   getAbout,
+  getContact,
   getSignup,
   getLogin,
   getShopPage,

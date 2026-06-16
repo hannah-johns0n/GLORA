@@ -1,0 +1,571 @@
+<%- include('../partials/user/header', { userName: userName, url: url }) %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — GLORA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --dark:   #1A1A1A;
+      --cream:  #FAF7F4;
+      --red:    #8B1A1A;
+      --gold:   #D4A96A;
+      --blush:  #F0EBE3;
+      --muted:  #6B6B6B;
+      --border: #E0D8D0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+    }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .contact-hero {
+      background: var(--dark);
+      padding: 120px 0 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 60%, rgba(139,26,26,0.22) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(212,169,106,0.10) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .contact-hero__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .contact-hero__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(42px, 6vw, 68px);
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .contact-hero__title em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .contact-hero__sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.42);
+      max-width: 400px;
+      margin: 0 auto;
+      line-height: 1.8;
+      position: relative;
+    }
+
+    /* ── MAIN LAYOUT ──────────────────────────────────── */
+    .contact-main {
+      padding: 90px 0 100px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    /* ── LEFT — INFO ──────────────────────────────────── */
+    .contact-info__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .contact-info__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(28px, 3vw, 38px);
+      font-weight: 600;
+      color: var(--dark);
+      letter-spacing: -0.3px;
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+
+    .contact-info__title em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .contact-info__body {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 40px;
+    }
+
+    /* info items */
+    .contact-detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .contact-detail__icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(212,169,106,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .contact-detail__icon i {
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .contact-detail__label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .contact-detail__value {
+      font-size: 13px;
+      color: var(--dark);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    /* divider */
+    .contact-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--gold);
+      margin: 36px 0;
+      opacity: 0.5;
+    }
+
+    /* social row */
+    .contact-socials {
+      display: flex;
+      gap: 10px;
+    }
+
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .social-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    /* ── RIGHT — FORM ─────────────────────────────────── */
+    .contact-form-wrap {
+      background: #fff;
+      padding: 48px 44px;
+      border-top: 3px solid var(--gold);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.06);
+    }
+
+    .contact-form__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 28px;
+      letter-spacing: -0.2px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .form-field.full { grid-column: 1 / -1; }
+
+    .form-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--dark);
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--dark);
+      outline: none;
+      border-radius: 0;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      -webkit-appearance: none;
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder { color: #c0b8b0; }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      border-color: var(--dark);
+      background: #fff;
+    }
+
+    .form-textarea {
+      resize: none;
+      height: 130px;
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      cursor: pointer;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover { background: var(--red); }
+
+    /* ── PROMISE STRIP ────────────────────────────────── */
+    .promise-strip {
+      background: var(--blush);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0;
+    }
+
+    .promise-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+
+    .promise-item {
+      text-align: center;
+      padding: 0 32px;
+    }
+
+    .promise-item + .promise-item {
+      border-left: 1px solid var(--border);
+    }
+
+    .promise-item i {
+      font-size: 18px;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .promise-item h4 {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+
+    .promise-item p {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── FADE UP ──────────────────────────────────────── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 900px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .contact-form-wrap { padding: 32px 24px; }
+      .promise-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .promise-item + .promise-item {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-top: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <%- include('../partials/user/header', { userName: userName, url: url }) %>
+
+  <!-- ── HERO ──────────────────────────────────────────── -->
+  <section class="contact-hero">
+    <p class="contact-hero__eyebrow">We'd Love to Hear From You</p>
+    <h1 class="contact-hero__title">Get in <em>Touch</em></h1>
+    <p class="contact-hero__sub">Questions, feedback, or just want to say hello — we're here for all of it.</p>
+  </section>
+
+  <!-- ── PROMISE STRIP ─────────────────────────────────── -->
+  <div class="promise-strip">
+    <div class="container">
+      <div class="promise-grid">
+        <div class="promise-item fade-up">
+          <i class="fas fa-clock"></i>
+          <h4>Quick Response</h4>
+          <p>We reply to every message within 24 hours on business days.</p>
+        </div>
+        <div class="promise-item fade-up">
+          <i class="fas fa-headset"></i>
+          <h4>Expert Support</h4>
+          <p>Our skincare specialists are ready to help you find what's right for you.</p>
+        </div>
+        <div class="promise-item fade-up">
+          <i class="fas fa-shield-alt"></i>
+          <h4>Your Privacy</h4>
+          <p>Your information is safe with us — always kept private and secure.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <section class="contact-main">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- LEFT: INFO -->
+        <div class="fade-up">
+          <p class="contact-info__eyebrow">Contact Information</p>
+          <h2 class="contact-info__title">Let's Start a<br><em>Conversation</em></h2>
+          <p class="contact-info__body">Whether you have a question about a product, need help with an order, or just want some skincare guidance — reach out and we'll get back to you personally.</p>
+
+          <div class="contact-detail">
+            <div class="contact-detail__icon"><i class="fas fa-envelope"></i></div>
+            <div>
+              <div class="contact-detail__label">Email</div>
+              <div class="contact-detail__value">hello@glorabeauty.com</div>
+            </div>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__icon"><i class="fas fa-phone"></i></div>
+            <div>
+              <div class="contact-detail__label">Phone</div>
+              <div class="contact-detail__value">+91 98765 43210</div>
+            </div>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <div class="contact-detail__label">Location</div>
+              <div class="contact-detail__value">Pune, Maharashtra, India</div>
+            </div>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <div class="contact-detail__label">Working Hours</div>
+              <div class="contact-detail__value">Mon – Sat, 10:00 AM – 6:00 PM</div>
+            </div>
+          </div>
+
+          <div class="contact-divider"></div>
+
+          <p style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Follow Us</p>
+          <div class="contact-socials">
+            <a href="#" class="social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-btn" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-btn" title="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+            <a href="#" class="social-btn" title="YouTube"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- RIGHT: FORM -->
+        <div class="contact-form-wrap fade-up">
+          <h3 class="contact-form__title">Send Us a Message</h3>
+
+          <form id="contactForm">
+            <div class="form-row">
+              <div class="form-field">
+                <label class="form-label" for="firstName">First Name</label>
+                <input type="text" id="firstName" class="form-input" placeholder="Aarav" required>
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="lastName">Last Name</label>
+                <input type="text" id="lastName" class="form-input" placeholder="Sharma">
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="email">Email Address</label>
+              <input type="email" id="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="subject">Subject</label>
+              <select id="subject" class="form-select">
+                <option value="" disabled selected>Select a topic</option>
+                <option>Order & Delivery</option>
+                <option>Product Question</option>
+                <option>Returns & Refunds</option>
+                <option>Skincare Advice</option>
+                <option>Partnership / Collaboration</option>
+                <option>Other</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-label" for="message">Your Message</label>
+              <textarea id="message" class="form-textarea" placeholder="Tell us how we can help..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <i class="fas fa-paper-plane"></i>
+              Send Message
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <%- include('../partials/user/footer') %>
+
+  <script>
+    // ── FORM SUBMIT ────────────────────────────────────
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const btn = this.querySelector('.btn-submit');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+      // Simulate send — replace with your actual fetch/POST
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        this.reset();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Message Sent!',
+          text: 'Thank you for reaching out. We\'ll get back to you within 24 hours.',
+          confirmButtonColor: '#8B1A1A',
+          confirmButtonText: 'Back to Home'
+        }).then(result => {
+          if (result.isConfirmed) window.location.href = '/';
+        });
+      }, 1200);
+    });
+
+    // ── FADE UP ────────────────────────────────────────
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 100);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

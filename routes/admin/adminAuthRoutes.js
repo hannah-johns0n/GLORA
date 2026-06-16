@@ -17,9 +17,9 @@ router.post('/logout', adminController.adminLogout);
 
 router.use(requireAdminAuth)
 router.get('/dashboard', adminController.getDashboard);
+router.get('/category', adminController.categoryPage);
 router.get('/user', adminController.listCustomers);
 router.get('/customer', adminController.customerPage);
-router.get('/category', adminController.categoryPage);
 
 router.post('/user/block', customerController.toggleUserBlock);
 router.post('/user/unblock', customerController.toggleUserBlock);

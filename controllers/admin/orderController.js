@@ -56,8 +56,6 @@ const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    // ── STEP 1: Define allowed transitions ────────────────────────────
-    // This object says: "if current status is X, only these next statuses are allowed"
     const allowedTransitions = {
       'Pending': ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
       'Processing': ['Shipped', 'Delivered', 'Cancelled'],
@@ -71,7 +69,6 @@ const updateOrderStatus = async (req, res) => {
       'Return-Requested': []
     };
 
-    // ── STEP 2: Find the order ────────────────────────────────────────
     const order = await Order.findById(req.params.id).populate('userId', 'name email');
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
@@ -79,7 +76,6 @@ const updateOrderStatus = async (req, res) => {
 
     const currentStatus = order.status;
 
-    // ── STEP 3: Check if current status is a final status ────────────
     const finalStatuses = ['Delivered', 'Cancelled', 'Returned', 'Return-Rejected', 'Return-Requested'];
     if (finalStatuses.includes(currentStatus)) {
       return res.status(400).json({
@@ -87,7 +83,6 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // ── STEP 4: Check if the requested transition is valid ────────────
     const allowed = allowedTransitions[currentStatus] || [];
     if (!allowed.includes(status)) {
       return res.status(400).json({
@@ -96,7 +91,6 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // ── STEP 5: Handle Delivered — mark all non-cancelled items delivered
     if (status === 'Delivered') {
       order.orderItems.forEach(item => {
         if (item.status !== 'Cancelled') {
@@ -105,7 +99,6 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    // ── STEP 6: Handle Cancelled — refund + restore stock ────────────
     if (status === 'Cancelled') {
       const shouldRefund = ['Online', 'Wallet'].includes(order.paymentMethod)
         && order.paymentStatus === 'Paid';
@@ -128,7 +121,6 @@ const updateOrderStatus = async (req, res) => {
         await wallet.save();
       }
 
-      // Restore stock for every non-cancelled item
       for (const item of order.orderItems) {
         if (item.status !== 'Cancelled') {
           const product = await Product.findById(item.productId);
@@ -144,7 +136,6 @@ const updateOrderStatus = async (req, res) => {
       }
     }
 
-    // ── STEP 7: Save the new status ───────────────────────────────────
     order.status = status;
     await order.save();
 
@@ -376,14 +367,14 @@ const verifyItemReturn = async (req, res) => {
       item.returnRequest.processedAt = new Date();
 
       const activeItems = order.orderItems.filter(i => i.status !== 'Cancelled');
-const allReturned = activeItems.every(i => i.status === 'Returned');
-if (allReturned) {
-  order.status = 'Returned';
-  if (order.returnRequest) {
-    order.returnRequest.status = 'approved';
-    order.returnRequest.processedAt = new Date();
-  }
-}
+      const allReturned = activeItems.every(i => i.status === 'Returned');
+      if (allReturned) {
+        order.status = 'Returned';
+        if (order.returnRequest) {
+          order.returnRequest.status = 'approved';
+          order.returnRequest.processedAt = new Date();
+        }
+      }
 
     } else if (action === 'reject') {
       item.status = 'Delivered';

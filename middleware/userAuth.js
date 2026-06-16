@@ -41,7 +41,6 @@ const requireAuth = async (req, res, next) => {
 
 const isUserLoggedIn = async (req,res,next) =>{
 
-
     const token = req.cookies.jwt;
 
   if (!token) {
@@ -55,7 +54,6 @@ const isUserLoggedIn = async (req,res,next) =>{
       res.clearCookie("jwt");
       return next()
     }
-
 
     const user = await User.findById(userId).select("name email role isBlocked");
 
@@ -71,9 +69,6 @@ const isUserLoggedIn = async (req,res,next) =>{
 
     req.user = user;
     return res.redirect('/')
-
-
-
 
 }catch(err){
   next()

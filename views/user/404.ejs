@@ -1,125 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title><%= title %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #650f0f;
-      --secondary: #5d0e0e;
-      --light: #f8f9fa;
-      --dark: #343a40;
-      --muted: #6c757d;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      background: #FAF7F4;
       font-family: 'Poppins', sans-serif;
+      color: #1A1A1A;
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      color: var(--dark);
+      padding: 50px 20px;
     }
-    
-    .error-container {
+
+    /* ── DECORATIVE LINE ── */
+    .glora-rule {
+      width: 60px;
+      height: 1px;
+      background: #D4A96A;
+      margin: 0 auto 28px;
+    }
+
+    /* ── EYEBROW ── */
+    .glora-eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: #D4A96A;
+      margin-bottom: 20px;
       text-align: center;
-      max-width: 600px;
-      padding: 40px;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-      position: relative;
-      overflow: hidden;
-      transform: translateY(0);
-      animation: float 6s ease-in-out infinite;
     }
-    
-    .error-code {
-      font-size: 8rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 10px;
-      text-shadow: 3px 3px 0 rgba(108, 99, 255, 0.1);
-    }
-    
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 15px;
-      color: var(--dark);
-    }
-    
-    p {
-      color: var(--muted);
-      font-size: 1.1rem;
-      margin-bottom: 30px;
-      line-height: 1.6;
-    }
-    
-    .btn {
-      display: inline-block;
-      background: var(--primary);
-      color: white;
-      padding: 12px 30px;
-      border-radius: 50px;
-      text-decoration: none;
+
+    /* ── BIG 404 ── */
+    .glora-404 {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(100px, 18vw, 180px);
       font-weight: 600;
+      line-height: 1;
+      color: #1A1A1A;
+      letter-spacing: -4px;
+      text-align: center;
+      position: relative;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    /* faint ghost behind */
+    .glora-404::before {
+      content: '404';
+      position: absolute;
+      inset: 0;
+      color: transparent;
+      -webkit-text-stroke: 1px #E0D8D0;
+      transform: translate(6px, 6px);
+      z-index: -1;
+    }
+
+    /* ── TITLE ── */
+    .glora-title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 600;
+      color: #1A1A1A;
+      text-align: center;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .glora-title em {
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    /* ── BODY TEXT ── */
+    .glora-body {
+      font-size: 13px;
+      font-weight: 300;
+      color: #888;
+      line-height: 1.8;
+      max-width: 400px;
+      text-align: center;
+      margin-bottom: 40px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ── BUTTONS ── */
+    .glora-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .glora-btn {
+      display: inline-block;
+      padding: 13px 36px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
       transition: all 0.3s ease;
-      border: 2px solid var(--primary);
-      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+      cursor: pointer;
     }
-    
-    .btn:hover {
+
+    .glora-btn--primary {
+      background: #1A1A1A;
+      color: #fff;
+      border: 1.5px solid #1A1A1A;
+    }
+
+    .glora-btn--primary:hover {
+      background: #8B1A1A;
+      border-color: #8B1A1A;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .glora-btn--outline {
       background: transparent;
-      color: var(--primary);
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+      color: #1A1A1A;
+      border: 1.5px solid #1A1A1A;
     }
-    
-    .error-code {
-      margin-top: 20px;
+
+    .glora-btn--outline:hover {
+      background: #1A1A1A;
+      color: #fff;
+      text-decoration: none;
     }
-    
-    @keyframes float {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-15px); }
-      100% { transform: translateY(0px); }
+
+    /* ── BOTTOM STRIP ── */
+    .glora-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #8B1A1A;
+      padding: 14px 0;
+      text-align: center;
     }
-    
-    @media (max-width: 576px) {
-      .error-code {
-        font-size: 6rem;
-      }
-      
-      h1 {
-        font-size: 1.5rem;
-      }
-      
-      .illustration {
-        width: 150px;
-        height: 150px;
-      }
-      
-      .illustration::before {
-        font-size: 120px;
-      }
+
+    .glora-strip p {
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    /* ── BRAND MARK ── */
+    .glora-brand {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: #1A1A1A;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .glora-actions { flex-direction: column; align-items: center; }
+      .glora-btn { width: 220px; text-align: center; }
     }
   </style>
 </head>
 <body>
-  <div class="error-container">
 
-    <div class="error-code">404</div>
-    <h1>Oops! Page Not Found</h1>
-    <p>We can't seem to find the page you're looking for. It might have been moved or doesn't exist anymore.</p>
-    <a href="/" class="btn">Return to Homepage</a>
+  <p class="glora-brand">GLORA</p>
+
+  <div class="glora-rule"></div>
+  <p class="glora-eyebrow">Error · Page Not Found</p>
+
+  <div class="glora-404">404</div>
+
+  <h1 class="glora-title">Lost in <em>Beauty</em></h1>
+
+  <p class="glora-body">
+    The page you're looking for seems to have wandered off.<br>
+    It may have been moved, renamed, or never existed.
+  </p>
+
+  <div class="glora-actions">
+    <a href="/" class="glora-btn glora-btn--primary">Return Home</a>
+    <a href="/shop" class="glora-btn glora-btn--outline">Browse Shop</a>
   </div>
+
+  <div class="glora-strip">
+    <p>Free shipping on orders above ₹999 &nbsp;·&nbsp; Authentic products &nbsp;·&nbsp; Easy returns</p>
+  </div>
+
 </body>
 </html>

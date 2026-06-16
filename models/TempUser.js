@@ -25,7 +25,11 @@ const TempUser = new mongoose.Schema({
     otpExpires : {
         type : Date,
         required : true 
-    }
+    },
+    referredBy: {
+        type: String,
+        default: null
+}
 });
 
 

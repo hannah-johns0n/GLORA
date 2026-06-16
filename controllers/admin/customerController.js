@@ -1,70 +1,41 @@
 const User = require('../../models/userModel');
 
-const customerInfo = async (req,res) =>{   
-    try {
-
-        let search = "";
-        if(req.query.search){
-            search = req.query.search;
-        }
-        let page = 1;
-        if(req.query.page){
-            page = req.query.page;
-        }
-        const limit = 3;
-        const userData = await User.findOne({
-            isAdmin : false,
-            $or : [
-                    { name : {$regex : ".*" + search + ".*"}},
-                    { email : {$regex : ".*" + search + ".*"}},
-            ],
-        })
-        .limit(limit*1)       
-        .skip((page-1)*limit)
-        .exec();
-
-
-        const count = await User.findOne({
-            isAdmin : false,
-            $or : [
-                { name : {$regex : ".*" + search + ".*"}},
-                { email : { $regex : ".*" + search + ".*"}}
-            ]
-        })
-        .countDocuments();
-
-        res.render('customers')
-
-    }
-    catch(error) {
-
-    }
-}
-
 const customerListPage = async (req, res) => {
   try {
+    const search = req.query.search ? req.query.search.trim() : "";
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const totalCustomers = await User.countDocuments();
+    const filter = {
+      isAdmin: false,
+      ...(search && {
+        $or: [
+          { name:  { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }),
+    };
 
-    const customers = await User.find({})
-      .sort({ createdAt: -1 })
+    const totalCustomers = await User.countDocuments(filter);
+
+    const customers = await User.find(filter)
+      .sort({ createdAt: -1 })  
       .skip(skip)
       .limit(limit);
 
     const totalPages = Math.ceil(totalCustomers / limit);
 
-    res.render('admin/customers', {
+    res.render("admin/customers", {
       customers,
       currentPage: page,
       totalPages,
-      totalCustomers
+      totalCustomers,
+      search,          
     });
   } catch (error) {
-    console.error('Failed to load customers:', error);
-    res.status(500).send('Failed to load customers');
+    console.error("Failed to load customers:", error);
+    res.status(500).send("Failed to load customers");
   }
 };
 
@@ -92,7 +63,6 @@ const toggleUserBlock = async (req, res) => {
 };
 
 module.exports = {
-    customerInfo,
     toggleUserBlock,
-    
+    customerListPage
 };

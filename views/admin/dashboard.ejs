@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -339,271 +340,352 @@
     }
   </style>
 </head>
+
 <body>
   <%- include('../partials/admin/header') %>
 
-  <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-    <div class="container-fluid">
-      <!-- Header -->
-      <h1>Admin Dashboard</h1>
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <div class="container-fluid">
+        <!-- Header -->
+        <h1>Admin Dashboard</h1>
 
-      <!-- Stat Cards Row -->
-      <div class="row g-4 mb-5">
-        <div class="col-md-6 col-lg-3">
-          <div class="stat-card customers">
-            <div class="stat-card-content">
-              <h5>Total Customers</h5>
-              <p><%= typeof totalCustomers !== 'undefined' ? totalCustomers : '0' %></p>
-            </div>
-            <div class="stat-card-icon">👥</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="stat-card orders">
-            <div class="stat-card-content">
-              <h5>Total Orders</h5>
-              <p><%= typeof totalOrders !== 'undefined' ? totalOrders : '0' %></p>
-            </div>
-            <div class="stat-card-icon">📦</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="stat-card products">
-            <div class="stat-card-content">
-              <h5>Total Products</h5>
-              <p><%= typeof totalProducts !== 'undefined' ? totalProducts : '0' %></p>
-            </div>
-            <div class="stat-card-icon">🛍️</div>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="stat-card sales">
-            <div class="stat-card-content">
-              <h5>Total Revenue</h5>
-              <p>₹<%= typeof totalSales !== 'undefined' ? totalSales.toFixed(0) : '0' %></p>
-            </div>
-            <div class="stat-card-icon">💰</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Analytics Section -->
-      <div class="analytics-section">
-        <h2 class="section-title">Sales Analytics</h2>
-
-        <!-- Revenue Trend Chart -->
-        <div class="card">
-          <div class="card-header">
-            <h5>Revenue Trend</h5>
-            <div class="revenue-filter">
-              <span class="filter-label">Period:</span>
-              <button class="filter-btn <%= currentFilter === 'daily' ? 'active' : '' %>" onclick="changeFilter('daily')">Daily</button>
-              <button class="filter-btn <%= currentFilter === 'weekly' ? 'active' : '' %>" onclick="changeFilter('weekly')">Weekly</button>
-              <button class="filter-btn <%= currentFilter === 'monthly' ? 'active' : '' %>" onclick="changeFilter('monthly')">Monthly</button>
-              <button class="filter-btn <%= currentFilter === 'yearly' ? 'active' : '' %>" onclick="changeFilter('yearly')">Yearly</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="chart-container">
-              <canvas id="revenueTrendChart"></canvas>
-            </div>
-            <div style="text-align: center; color: #9ca3af; font-size: 13px;">
-              Sales revenue over <%= currentFilter %> periods
-            </div>
-          </div>
-        </div>
-
-        <!-- Top 5 Best-Selling Products -->
-        <div class="card">
-          <div class="card-header">
-            <h5>Top 5 Best-Selling Products</h5>
-            <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
-          </div>
-          <div class="card-body">
-            <% if (bestSellingProducts && bestSellingProducts.length > 0) { %>
-              <table class="products-table">
-                <thead>
-                  <tr>
-                    <th style="width: 8%;">Rank</th>
-                    <th style="width: 40%;">Product</th>
-                    <th style="width: 18%;">Units Sold</th>
-                    <th style="width: 34%;">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <% bestSellingProducts.forEach((product, index) => { %>
-                    <tr>
-                      <td>
-                        <span class="rank-badge"><%= index + 1 %></span>
-                      </td>
-                      <td>
-                        <div class="product-info">
-                          <span class="product-name"><%= product.productName %></span>
-                          <span class="product-variant"><%= product.variant?.unit || 'N/A' %></span>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="metric-value"><%= product.totalQuantity %></span>
-                      </td>
-                      <td>
-                        <span class="revenue-badge">₹<%= product.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></span>
-                      </td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            <% } else { %>
-              <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                <p>No sales data available yet</p>
+        <!-- Stat Cards Row -->
+        <div class="row g-4 mb-5">
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-card customers">
+              <div class="stat-card-content">
+                <h5>Total Customers</h5>
+                <p>
+                  <%= typeof totalCustomers !=='undefined' ? totalCustomers : '0' %>
+                </p>
               </div>
-            <% } %>
+              <div class="stat-card-icon">👥</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-card orders">
+              <div class="stat-card-content">
+                <h5>Total Orders</h5>
+                <p>
+                  <%= typeof totalOrders !=='undefined' ? totalOrders : '0' %>
+                </p>
+              </div>
+              <div class="stat-card-icon">📦</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-card products">
+              <div class="stat-card-content">
+                <h5>Total Products</h5>
+                <p>
+                  <%= typeof totalProducts !=='undefined' ? totalProducts : '0' %>
+                </p>
+              </div>
+              <div class="stat-card-icon">🛍️</div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="stat-card sales">
+              <div class="stat-card-content">
+                <h5>Total Revenue</h5>
+                <p>₹<%= typeof totalSales !=='undefined' ? totalSales.toFixed(0) : '0' %>
+                </p>
+              </div>
+              <div class="stat-card-icon">💰</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Recent Orders Section -->
-      <div class="row mt-5">
-        <div class="col-12">
+        <!-- Analytics Section -->
+        <div class="analytics-section">
+          <h2 class="section-title">Sales Analytics</h2>
+
+          <!-- Revenue Trend Chart -->
           <div class="card">
             <div class="card-header">
-              <h5>Recent Orders</h5>
+              <h5>Revenue Trend</h5>
+              <div class="revenue-filter">
+                <span class="filter-label">Period:</span>
+                <button class="filter-btn <%= currentFilter === 'daily' ? 'active' : '' %>"
+                  onclick="changeFilter('daily')">Daily</button>
+                <button class="filter-btn <%= currentFilter === 'weekly' ? 'active' : '' %>"
+                  onclick="changeFilter('weekly')">Weekly</button>
+                <button class="filter-btn <%= currentFilter === 'monthly' ? 'active' : '' %>"
+                  onclick="changeFilter('monthly')">Monthly</button>
+                <button class="filter-btn <%= currentFilter === 'yearly' ? 'active' : '' %>"
+                  onclick="changeFilter('yearly')">Yearly</button>
+              </div>
             </div>
             <div class="card-body">
-              <% if (recentOrders && recentOrders.length > 0) { %>
-                <table class="orders-table">
+              <div class="chart-container">
+                <canvas id="revenueTrendChart"></canvas>
+              </div>
+              <div style="text-align: center; color: #9ca3af; font-size: 13px;">
+                Sales revenue over <%= currentFilter %> periods
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 5 Best-Selling Products -->
+          <div class="card">
+            <div class="card-header">
+              <h5>Top 5 Best-Selling Products</h5>
+              <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
+            </div>
+            <div class="card-body">
+              <% if (bestSellingProducts && bestSellingProducts.length> 0) { %>
+                <table class="products-table">
                   <thead>
                     <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Amount</th>
+                      <th style="width: 8%;">Rank</th>
+                      <th style="width: 40%;">Product</th>
+                      <th style="width: 18%;">Units Sold</th>
+                      <th style="width: 34%;">Revenue</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <% recentOrders.forEach(function(order) { %>
+                    <% bestSellingProducts.forEach((product, index)=> { %>
                       <tr>
-                        <td><span style="font-family: monospace; font-size: 12px;"><%- order._id.toString().slice(0, 8).toUpperCase() %></span></td>
-                        <td><%= order.customerName %></td>
-                        <td><%= order.date %></td>
                         <td>
-                          <span class="status-badge status-<%= order.status.toLowerCase().replace(/[-]/g, '-') %>">
-                            <%= order.status %>
+                          <span class="rank-badge">
+                            <%= index + 1 %>
                           </span>
                         </td>
-                        <td><strong>₹<%= order.total.toFixed(2) %></strong></td>
+                        <td>
+                          <div class="product-info">
+                            <span class="product-name">
+                              <%= product.productName %>
+                            </span>
+                            <span class="product-variant">
+                              <%= product.variant?.unit || 'N/A' %>
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span class="metric-value">
+                            <%= product.totalQuantity %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="revenue-badge">₹<%= product.totalRevenue.toLocaleString('en-IN', {
+                              maximumFractionDigits: 0 }) %></span>
+                        </td>
                       </tr>
-                    <% }) %>
+                      <% }) %>
                   </tbody>
                 </table>
-              <% } else { %>
-                <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                  <p>No recent orders found</p>
-                </div>
-              <% } %>
+                <% } else { %>
+                  <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                    <p>No sales data available yet</p>
+                  </div>
+                  <% } %>
+            </div>
+          </div>
+          <!-- Top 3 Best Selling Categories -->
+          <div class="card">
+            <div class="card-header">
+              <h5>Top 3 Best-Selling Categories</h5>
+              <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
+            </div>
+            <div class="card-body">
+              <% if (bestSellingCategories && bestSellingCategories.length> 0) { %>
+                <table class="products-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 10%;">Rank</th>
+                      <th style="width: 40%;">Category</th>
+                      <th style="width: 25%;">Units Sold</th>
+                      <th style="width: 25%;">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% bestSellingCategories.forEach(function(cat, index) { %>
+                      <tr>
+                        <td>
+                          <span class="rank-badge">
+                            <%= index + 1 %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="product-name">
+                            <%= cat.category %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="metric-value">
+                            <%= cat.totalQuantity %>
+                          </span>
+                        </td>
+                        <td>
+                          <span class="revenue-badge">
+                            ₹<%= cat.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %>
+                          </span>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+                <% } else { %>
+                  <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                    <p>No category data available yet</p>
+                  </div>
+                  <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Recent Orders</h5>
+              </div>
+              <div class="card-body">
+                <% if (recentOrders && recentOrders.length> 0) { %>
+                  <table class="orders-table">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% recentOrders.forEach(function(order) { %>
+                        <tr>
+                          <td><span style="font-family: monospace; font-size: 12px;"><%- order._id.toString().slice(0,
+                                8).toUpperCase() %></span></td>
+                          <td>
+                            <%= order.customerName %>
+                          </td>
+                          <td>
+                            <%= order.date %>
+                          </td>
+                          <td>
+                            <span class="status-badge status-<%= order.status.toLowerCase().replace(/[-]/g, '-') %>">
+                              <%= order.status %>
+                            </span>
+                          </td>
+                          <td><strong>₹<%= order.total.toFixed(2) %></strong></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                  </table>
+                  <% } else { %>
+                    <div style="text-align: center; padding: 40px; color: #9ca3af;">
+                      <p>No recent orders found</p>
+                    </div>
+                    <% } %>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <script>
-    // ── REVENUE TREND CHART ────────────────────────────────────
-    const chartCtx = document.getElementById('revenueTrendChart');
-    let revenueTrendChart = null;
+    <script>
+  // Step 1: Get the canvas element
+  const chartCtx = document.getElementById('revenueTrendChart');
 
-    function initRevenueTrendChart() {
-      const chartData = <%- JSON.stringify(chartData) %>;
-      const chartLabels = <%- JSON.stringify(chartLabels) %>;
+  // Step 2: Store the chart instance so we can destroy it before re-creating
+  let revenueTrendChart = null;
 
-      if (revenueTrendChart) {
-        revenueTrendChart.destroy();
-      }
+  // Step 3: Read the data from the server (EJS injects it here)
+  const revenueLabels = <%- JSON.stringify(chartLabels) %>;
+  const revenueData   = <%- JSON.stringify(chartData) %>;
 
-      revenueTrendChart = new Chart(chartCtx, {
-        type: 'line',
-        data: {
-          labels: chartLabels,
-          datasets: [{
-            label: 'Revenue (₹)',
-            data: chartData,
-            borderColor: '#2c1810',
-            backgroundColor: 'rgba(44, 24, 16, 0.05)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointBackgroundColor: '#2c1810',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointHoverRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              labels: {
-                font: { size: 12, weight: '500' },
-                color: '#6b7280',
-                padding: 16,
-                usePointStyle: true
-              }
-            },
-            tooltip: {
-              backgroundColor: '#1f2937',
-              titleFont: { size: 12, weight: '600' },
-              bodyFont: { size: 13 },
-              padding: 12,
-              borderRadius: 8,
-              displayColors: false,
-              callbacks: {
-                label: function(context) {
-                  return '₹' + context.parsed.y.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-                }
-              }
+  // Step 4: Function to build the chart
+  function initRevenueTrendChart() {
+    console.log('Labels:', revenueLabels);
+    console.log('Data:', revenueData);
+    console.log('Chart.js loaded?', typeof Chart);
+
+    // If a chart already exists on this canvas, destroy it first
+    if (revenueTrendChart) {
+      revenueTrendChart.destroy();
+    }
+
+    revenueTrendChart = new Chart(chartCtx, {
+      type: 'line',
+      data: {
+        labels: revenueLabels,
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: revenueData,
+          borderColor: '#2c1810',
+          backgroundColor: 'rgba(44, 24, 16, 0.05)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#2c1810',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 12, weight: '500' },
+              color: '#6b7280',
+              padding: 16,
+              usePointStyle: true
             }
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                color: '#e5e7eb',
-                drawBorder: false
-              },
-              ticks: {
-                font: { size: 12 },
-                color: '#6b7280',
-                callback: function(value) {
-                  return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-                }
-              }
-            },
-            x: {
-              grid: { display: false },
-              ticks: {
-                font: { size: 12 },
-                color: '#6b7280'
+          tooltip: {
+            backgroundColor: '#1f2937',
+            titleFont: { size: 12, weight: '600' },
+            bodyFont: { size: 13 },
+            padding: 12,
+            borderRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return '₹' + context.parsed.y.toLocaleString('en-IN', { maximumFractionDigits: 0 });
               }
             }
           }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#e5e7eb', drawBorder: false },
+            ticks: {
+              font: { size: 12 },
+              color: '#6b7280',
+              callback: function(value) {
+                return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+              }
+            }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 12 }, color: '#6b7280' }
+          }
         }
-      });
-    }
-
-    // ── FILTER FUNCTIONALITY ───────────────────────────────────
-    function changeFilter(filterType) {
-      window.location.href = '/admin/dashboard?filter=' + filterType;
-    }
-
-    // Initialize chart on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      initRevenueTrendChart();
+      }
     });
-  </script>
+  }
+
+  // Step 5: Filter buttons
+  function changeFilter(filterType) {
+    window.location.href = '/admin/dashboard?filter=' + filterType;
+  }
+
+  // Step 6: Wait for Chart.js CDN to fully load, then init
+  window.addEventListener('load', function() {
+    initRevenueTrendChart();
+  });
+</script>
 </body>
+
 </html>

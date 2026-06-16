@@ -77,6 +77,7 @@ router.get('/product/:id', userController.getProductDetails);
 
 router.get('/', userController.loadHomePage);
 router.get('/aboutUs', userController.getAbout)
+router.get('/contact', userController.getContact);
 
 router.get('/forgot-password', userController.getForgotPassword);
 router.post('/forgot-password', userController.postForgotPassword);

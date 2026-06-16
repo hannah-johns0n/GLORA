@@ -419,12 +419,8 @@
 
             <div class="glora-form__group">
               <label class="glora-form__label" for="addressType">Address Type</label>
-              <select id="addressType" name="addressType" class="glora-form__select" required>
-                <option value="" disabled selected>Select type…</option>
-                <option value="Home">Home</option>
-                <option value="Work">Work</option>
-                <option value="Other">Other</option>
-              </select>
+              <input type="text" id="addressType" name="addressType" 
+                class="glora-form__input" placeholder="e.g. Home, Work, Other" required>
             </div>
 
             <div class="glora-form__group">
@@ -473,6 +469,7 @@
 <%- include('../partials/user/footer') %>
 
 <script>
+  <%# ── Server-side flash messages ── %>
   <% if (typeof error !== 'undefined' && error) { %>
     Swal.fire({
       icon: 'error',
@@ -485,9 +482,105 @@
   <% if (typeof success !== 'undefined' && success) { %>
     Swal.fire({
       icon: 'success',
-      title: 'Success',
+      title: 'Success!',
       text: '<%= success %>',
       confirmButtonColor: '#8B1A1A'
     });
   <% } %>
+
+  <%# ── Client-side validation (prevents the round-trip for obvious errors) ── %>
+  (function () {
+    const form = document.querySelector('.glora-panel form');
+    if (!form) return;
+
+    const onlyLetters   = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
+    const validPincode  = /^[1-9]\d{5}$/;
+    const validPhone    = /^[6-9]\d{9}$/;
+
+    function showError(msg) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: msg,
+        confirmButtonColor: '#8B1A1A'
+      });
+    }
+
+    form.addEventListener('submit', function (e) {
+      // Grab values and trim
+      const addressType = (form.addressType?.value || '').trim();
+      const city        = (form.city?.value        || '').trim();
+      const landmark    = (form.landmark?.value    || '').trim();
+      const state       = (form.state?.value       || '').trim();
+      const pincode     = (form.pincode?.value     || '').trim();
+      const phone       = (form.phoneNumber?.value || '').trim();
+
+      // ── 1. Empty / spaces-only check ──────────────────────────────────
+      if (!addressType || !city || !landmark || !state || !pincode || !phone) {
+        e.preventDefault();
+        showError('All fields are required and cannot be blank or spaces only.');
+        return;
+      }
+
+      // ── 2. Letters-only fields ─────────────────────────────────────────
+      if (!onlyLetters.test(city)) {
+        e.preventDefault();
+        showError('City must contain letters only — no numbers or special characters.');
+        return;
+      }
+      if (!onlyLetters.test(landmark)) {
+        e.preventDefault();
+        showError('Landmark must contain letters only — no numbers or special characters.');
+        return;
+      }
+      if (!onlyLetters.test(state)) {
+        e.preventDefault();
+        showError('State must contain letters only — no numbers or special characters.');
+        return;
+      }
+
+      // ── 3. Pincode ─────────────────────────────────────────────────────
+      if (!validPincode.test(pincode)) {
+        e.preventDefault();
+        showError('Pincode must be exactly 6 digits and cannot start with 0.');
+        return;
+      }
+
+      // ── 4. Phone ───────────────────────────────────────────────────────
+      if (!validPhone.test(phone)) {
+        e.preventDefault();
+        showError('Phone number must be exactly 10 digits and start with 6, 7, 8, or 9.');
+        return;
+      }
+
+      // All good — let the form submit normally
+    });
+
+    // ── Live feedback: strip disallowed characters as the user types ──────
+    ['addressType','city', 'landmark', 'state'].forEach(function (fieldName) {
+      const input = form[fieldName];
+      if (!input) return;
+      input.addEventListener('input', function () {
+        // Remove anything that isn't a letter or a space
+        this.value = this.value.replace(/[^a-zA-Z\s]/g, '');
+      });
+    });
+
+    const phoneInput   = form.phoneNumber;
+    const pincodeInput = form.pincode;
+
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function () {
+        // Keep only digits, max 10
+        this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      });
+    }
+
+    if (pincodeInput) {
+      pincodeInput.addEventListener('input', function () {
+        // Keep only digits, max 6
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+      });
+    }
+  })();
 </script>

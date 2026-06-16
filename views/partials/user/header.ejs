@@ -256,6 +256,7 @@
           <li><a href="/" class="<%= (url === '/' || url === '/home') ? 'active' : '' %>">Home</a></li>
           <li><a href="/shop" class="<%= url && url.startsWith('/shop') ? 'active' : '' %>">Shop</a></li>
           <li><a href="/aboutUs" class="<%= url && url.startsWith('/aboutUs') ? 'active' : '' %>">About</a></li>
+          <li><a href="/contact" class="<%= url && url.startsWith('/contact') ? 'active' : '' %>">Contact Us</a></li>
         </ul>
       </nav>
 
@@ -282,7 +283,7 @@
             <a href="/profile" class="glora-header__username">
               <i class="fas fa-user" style="font-size:13px; margin-right:6px; color: var(--glora-muted);"></i><%= userName %>
             </a>
-            <form action="/logout" method="POST" style="margin:0;">
+            <form action="/logout" method="POST" style="margin:0;" id="logout-form">
               <button type="submit" class="glora-header__logout">Logout</button>
             </form>
           <% } else { %>
@@ -296,3 +297,46 @@
   </header>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const _headerLoggedIn = <%= (typeof userName !== 'undefined' && userName) ? 'true' : 'false' %>;
+
+function _guardedNav(e, href) {
+  if (!_headerLoggedIn) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'info',
+      title: 'Sign in required',
+      text: 'Please log in to access this page.',
+      confirmButtonText: 'Sign In',
+      confirmButtonColor: '#8B1A1A',
+      showCancelButton: true,
+      cancelButtonText: 'Cancel'
+    }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
+  }
+}
+
+document.querySelector('a[href="/cart"]')
+  ?.addEventListener('click', e => _guardedNav(e, '/cart'));
+document.querySelector('a[href="/wishlist"]')
+  ?.addEventListener('click', e => _guardedNav(e, '/wishlist'));
+document.querySelector('a[href="/profile"]')
+  ?.addEventListener('click', e => _guardedNav(e, '/profile'));
+  
+    document.getElementById('logout-form')?.addEventListener('submit', function(e) {
+  e.preventDefault();
+  Swal.fire({
+    icon: 'question',
+    title: 'Logging out?',
+    text: 'Are you sure you want to log out?',
+    confirmButtonText: 'Yes, log out',
+    confirmButtonColor: '#8B1A1A',
+    showCancelButton: true,
+    cancelButtonText: 'Stay',
+    cancelButtonColor: '#6c757d'
+  }).then(result => {
+    if (result.isConfirmed) {
+      this.submit(); // actually submit the form
+    }
+  });
+});
+</script>

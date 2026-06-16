@@ -2,55 +2,407 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Enter New Email</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enter New Email — GLORA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --glora-dark:   #1A1A1A;
+      --glora-cream:  #FAF7F4;
+      --glora-red:    #8B1A1A;
+      --glora-gold:   #D4A96A;
+      --glora-blush:  #F0EBE3;
+      --glora-muted:  #6B6B6B;
+      --glora-border: #E0D8D0;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #460707 0%, #1e0808);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      font-family: 'Poppins', sans-serif;
+      background: var(--glora-cream);
+    }
+
+    /* ── LEFT PANEL ─────────────────────────────────── */
+    .panel-left {
+      background: var(--glora-dark);
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
+      justify-content: center;
+      padding: 60px 56px;
+      position: relative;
+      overflow: hidden;
     }
-    .container {
+
+    .panel-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 70%, rgba(139,26,26,0.25) 0%, transparent 65%),
+        radial-gradient(ellipse at 80% 20%, rgba(212,169,106,0.10) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .panel-left__content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    .panel-left__logo {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 48px;
+      font-weight: 600;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 16px;
+    }
+
+    .panel-left__divider {
+      width: 40px;
+      height: 1px;
+      background: var(--glora-gold);
+      margin: 0 auto 32px;
+      opacity: 0.7;
+    }
+
+    .panel-left__icon {
+      width: 80px;
+      height: 80px;
+      border: 1px solid rgba(212,169,106,0.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 28px;
+    }
+
+    .panel-left__icon i {
+      font-size: 30px;
+      color: var(--glora-gold);
+      opacity: 0.7;
+    }
+
+    .panel-left__tagline {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 20px;
+      font-style: italic;
+      color: rgba(255,255,255,0.50);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .panel-left__note {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 1px;
+      line-height: 1.7;
+    }
+
+    /* ── RIGHT PANEL ────────────────────────────────── */
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 56px;
+      background: var(--glora-cream);
+    }
+
+    .form-wrap {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .form-heading { margin-bottom: 36px; }
+
+    .form-heading__eyebrow {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--glora-gold);
+      margin-bottom: 10px;
+    }
+
+    .form-heading__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--glora-dark);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+
+    .form-heading__sub {
+      font-size: 12px;
+      color: var(--glora-muted);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    /* Error */
+    .form-error {
+      padding: 12px 16px;
+      background: #fff0f0;
+      border-left: 3px solid var(--glora-red);
+      color: var(--glora-red);
+      font-size: 12px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    /* Form */
+    .glora-form { display: flex; flex-direction: column; gap: 20px; }
+
+    .glora-field { display: flex; flex-direction: column; gap: 8px; }
+
+    .glora-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--glora-dark);
+    }
+
+    .glora-input-wrap { position: relative; }
+
+    .glora-input {
+      width: 100%;
+      padding: 14px 44px 14px 16px;
+      border: 1px solid var(--glora-border);
       background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      width: 350px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: var(--glora-dark);
+      outline: none;
+      border-radius: 0;
+      transition: border-color 0.2s ease;
+      -webkit-appearance: none;
     }
-    h2 { text-align: center; margin-bottom: 1.5rem; }
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; margin-bottom: .5rem; }
-    .form-group input { width: 100%; padding: .5rem; border: 1px solid #ccc; border-radius: 4px; }
-    .error-message { color: red; text-align: center; margin-bottom: 1rem; }
-    .btn { width: 100%; padding: .7rem; background: #3f1313; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background: #555; }
+
+    .glora-input::placeholder { color: #bbb; }
+    .glora-input:focus { border-color: var(--glora-dark); }
+
+    .glora-input-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--glora-border);
+      font-size: 13px;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .glora-input:focus + .glora-input-icon { color: var(--glora-gold); }
+
+    /* Match indicator */
+    .glora-match {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      min-height: 14px;
+      transition: color 0.2s ease;
+    }
+
+    .glora-match.ok    { color: #2e7d32; }
+    .glora-match.error { color: var(--glora-red); }
+
+    /* Divider */
+    .glora-form-divider {
+      height: 1px;
+      background: var(--glora-border);
+    }
+
+    /* Submit */
+    .glora-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--glora-dark);
+      color: #fff;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .glora-submit:hover { background: var(--glora-red); }
+    .glora-submit:disabled {
+      background: var(--glora-border);
+      cursor: not-allowed;
+    }
+
+    /* Back link */
+    .glora-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      color: var(--glora-muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .glora-back:hover { color: var(--glora-dark); }
+
+    /* ── RESPONSIVE ─────────────────────────────────── */
+    @media (max-width: 820px) {
+      body { grid-template-columns: 1fr; }
+      .panel-left { display: none; }
+      .panel-right { padding: 60px 32px; min-height: 100vh; }
+    }
+
+    @media (max-width: 480px) {
+      .panel-right { padding: 48px 24px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Enter New Email</h2>
 
-    <% if (error) { %>
-      <div class="error-message"><%= error %></div>
-    <% } %>
+  <!-- ── LEFT PANEL ──────────────────────────────────── -->
+  <div class="panel-left">
+    <div class="panel-left__content">
+      <a href="/" class="panel-left__logo">GLORA</a>
+      <div class="panel-left__divider"></div>
 
-    <form action="/save-new-email" method="POST">
-      <input type="hidden" name="userId" value="<%= userId %>">
-
-      <div class="form-group">
-        <label for="newEmail">New Email</label>
-        <input type="email" id="newEmail" name="newEmail" required>
+      <div class="panel-left__icon">
+        <i class="fas fa-pen-to-square"></i>
       </div>
 
-      <div class="form-group">
-        <label for="confirmEmail">Confirm Email</label>
-        <input type="email" id="confirmEmail" name="confirmEmail" required>
-      </div>
-
-      <button type="submit" class="btn">Save Email</button>
-    </form>
+      <p class="panel-left__tagline">A fresh start<br>begins with<br>a new address.</p>
+      <p class="panel-left__note">
+        Your account stays secure.<br>
+        Both emails must match to continue.
+      </p>
+    </div>
   </div>
+
+  <!-- ── RIGHT PANEL ─────────────────────────────────── -->
+  <div class="panel-right">
+    <div class="form-wrap">
+
+      <div class="form-heading">
+        <p class="form-heading__eyebrow">Account Settings</p>
+        <h1 class="form-heading__title">Set Your<br>New Email</h1>
+        <p class="form-heading__sub">Enter and confirm your new email address below to complete the update.</p>
+      </div>
+
+      <% if (error) { %>
+        <div class="form-error">
+          <i class="fas fa-exclamation-circle" style="margin-right:6px;"></i><%= error %>
+        </div>
+      <% } %>
+
+      <form action="/save-new-email" method="POST" class="glora-form" id="emailForm">
+        <input type="hidden" name="userId" value="<%= userId %>">
+
+        <div class="glora-field">
+          <label class="glora-label" for="newEmail">New Email Address</label>
+          <div class="glora-input-wrap">
+            <input
+              type="email"
+              id="newEmail"
+              name="newEmail"
+              class="glora-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+            <i class="fas fa-at glora-input-icon"></i>
+          </div>
+        </div>
+
+        <div class="glora-form-divider"></div>
+
+        <div class="glora-field">
+          <label class="glora-label" for="confirmEmail">Confirm Email Address</label>
+          <div class="glora-input-wrap">
+            <input
+              type="email"
+              id="confirmEmail"
+              name="confirmEmail"
+              class="glora-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+            <i class="fas fa-check glora-input-icon" id="confirmIcon"></i>
+          </div>
+          <span class="glora-match" id="matchMsg"></span>
+        </div>
+
+        <button type="submit" class="glora-submit" id="submitBtn" disabled>
+          <i class="fas fa-save" style="margin-right:8px;"></i>Save New Email
+        </button>
+
+      </form>
+
+      <a href="/profile" class="glora-back">
+        <i class="fas fa-arrow-left"></i> Back to Profile
+      </a>
+
+    </div>
+  </div>
+
+  <script>
+    const newEmail     = document.getElementById('newEmail');
+    const confirmEmail = document.getElementById('confirmEmail');
+    const matchMsg     = document.getElementById('matchMsg');
+    const confirmIcon  = document.getElementById('confirmIcon');
+    const submitBtn    = document.getElementById('submitBtn');
+
+    function validate() {
+      const a = newEmail.value.trim();
+      const b = confirmEmail.value.trim();
+
+      if (!b) {
+        matchMsg.textContent = '';
+        matchMsg.className = 'glora-match';
+        confirmIcon.className = 'fas fa-check glora-input-icon';
+        submitBtn.disabled = true;
+        return;
+      }
+
+      if (a === b) {
+        matchMsg.textContent = '✓ Emails match';
+        matchMsg.className = 'glora-match ok';
+        confirmIcon.className = 'fas fa-check glora-input-icon';
+        confirmIcon.style.color = '#2e7d32';
+        submitBtn.disabled = false;
+      } else {
+        matchMsg.textContent = '✗ Emails do not match';
+        matchMsg.className = 'glora-match error';
+        confirmIcon.className = 'fas fa-times glora-input-icon';
+        confirmIcon.style.color = '#8B1A1A';
+        submitBtn.disabled = true;
+      }
+    }
+
+    newEmail.addEventListener('input', validate);
+    confirmEmail.addEventListener('input', validate);
+  </script>
+
 </body>
 </html>

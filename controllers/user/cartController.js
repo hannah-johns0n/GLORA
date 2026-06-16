@@ -5,57 +5,57 @@ const STATUS_CODES = require('../../constants/statusCodes');
 const { getActiveOffers, calculateCartPricing } = require('../../utils/discountService');
 
 
-const MAX_QTY = 5; 
+const MAX_QTY = 5;
 
 const getCart = async (req, res) => {
   try {
     const userId = req.user.id;
-    const cart   = await Cart.findOne({ userId }).populate('items.productId');
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
 
     if (!cart || cart.items.length === 0) {
       return res.render('user/cart', { cart: [], userName: req.user.name });
     }
 
 
-cart.items = cart.items.filter(item => item.productId);
+    cart.items = cart.items.filter(item => item.productId);
 
-const activeOffers = await getActiveOffers();
-const pricing = calculateCartPricing(cart, activeOffers);
+    const activeOffers = await getActiveOffers();
+    const pricing = calculateCartPricing(cart, activeOffers);
 
-const cartItems = pricing.items.map(item => {
-  const product      = item.productId;
-  const isUnavailable = product.isBlocked
-    || !item.variantIndex && item.variantIndex !== 0
-    || !product.variants
-    || !product.variants[item.variantIndex || 0]
-    || product.variants[item.variantIndex || 0].isBlocked
-    || product.variants[item.variantIndex || 0].quantity <= 0;
+    const cartItems = pricing.items.map(item => {
+      const product = item.productId;
+      const isUnavailable = product.isBlocked
+        || !item.variantIndex && item.variantIndex !== 0
+        || !product.variants
+        || !product.variants[item.variantIndex || 0]
+        || product.variants[item.variantIndex || 0].isBlocked
+        || product.variants[item.variantIndex || 0].quantity <= 0;
 
-  return {
-    productId:     item.productId,
-    quantity:      item.quantity,
-    variantIndex:  item.variantIndex,
-    price:         item.priceAfterOffer,
-    basePrice:     item.basePrice,
-    unit:          item.unit,
-    itemTotal:     item.itemTotal,
-    itemDiscount:  item.itemDiscount,
-    offerDiscount: item.offerDiscount,
-    appliedOffer:  item.appliedOffer || null,
-    isUnavailable: isUnavailable
-  };
-});
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        variantIndex: item.variantIndex,
+        price: item.priceAfterOffer,
+        basePrice: item.basePrice,
+        unit: item.unit,
+        itemTotal: item.itemTotal,
+        itemDiscount: item.itemDiscount,
+        offerDiscount: item.offerDiscount,
+        appliedOffer: item.appliedOffer || null,
+        isUnavailable: isUnavailable
+      };
+    });
 
     await cart.save();
 
     res.render('user/cart', {
-      cart:          cartItems,
-      subtotal:      pricing.subtotal,
+      cart: cartItems,
+      subtotal: pricing.subtotal,
       offerDiscount: pricing.offerDiscount,
-      total:         pricing.priceAfterOffer,
-      userName:      req.user.name,
-      user:          req.user,
-      url:           req.originalUrl 
+      total: pricing.priceAfterOffer,
+      userName: req.user.name,
+      user: req.user,
+      url: req.originalUrl
     });
 
   } catch (err) {
@@ -67,7 +67,7 @@ const cartItems = pricing.items.map(item => {
 
 const addToCart = async (req, res) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const productId = req.params.id;
 
     const variantIndex = parseInt(req.body.variantIndex) || 0;
@@ -82,8 +82,8 @@ const addToCart = async (req, res) => {
     }
 
     const variant = product.variants && product.variants[variantIndex]
-                    ? product.variants[variantIndex]
-                    : product.variants && product.variants[0];
+      ? product.variants[variantIndex]
+      : product.variants && product.variants[0];
 
     if (!variant) {
       return res.json({ success: false, message: 'Variant not found' });
@@ -118,13 +118,13 @@ const addToCart = async (req, res) => {
       if (existingItem.quantity >= variant.quantity) {
         return res.status(400).json({ success: false, message: 'Not enough stock available' });
       }
-      existingItem.quantity   += 1;
-      existingItem.totalPrice  = existingItem.quantity * price;
+      existingItem.quantity += 1;
+      existingItem.totalPrice = existingItem.quantity * price;
     } else {
       cart.items.push({
         productId,
-        variantIndex,       
-        quantity:   1,
+        variantIndex,
+        quantity: 1,
         totalPrice: price
       });
     }
@@ -132,7 +132,7 @@ const addToCart = async (req, res) => {
     await cart.save();
 
     res.status(200).json({
-      success:   true,
+      success: true,
       cartCount: cart.items.length
     });
 
@@ -144,7 +144,7 @@ const addToCart = async (req, res) => {
 
 const incQuantity = async (req, res) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const productId = req.params.id;
 
     const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -154,7 +154,7 @@ const incQuantity = async (req, res) => {
     if (!item) return res.json({ success: false, message: 'Product not in cart' });
 
     const variantIndex = item.variantIndex || 0;
-    const variant      = item.productId.variants && item.productId.variants[variantIndex];
+    const variant = item.productId.variants && item.productId.variants[variantIndex];
     if (!variant) return res.json({ success: false, message: 'Variant not found' });
 
     const stock = variant.quantity;
@@ -166,9 +166,9 @@ const incQuantity = async (req, res) => {
       return res.json({ success: false, message: 'Not enough stock available' });
     }
 
-    const price      = variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice;
-    item.quantity   += 1;
-    item.totalPrice  = item.quantity * price;
+    const price = variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice;
+    item.quantity += 1;
+    item.totalPrice = item.quantity * price;
 
     await cart.save();
     return res.json({ success: true });
@@ -181,7 +181,7 @@ const incQuantity = async (req, res) => {
 
 const decQuantity = async (req, res) => {
   try {
-    const userId    = req.user.id;
+    const userId = req.user.id;
     const productId = req.params.id;
 
     const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -193,19 +193,19 @@ const decQuantity = async (req, res) => {
     const item = cart.items[itemIndex];
 
     if (item.quantity <= 1) {
-      return res.json({ 
-        success: false, 
-        message: 'Minimum quantity is 1. Use the remove button to delete the item.' 
+      return res.json({
+        success: false,
+        message: 'Minimum quantity is 1. Use the remove button to delete the item.'
       });
     }
 
     const variantIndex = item.variantIndex || 0;
-    const variant      = item.productId.variants && item.productId.variants[variantIndex];
-    const price        = variant
-                         ? (variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice)
-                         : 0;
+    const variant = item.productId.variants && item.productId.variants[variantIndex];
+    const price = variant
+      ? (variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice)
+      : 0;
 
-    item.quantity  -= 1;
+    item.quantity -= 1;
     item.totalPrice = item.quantity * price;
 
     await cart.save();
@@ -266,10 +266,10 @@ const validateCheckout = async (req, res) => {
 };
 
 module.exports = {
-    getCart,
-    addToCart,
-    incQuantity,
-    decQuantity,
-    removeFromCart,
-    validateCheckout
+  getCart,
+  addToCart,
+  incQuantity,
+  decQuantity,
+  removeFromCart,
+  validateCheckout
 }

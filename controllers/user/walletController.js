@@ -30,7 +30,7 @@ const getWallet = async (req, res) => {
 
     const walletData = {
       ...wallet.toObject(),
-      transactions: [...wallet.transactions].sort((a, b) => b.date - a.date)
+      transactions: [...wallet.transactions].sort((b, a) => b.date - a.date)
     };
 
     res.render("user/wallet", { 
@@ -123,8 +123,6 @@ const verifyPayment = async (req, res) => {
     });
   }
 };
-
-
 
 const getWalletBalance = async (req, res) => {
   try {
