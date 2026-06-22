@@ -3,312 +3,332 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-    <h1 class="mb-3 mb-md-0">Edit Product</h1>
-    <a href="/admin/products" class="btn btn-secondary mb-3 mb-md-0">
-      <i class="bi bi-arrow-left"></i> Back to Products
-    </a>
+<main class="ga-main">
+  <style>
+    .ga-page-head { padding: 32px 32px 0; margin-bottom: 28px; }
+    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
+    .ga-page-head__row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .ga-page-head__title { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+    .ga-section { padding: 0 32px 40px; }
+
+    .ga-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; font-family: 'Poppins', sans-serif;
+      font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: all 0.2s ease; border-radius: 2px;
+    }
+    .ga-btn--dark { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover { background: #8B1A1A; color: #fff; }
+    .ga-btn--ghost { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
+    .ga-btn--ghost:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .ga-btn--outline { background: transparent; border: 1.5px solid #1A1A1A; color: #1A1A1A; }
+    .ga-btn--outline:hover { background: #1A1A1A; color: #fff; }
+
+    .ga-form-card { background: #fff; border-radius: 3px; padding: 32px; margin-bottom: 20px; }
+    .ga-form-card__title { font-family: 'Cormorant Garant', serif; font-size: 18px; font-weight: 600; color: #1A1A1A; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #F0EBE3; }
+
+    .ga-field { margin-bottom: 20px; }
+    .ga-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 7px; }
+    .ga-label span { color: #8B1A1A; }
+    .ga-input, .ga-select, .ga-textarea {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #E8E2DA; border-radius: 2px;
+      font-family: 'Poppins', sans-serif; font-size: 13px; color: #1A1A1A;
+      background: #fff; outline: none; transition: border-color 0.2s ease;
+    }
+    .ga-input:focus, .ga-select:focus, .ga-textarea:focus { border-color: #8B1A1A; }
+    .ga-textarea { resize: vertical; min-height: 90px; }
+    .ga-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .ga-form-text { font-size: 11px; color: #bbb; margin-top: 5px; letter-spacing: 0.3px; }
+
+    .ga-variant-box { border: 1.5px solid #E8E2DA; border-radius: 2px; padding: 20px; margin-bottom: 12px; background: #FAF7F4; position: relative; }
+    .ga-variant-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+    .ga-variant-remove { position: absolute; top: 12px; right: 12px; background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; line-height: 1; padding: 0; transition: color 0.2s; }
+    .ga-variant-remove:hover { color: #991b1b; }
+
+    .ga-image-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
+    .ga-image-box { position: relative; aspect-ratio: 1/1; border: 1.5px dashed #E8E2DA; border-radius: 2px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #FAF7F4; overflow: hidden; transition: border-color 0.2s ease; }
+    .ga-image-box:hover { border-color: #8B1A1A; }
+    .ga-image-box img { width: 100%; height: 100%; object-fit: cover; }
+    .ga-image-box__plus { font-size: 1.6rem; color: #ccc; pointer-events: none; }
+    .ga-image-box__clear { position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; border: none; font-size: 13px; line-height: 1; cursor: pointer; display: none; align-items: center; justify-content: center; transition: background 0.2s; }
+    .ga-image-box__clear:hover { background: #991b1b; }
+    .ga-image-error { font-size: 11px; color: #991b1b; margin-top: 6px; display: none; }
+    .ga-form-actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+
+    .ga-modal .modal-content { border: none; border-radius: 3px; font-family: 'Poppins', sans-serif; }
+    .ga-modal .modal-header { background: #1A1A1A; border-bottom: none; padding: 18px 24px; border-radius: 3px 3px 0 0; }
+    .ga-modal .modal-title { font-family: 'Cormorant Garant', serif; font-size: 20px; font-weight: 600; color: #FAF7F4; }
+    .ga-modal .btn-close { filter: invert(1); opacity: 0.6; }
+    .ga-modal .btn-close:hover { opacity: 1; }
+    .ga-modal .modal-body { padding: 20px; background: #fff; }
+    .ga-modal .modal-footer { padding: 14px 20px; background: #FAF7F4; border-top: 1px solid #E8E2DA; display: flex; gap: 10px; justify-content: flex-end; }
+    .ga-modal .img-container { max-height: 60vh; overflow: hidden; }
+    .ga-modal #imageToCrop { max-width: 100%; max-height: 60vh; }
+
+    @media (max-width: 900px) { .ga-variant-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 640px) {
+      .ga-page-head { padding: 24px 16px 0; }
+      .ga-section { padding: 0 16px 32px; }
+      .ga-form-card { padding: 20px; }
+      .ga-image-grid { grid-template-columns: repeat(2, 1fr); }
+      .ga-variant-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="ga-page-head">
+    <p class="ga-page-head__eyebrow">Catalogue</p>
+    <div class="ga-page-head__row">
+      <h1 class="ga-page-head__title">Edit Product</h1>
+      <a href="/admin/products" class="ga-btn ga-btn--ghost">
+        <i class="bi bi-arrow-left"></i> Back
+      </a>
+    </div>
   </div>
 
-  <form action="/admin/products/edit/<%= product._id %>" method="POST" novalidate>
+  <div class="ga-section">
+    <form action="/admin/products/edit/<%= product._id %>" method="POST" novalidate>
 
-    <div class="mb-3">
-      <label for="productName" class="form-label">Product Name</label>
-      <input type="text" class="form-control" id="productName" name="productName"
-        value="<%= product.productName %>" required>
-    </div>
+      <div class="ga-form-card">
+        <p class="ga-form-card__title">Basic Info</p>
 
-    <div class="mb-3">
-      <label for="category" class="form-label">Category</label>
-      <select class="form-select" id="category" name="category" required>
-        <% categories.forEach(function(categoryItem) { %>
-          <option value="<%= categoryItem.categoryName %>"
-            <%= product.category === categoryItem.categoryName ? 'selected' : '' %>>
-            <%= categoryItem.categoryName %>
-          </option>
-        <% }); %>
-      </select>
-    </div>
+        <div class="ga-field">
+          <label class="ga-label" for="productName">Product Name <span>*</span></label>
+          <input type="text" class="ga-input" id="productName" name="productName"
+            value="<%= product.productName %>" required>
+        </div>
 
-    <div class="mb-3">
-      <label for="description" class="form-label">Description</label>
-      <textarea class="form-control" id="description" name="description"
-        rows="3" required><%= product.description %></textarea>
-    </div>
+        <div class="ga-field">
+          <label class="ga-label" for="category">Category <span>*</span></label>
+          <select class="ga-select" id="category" name="category" required>
+            <% categories.forEach(function(categoryItem) { %>
+              <option value="<%= categoryItem.categoryName %>"
+                <%= product.category === categoryItem.categoryName ? 'selected' : '' %>>
+                <%= categoryItem.categoryName %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
 
-    <div class="mb-3">
-      <label class="form-label">Variants (ml / g)</label>
-      <div id="variantContainer"></div>
-      <button type="button" class="btn btn-outline-primary mt-2" onclick="addVariant()">
-        + Add Variant
-      </button>
-    </div>
-    <input type="hidden" name="variants" id="variantsInput">
-
-    <!-- Crop Modal -->
-    <div class="modal fade" id="cropImageModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Crop Image</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="img-container">
-              <img id="imageToCrop" src="" alt="">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" id="cropImageBtn">Crop & Save</button>
-          </div>
+        <div class="ga-field">
+          <label class="ga-label" for="description">Description <span>*</span></label>
+          <textarea class="ga-textarea" id="description" name="description" rows="4" required><%= product.description %></textarea>
         </div>
       </div>
-    </div>
 
-    <!-- Images -->
-    <div class="mb-3">
-      <label class="form-label">Product Images (3 required, 4 max)</label>
-      <div class="row row-cols-2 g-3" id="image-grid">
-        <% for (let i = 0; i < 4; i++) { %>
-          <div class="col">
-            <div class="image-upload-box position-relative border rounded d-flex
-                        align-items-center justify-content-center"
-                 style="height:180px; cursor:pointer; background:#f9f9f9;"
-                 onclick="document.getElementById('imageInput<%= i %>').click()">
-
-              <input type="file" class="d-none image-upload-input"
-                id="imageInput<%= i %>"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                data-index="<%= i %>"
-                data-existing="<%= (product.images && product.images[i]) ? product.images[i] : '' %>"
-                onchange="handleImageSelect(event, <%= i %>)">
-
-              <% if (product.images && product.images[i]) { %>
-                <!-- ✅ Use the URL directly — it's a full Cloudinary URL now -->
-                <img id="previewImg<%= i %>"
-                  src="<%= product.images[i] %>"
-                  alt="" style="max-width:100%; max-height:100%; object-fit:contain; display:block;">
-                <span id="placeholder<%= i %>" style="display:none; font-size:2rem;" class="text-muted">+</span>
-                <button type="button"
-                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2"
-                  style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
-              <% } else { %>
-                <img id="previewImg<%= i %>" src="" alt=""
-                  style="max-width:100%; max-height:100%; object-fit:contain; display:none;">
-                <span id="placeholder<%= i %>" style="font-size:2rem;" class="text-muted">+</span>
-                <button type="button"
-                  class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 d-none"
-                  style="z-index:2;" onclick="clearImage(event, <%= i %>)">&times;</button>
-              <% } %>
-            </div>
-          </div>
-        <% } %>
+      <div class="ga-form-card">
+        <p class="ga-form-card__title">Variants</p>
+        <div id="variantContainer"></div>
+        <button type="button" class="ga-btn ga-btn--outline" onclick="addVariant()" style="margin-top:4px;">
+          <i class="bi bi-plus"></i> Add Variant
+        </button>
+        <input type="hidden" name="variants" id="variantsInput">
       </div>
-      <div id="imageValidationFeedback" class="text-danger mt-1" style="display:none;"></div>
-      <div class="form-text">Click a box to add/replace. Max 4 images, 5MB each.</div>
-    </div>
 
-    <button type="submit" class="btn btn-primary">Update Product</button>
-  </form>
+      <div class="ga-form-card">
+        <p class="ga-form-card__title">Product Images</p>
+        <p class="ga-form-text" style="margin-bottom:12px;">Click a box to replace. 3–4 images required. Max 5MB each.</p>
+        <div class="ga-image-grid" id="image-grid">
+          <% for (let i = 0; i < 4; i++) { %>
+          <div class="ga-image-box" onclick="document.getElementById('imageInput<%= i %>').click()">
+            <input type="file" style="display:none;" class="image-upload-input"
+              id="imageInput<%= i %>"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+              data-index="<%= i %>"
+              data-existing="<%= (product.images && product.images[i]) ? product.images[i] : '' %>"
+              onchange="handleImageSelect(event, <%= i %>)">
+            <% if (product.images && product.images[i]) { %>
+              <img id="previewImg<%= i %>" src="<%= product.images[i] %>" alt="" style="display:block;">
+              <span id="placeholder<%= i %>" style="display:none;" class="ga-image-box__plus">+</span>
+              <button type="button" class="ga-image-box__clear" id="clearBtn<%= i %>"
+                style="display:flex;" onclick="clearImage(event, <%= i %>)">×</button>
+            <% } else { %>
+              <img id="previewImg<%= i %>" src="" alt="" style="display:none;">
+              <span id="placeholder<%= i %>" class="ga-image-box__plus">+</span>
+              <button type="button" class="ga-image-box__clear" id="clearBtn<%= i %>"
+                onclick="clearImage(event, <%= i %>)">×</button>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+        <p class="ga-image-error" id="imageValidationFeedback"></p>
+      </div>
+
+      <div class="ga-form-actions">
+        <button type="submit" class="ga-btn ga-btn--dark">
+          <i class="bi bi-check2"></i> Save Changes
+        </button>
+        <a href="/admin/products" class="ga-btn ga-btn--ghost">Cancel</a>
+      </div>
+
+    </form>
+  </div>
 </main>
 
+<!-- CROP MODAL -->
+<div class="modal fade ga-modal" id="cropImageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crop Image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="img-container">
+          <img id="imageToCrop" src="" alt="">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="ga-btn ga-btn--ghost" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="ga-btn ga-btn--dark" id="cropImageBtn">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ── 1. STATE ─────────────────────────────────────────────────────────
-let variants      = <%- JSON.stringify(product.variants || []) %>;
-let cropper       = null;
-let currentImageIndex = -1;
-let modal;
+  let variants = <%- JSON.stringify(product.variants || []) %>;
+  let cropper = null;
+  let currentImageIndex = -1;
+  let modal;
 
-// ✅ Load existing Cloudinary URLs into the state array
-let uploadedImageUrls = [
-  <% for (let i = 0; i < 4; i++) { %>
-    "<%= (product.images && product.images[i]) ? product.images[i] : '' %>",
-  <% } %>
-];
+  let uploadedImageUrls = [
+    <% for (let i = 0; i < 4; i++) { %>
+      "<%= (product.images && product.images[i]) ? product.images[i] : '' %>",
+    <% } %>
+  ];
+  let removedImageUrls = [];
 
-// Track which existing images were removed
-let removedImageUrls = [];
+  function showError(msg) { Swal.fire({ icon: 'error', title: 'Error', text: msg }); }
 
-// ── 2. HELPERS ────────────────────────────────────────────────────────
-function showError(msg) {
-  Swal.fire({ icon: 'error', title: 'Error', text: msg });
-}
-
-function updateImageValidation() {
-  const count    = uploadedImageUrls.filter(Boolean).length;
-  const feedback = document.getElementById('imageValidationFeedback');
-  if (count < 3) {
-    feedback.textContent = `Please upload at least ${3 - count} more image(s).`;
-    feedback.style.display = 'block';
-    return false;
+  function updateImageValidation() {
+    const count = uploadedImageUrls.filter(Boolean).length;
+    const feedback = document.getElementById('imageValidationFeedback');
+    if (count < 3) {
+      feedback.textContent = `Please upload at least ${3 - count} more image(s).`;
+      feedback.style.display = 'block';
+      return false;
+    }
+    feedback.style.display = 'none';
+    return true;
   }
-  feedback.style.display = 'none';
-  return true;
-}
 
-// ✅ Upload blob directly to Cloudinary
-async function uploadToCloudinary(blob) {
-  const sigRes  = await fetch('/admin/cloudinary-signature');
-  const sigData = await sigRes.json();
+  async function uploadToCloudinary(blob) {
+    const sigRes = await fetch('/admin/cloudinary-signature');
+    const sigData = await sigRes.json();
+    const formData = new FormData();
+    formData.append('file', blob);
+    formData.append('api_key', sigData.apiKey);
+    formData.append('timestamp', sigData.timestamp);
+    formData.append('signature', sigData.signature);
+    formData.append('folder', sigData.folder);
+    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, { method: 'POST', body: formData });
+    const uploadData = await uploadRes.json();
+    if (uploadData.secure_url) return uploadData.secure_url;
+    throw new Error('Cloudinary upload failed: ' + (uploadData.error?.message || 'unknown'));
+  }
 
-  const formData = new FormData();
-  formData.append('file',      blob);
-  formData.append('api_key',   sigData.apiKey);
-  formData.append('timestamp', sigData.timestamp);
-  formData.append('signature', sigData.signature);
-  formData.append('folder',    sigData.folder);
-
-  const uploadRes  = await fetch(
-    `https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`,
-    { method: 'POST', body: formData }
-  );
-  const uploadData = await uploadRes.json();
-
-  if (uploadData.secure_url) return uploadData.secure_url;
-  throw new Error('Cloudinary upload failed: ' + (uploadData.error?.message || 'unknown'));
-}
-
-// ── 3. VARIANTS ───────────────────────────────────────────────────────
-function renderVariants() {
-  const container = document.getElementById('variantContainer');
-  container.innerHTML = '';
-  variants.forEach((v, i) => {
-    const div = document.createElement('div');
-    div.className = 'border p-3 mb-2 rounded';
-    div.innerHTML = `
-      <input class="form-control mb-2" placeholder="Unit (eg: 50ml)" value="${v.unit || ''}">
-      <input type="number" class="form-control mb-2" placeholder="Regular Price" value="${v.regularPrice || ''}">
-      <input type="number" class="form-control mb-2" placeholder="Sales Price" value="${v.salesPrice || ''}">
-      <input type="number" class="form-control mb-2" placeholder="Quantity" value="${v.quantity || ''}">
-      <button type="button" class="btn btn-sm btn-danger">Remove</button>
-    `;
-    const [unitIn, regIn, saleIn, qtyIn] = div.querySelectorAll('input');
-    unitIn.addEventListener('input', e => { variants[i].unit         = e.target.value; });
-    regIn .addEventListener('input', e => { variants[i].regularPrice = Number(e.target.value); });
-    saleIn.addEventListener('input', e => { variants[i].salesPrice   = Number(e.target.value); });
-    qtyIn .addEventListener('input', e => { variants[i].quantity     = Number(e.target.value); });
-    div.querySelector('button').addEventListener('click', () => {
-      variants.splice(i, 1);
-      renderVariants();
+  function renderVariants() {
+    const container = document.getElementById('variantContainer');
+    container.innerHTML = '';
+    variants.forEach((v, i) => {
+      const div = document.createElement('div');
+      div.className = 'ga-variant-box';
+      div.innerHTML = `
+        <button type="button" class="ga-variant-remove" title="Remove">×</button>
+        <div class="ga-variant-grid">
+          <div><label class="ga-label">Unit</label><input class="ga-input" placeholder="e.g. 50ml" value="${v.unit || ''}"></div>
+          <div><label class="ga-label">Regular Price</label><input type="number" class="ga-input" placeholder="₹" value="${v.regularPrice || ''}"></div>
+          <div><label class="ga-label">Sale Price</label><input type="number" class="ga-input" placeholder="₹" value="${v.salesPrice || ''}"></div>
+          <div><label class="ga-label">Quantity</label><input type="number" class="ga-input" placeholder="0" value="${v.quantity || ''}"></div>
+        </div>
+      `;
+      const [unitIn, regIn, saleIn, qtyIn] = div.querySelectorAll('input');
+      unitIn.addEventListener('input', e => { variants[i].unit = e.target.value; });
+      regIn.addEventListener('input', e => { variants[i].regularPrice = Number(e.target.value); });
+      saleIn.addEventListener('input', e => { variants[i].salesPrice = Number(e.target.value); });
+      qtyIn.addEventListener('input', e => { variants[i].quantity = Number(e.target.value); });
+      div.querySelector('.ga-variant-remove').addEventListener('click', () => { variants.splice(i, 1); renderVariants(); });
+      container.appendChild(div);
     });
-    container.appendChild(div);
-  });
-}
-
-function addVariant() {
-  variants.push({ unit: '', regularPrice: '', salesPrice: '', quantity: '' });
-  renderVariants();
-}
-
-function validateVariants() {
-  if (variants.length === 0) { showError('Please add at least one variant.'); return false; }
-  for (let i = 0; i < variants.length; i++) {
-    const v = variants[i];
-    if (!String(v.unit).trim()) { showError(`Variant ${i+1}: Unit is required.`); return false; }
-    if (!v.regularPrice || Number(v.regularPrice) <= 0) { showError(`Variant ${i+1}: Valid regular price required.`); return false; }
-    if (v.salesPrice === '' || isNaN(v.salesPrice) || Number(v.salesPrice) < 0) { showError(`Variant ${i+1}: Valid sales price required.`); return false; }
-    if (!v.quantity || Number(v.quantity) <= 0) { showError(`Variant ${i+1}: Quantity must be positive.`); return false; }
-    if (Number(v.regularPrice) <= Number(v.salesPrice)) { showError(`Variant ${i+1}: Regular price must be greater than sales price.`); return false; }
-  }
-  return true;
-}
-
-// ── 4. IMAGES ─────────────────────────────────────────────────────────
-function handleImageSelect(event, index) {
-  const input = event.target;
-  const file  = input.files[0];
-  if (!file) return;
-  const allowed = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
-  if (!allowed.includes(file.type)) { showError('Only JPEG, PNG, GIF or WebP allowed.'); input.value = ''; return; }
-  if (file.size > 5 * 1024 * 1024) { showError('Image must be under 5MB.'); input.value = ''; return; }
-  currentImageIndex = index;
-  const reader = new FileReader();
-  reader.onload = e => {
-    document.getElementById('imageToCrop').src = e.target.result;
-    modal.show();
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearImage(e, idx) {
-  e.stopPropagation();
-  e.preventDefault();
-
-  const input       = document.getElementById('imageInput'  + idx);
-  const preview     = document.getElementById('previewImg'  + idx);
-  const placeholder = document.getElementById('placeholder' + idx);
-  const clearBtn    = input.parentElement.querySelector('button');
-
-  // ✅ Track removed Cloudinary URL so controller can delete it
-  const existingUrl = uploadedImageUrls[idx];
-  if (existingUrl) {
-    removedImageUrls.push(existingUrl);
   }
 
-  input.value              = '';
-  uploadedImageUrls[idx]   = '';
+  function addVariant() {
+    variants.push({ unit: '', regularPrice: '', salesPrice: '', quantity: '' });
+    renderVariants();
+  }
 
-  if (preview)     { preview.src = ''; preview.style.display = 'none'; }
-  if (placeholder) { placeholder.style.display = 'block'; }
-  if (clearBtn)    { clearBtn.classList.add('d-none'); }
+  function validateVariants() {
+    if (variants.length === 0) { showError('Please add at least one variant.'); return false; }
+    for (let i = 0; i < variants.length; i++) {
+      const v = variants[i];
+      if (!String(v.unit).trim()) { showError(`Variant ${i+1}: Unit is required.`); return false; }
+      if (!v.regularPrice || Number(v.regularPrice) <= 0) { showError(`Variant ${i+1}: Valid regular price required.`); return false; }
+      if (v.salesPrice === '' || isNaN(v.salesPrice) || Number(v.salesPrice) < 0) { showError(`Variant ${i+1}: Valid sales price required.`); return false; }
+      if (!v.quantity || Number(v.quantity) <= 0) { showError(`Variant ${i+1}: Quantity must be positive.`); return false; }
+      if (Number(v.regularPrice) <= Number(v.salesPrice)) { showError(`Variant ${i+1}: Regular price must be greater than sales price.`); return false; }
+    }
+    return true;
+  }
 
-  updateImageValidation();
-}
+  function handleImageSelect(event, index) {
+    const input = event.target;
+    const file = input.files[0];
+    if (!file) return;
+    const allowed = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+    if (!allowed.includes(file.type)) { showError('Only JPEG, PNG, GIF or WebP allowed.'); input.value = ''; return; }
+    if (file.size > 5 * 1024 * 1024) { showError('Image must be under 5MB.'); input.value = ''; return; }
+    currentImageIndex = index;
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('imageToCrop').src = e.target.result; modal.show(); };
+    reader.readAsDataURL(file);
+  }
 
-// ── 5. SUBMIT ─────────────────────────────────────────────────────────
-document.querySelector('form[action^="/admin/products/edit/"]')
-  .addEventListener('submit', async function(e) {
+  function clearImage(e, idx) {
+    e.stopPropagation(); e.preventDefault();
+    const existing = uploadedImageUrls[idx];
+    if (existing) removedImageUrls.push(existing);
+    const preview = document.getElementById('previewImg' + idx);
+    const placeholder = document.getElementById('placeholder' + idx);
+    const clearBtn = document.getElementById('clearBtn' + idx);
+    const input = document.getElementById('imageInput' + idx);
+    input.value = '';
+    uploadedImageUrls[idx] = '';
+    if (preview) { preview.src = ''; preview.style.display = 'none'; }
+    if (placeholder) { placeholder.style.display = 'inline'; }
+    if (clearBtn) { clearBtn.style.display = 'none'; }
+    updateImageValidation();
+  }
+
+  document.querySelector('form[action^="/admin/products/edit/"]').addEventListener('submit', async function(e) {
     e.preventDefault();
-
-    // Product name validation
-const productName = document.getElementById('productName').value.trim();
-const category = document.getElementById('category').value;
-const description = document.getElementById('description').value.trim();
-
-if (!productName) {
-  showError('Product name is required.'); return;
-}
-if (!/^[A-Za-z\s]+$/.test(productName)) {
-  showError('Product name should contain only letters and spaces.'); return;
-}
-if (!category) {
-  showError('Please select a category.'); return;
-}
-if (!description) {
-  showError('Please provide a product description.'); return;
-}
-    if (!validateVariants())      return;
+    const productName = document.getElementById('productName').value.trim();
+    const category = document.getElementById('category').value;
+    const description = document.getElementById('description').value.trim();
+    if (!productName) { showError('Product name is required.'); return; }
+    if (!/^[A-Za-z\s]+$/.test(productName)) { showError('Product name should contain only letters and spaces.'); return; }
+    if (!category) { showError('Please select a category.'); return; }
+    if (!description) { showError('Please provide a product description.'); return; }
+    if (!validateVariants()) return;
     if (!updateImageValidation()) return;
 
     const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.disabled  = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving…';
 
-    // ✅ Send as JSON
     const payload = {
-      productName:   document.getElementById('productName').value.trim(),
-      category:      document.getElementById('category').value,
-      description:   document.getElementById('description').value.trim(),
-      variants:      JSON.stringify(variants),
-      images:        uploadedImageUrls.filter(Boolean), // all current URLs
-      removeImages:  removedImageUrls                   // URLs to delete from Cloudinary
+      productName, category, description,
+      variants: JSON.stringify(variants),
+      images: uploadedImageUrls.filter(Boolean),
+      removeImages: removedImageUrls
     };
 
     try {
-      const response = await fetch(this.action, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload)
-      });
+      const response = await fetch(this.action, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const result = await response.json();
-
       if (response.ok && result.success) {
-        await Swal.fire({
-          icon: 'success', title: 'Product Updated!',
-          timer: 2000, showConfirmButton: false
-        });
+        await Swal.fire({ icon: 'success', title: 'Product updated!', timer: 2000, showConfirmButton: false });
         window.location.href = '/admin/products';
       } else {
         showError(result.message || 'Failed to update product.');
@@ -316,105 +336,60 @@ if (!description) {
     } catch {
       showError('Network error — please try again.');
     } finally {
-      submitBtn.disabled  = false;
-      submitBtn.innerHTML = 'Update Product';
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="bi bi-check2"></i> Save Changes';
     }
   });
 
-// ── 6. INIT ───────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
+  document.addEventListener('DOMContentLoaded', function() {
+    modal = new bootstrap.Modal(document.getElementById('cropImageModal'));
 
-  document.getElementById('cropImageModal').addEventListener('shown.bs.modal', function() {
-    const img = document.getElementById('imageToCrop');
-    if (cropper) cropper.destroy();
-    cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, responsive: true });
-  });
+    document.getElementById('cropImageModal').addEventListener('shown.bs.modal', function() {
+      const img = document.getElementById('imageToCrop');
+      if (cropper) cropper.destroy();
+      cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, responsive: true });
+    });
 
-  document.getElementById('cropImageModal').addEventListener('hidden.bs.modal', function() {
-    if (cropper) { cropper.destroy(); cropper = null; }
-  });
+    document.getElementById('cropImageModal').addEventListener('hidden.bs.modal', function() {
+      if (cropper) { cropper.destroy(); cropper = null; }
+    });
 
-  // ✅ Upload to Cloudinary on crop
-  document.getElementById('cropImageBtn').addEventListener('click', async function() {
-    if (!cropper) return;
-    const cropBtn     = this;
-    cropBtn.disabled  = true;
-    cropBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading...';
+    document.getElementById('cropImageBtn').addEventListener('click', async function() {
+      if (!cropper) return;
+      const cropBtn = this;
+      cropBtn.disabled = true;
+      cropBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Uploading…';
 
-    try {
-      cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' })
-        .toBlob(async blob => {
+      try {
+        cropper.getCroppedCanvas({ width: 800, height: 800, fillColor: '#fff' }).toBlob(async (blob) => {
           try {
             const url = await uploadToCloudinary(blob);
             uploadedImageUrls[currentImageIndex] = url;
-
-            const preview   = document.getElementById('previewImg'  + currentImageIndex);
-            const ph        = document.getElementById('placeholder' + currentImageIndex);
-            const fileInput = document.getElementById('imageInput'  + currentImageIndex);
-            const clearBtn  = fileInput.parentElement.querySelector('button');
-
-            preview.src           = url;
-            preview.style.display = 'block';
-            if (ph)       ph.style.display = 'none';
-            if (clearBtn) clearBtn.classList.remove('d-none');
-
+            const preview = document.getElementById('previewImg' + currentImageIndex);
+            const ph = document.getElementById('placeholder' + currentImageIndex);
+            const clearBtn = document.getElementById('clearBtn' + currentImageIndex);
+            preview.src = url; preview.style.display = 'block';
+            if (ph) ph.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'flex';
             modal.hide();
             updateImageValidation();
           } catch (err) {
             showError('Upload failed: ' + err.message);
           } finally {
-            cropBtn.disabled  = false;
+            cropBtn.disabled = false;
             cropBtn.innerHTML = 'Crop & Save';
           }
         }, 'image/jpeg', 0.9);
-    } catch {
-      showError('Failed to process image.');
-      cropBtn.disabled  = false;
-      cropBtn.innerHTML = 'Crop & Save';
-    }
-  });
+      } catch {
+        showError('Failed to process image.');
+        cropBtn.disabled = false;
+        cropBtn.innerHTML = 'Crop & Save';
+      }
+    });
 
-  renderVariants();
-  updateImageValidation();
-});
+    renderVariants();
+    updateImageValidation();
+  });
 </script>
 
 <%- include('../partials/admin/footer') %>
-
-<style>
-  .img-container {
-    max-height: 60vh;
-    overflow: hidden;
-  }
-  #imageToCrop {
-    max-width: 100%;
-    max-height: 60vh;
-  }
-  .cropper-view-box,
-  .cropper-face {
-    border-radius: 50%;
-  }
-  .cropper-container {
-    margin: 0 auto;
-  }
-  .image-upload-box {
-    transition: all 0.3s ease;
-  }
-  .image-upload-box:hover {
-    border-color: #0d6efd !important;
-  }
-  .existing-image {
-    position: relative;
-  }
-  .existing-image .btn-close-image {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 2;
-    display: none;
-  }
-  .existing-image:hover .btn-close-image {
-    display: block;
-  }
-</style>

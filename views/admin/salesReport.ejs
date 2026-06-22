@@ -1,562 +1,348 @@
 <%- include('../partials/admin/header') %>
 
+<main class="ga-main">
   <style>
-    /* Modern minimal styling */
-    .sales-report-container {
-      background: #f8fafc;
-      min-height: 100vh;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    .ga-page-head          { padding: 32px 32px 0; margin-bottom: 28px; }
+    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
+    .ga-page-head__title   { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+    .ga-section            { padding: 0 32px 48px; }
+
+    /* ── TOOLBAR ───────────────────────────────────────── */
+    .ga-card           { background: #fff; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+    .ga-card__head     { padding: 16px 22px; border-bottom: 1px solid #F0EBE3; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .ga-card__title    { font-family: 'Cormorant Garant', serif; font-size: 20px; font-weight: 600; color: #1A1A1A; }
+    .ga-card__body     { padding: 22px; }
+
+    .ga-filter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    .ga-filter-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px; }
+    .ga-input, .ga-select {
+      width: 100%; padding: 10px 14px; border: 1.5px solid #E8E2DA; border-radius: 2px;
+      font-family: 'Poppins', sans-serif; font-size: 12px; color: #1A1A1A;
+      background: #fff; outline: none; transition: border-color 0.2s;
     }
-
-    .report-header {
-      padding: 2rem 0;
-      margin-bottom: 2rem;
+    .ga-select {
+      padding-right: 32px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; appearance: none; cursor: pointer;
     }
+    .ga-input:focus, .ga-select:focus { border-color: #8B1A1A; }
+    .ga-input::placeholder { color: #bbb; }
 
-    .report-title {
-      font-family: 'Playfair Display', 'Georgia', serif;
-      font-size: 2.8rem;
-      font-weight: 400;
-      margin: 0;
-      text-align: center;
-      letter-spacing: -0.5px;
-      color: #1f2937;
-      position: relative;
+    .ga-filter-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .ga-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border-radius: 2px; }
+    .ga-btn--dark    { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover    { background: #8B1A1A; color: #fff; }
+    .ga-btn--ghost   { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
+    .ga-btn--ghost:hover   { border-color: #1A1A1A; color: #1A1A1A; }
+    .ga-btn--pdf     { background: #991b1b; color: #fff; }
+    .ga-btn--pdf:hover     { background: #7f1d1d; color: #fff; }
+    .ga-btn--excel   { background: #166534; color: #fff; }
+    .ga-btn--excel:hover   { background: #14532d; color: #fff; }
+
+    /* ── STATS ─────────────────────────────────────────── */
+    .ga-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+    .ga-stats-row--3 { grid-template-columns: repeat(3, 1fr); }
+    .ga-stat { background: #fff; border-radius: 3px; padding: 22px 20px; border-bottom: 3px solid transparent; transition: transform 0.25s, box-shadow 0.25s; display: flex; align-items: flex-start; justify-content: space-between; }
+    .ga-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .ga-stat--sales    { border-bottom-color: #8B1A1A; }
+    .ga-stat--orders   { border-bottom-color: #2e6e4a; }
+    .ga-stat--avg      { border-bottom-color: #D4A96A; }
+    .ga-stat--return   { border-bottom-color: #6b21a8; }
+    .ga-stat--offer    { border-bottom-color: #c2410c; }
+    .ga-stat--coupon   { border-bottom-color: #7c3aed; }
+    .ga-stat--total-disc { border-bottom-color: #1e40af; }
+    .ga-stat__label { font-size: 10px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: #aaa; margin-bottom: 10px; }
+    .ga-stat__value { font-family: 'Cormorant Garant', serif; font-size: 34px; font-weight: 600; color: #1A1A1A; line-height: 1; }
+    .ga-stat__icon  { font-size: 26px; opacity: 0.12; margin-top: 2px; }
+
+    /* ── TABLE ─────────────────────────────────────────── */
+    .ga-table-wrap { overflow-x: auto; }
+    .ga-table { width: 100%; border-collapse: collapse; }
+    .ga-table thead { background: #1A1A1A; }
+    .ga-table thead th { padding: 13px 16px; text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; }
+    .ga-table tbody td { padding: 13px 16px; font-size: 13px; color: #1A1A1A; border-bottom: 1px solid #F4F1EC; vertical-align: middle; }
+    .ga-table tbody tr:last-child td { border-bottom: none; }
+    .ga-table tbody tr:hover td { background: #FAF7F4; }
+
+    .ga-order-id { font-family: monospace; font-size: 12px; color: #888; letter-spacing: 0.5px; }
+    .ga-amount   { font-weight: 600; color: #8B1A1A; }
+    .ga-discount-offer  { font-weight: 500; color: #c2410c; font-size: 12px; }
+    .ga-discount-coupon { font-weight: 500; color: #7c3aed; font-size: 12px; }
+    .ga-muted    { color: #bbb; font-size: 12px; }
+    .ga-coupon-code { font-family: monospace; font-size: 11px; background: #F3E8FF; color: #6b21a8; padding: 2px 7px; border-radius: 2px; }
+
+    .ga-item-list { display: flex; flex-direction: column; gap: 3px; }
+    .ga-item-list span { font-size: 11px; color: #555; background: #F9F6F3; padding: 2px 8px; border-radius: 2px; }
+
+    .ga-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .ga-badge--delivered  { background: #F0FDF4; color: #166534; }
+    .ga-badge--cancelled  { background: #FEF2F2; color: #991b1b; }
+    .ga-badge--returned   { background: #F3E8FF; color: #6b21a8; }
+    .ga-badge--processing { background: #EFF6FF; color: #1e40af; }
+    .ga-badge--shipped    { background: #EEF2FF; color: #3730a3; }
+    .ga-badge--pending    { background: #FFFBEB; color: #92400e; }
+
+    .ga-empty { text-align: center; padding: 64px 20px; color: #bbb; }
+    .ga-empty i { font-size: 2.5rem; display: block; margin-bottom: 14px; color: #E8E2DA; }
+    .ga-empty p { font-size: 13px; }
+
+    /* ── PAGINATION ─────────────────────────────────────── */
+    .ga-pagination { display: flex; justify-content: center; gap: 6px; margin-top: 28px; list-style: none; padding: 0; }
+    .ga-pagination li a { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1.5px solid #E8E2DA; font-size: 12px; font-weight: 500; color: #555; text-decoration: none; border-radius: 2px; transition: all 0.2s; }
+    .ga-pagination li a:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .ga-pagination li.active a { background: #1A1A1A; border-color: #1A1A1A; color: #fff; }
+    .ga-pagination li.disabled a { opacity: 0.35; pointer-events: none; }
+
+    /* ── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .ga-filter-grid  { grid-template-columns: repeat(2, 1fr); }
+      .ga-stats-row    { grid-template-columns: repeat(2, 1fr); }
+      .ga-stats-row--3 { grid-template-columns: repeat(2, 1fr); }
     }
-
-    .report-title:after {
-      content: '';
-      display: block;
-      width: 80px;
-      height: 3px;
-      background: linear-gradient(135deg, #a81414 0%, #510505 100%);
-      margin: 1rem auto 0;
-      border-radius: 2px;
-    }
-
-    .filters-section {
-      background: white;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
-      margin-bottom: 2rem;
-      border: 1px solid #e2e8f0;
-    }
-
-    .filter-label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-
-    .form-control {
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      font-size: 0.875rem;
-      transition: all 0.3s ease;
-      background: #fafbfc;
-    }
-
-    .form-control:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      background: white;
-      outline: none;
-    }
-
-    .btn-group {
-      gap: 0.75rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      align-items: center;
-    }
-
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 10px;
-      font-weight: 500;
-      font-size: 0.875rem;
-      transition: all 0.3s ease;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #3b0505 0%, rgb(120, 22, 22) 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(84, 5, 5, 0.341);
-    }
-
-    .btn-secondary {
-      background: #6b7280;
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #4b5563;
-      transform: translateY(-2px);
-    }
-
-    .btn-danger {
-      background: #510505;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #870505;
-      transform: translateY(-2px);
-    }
-
-    .btn-success {
-      background: #0d5b1a;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #07840c;
-      transform: translateY(-2px);
-    }
-
-    .stats-grid {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem 1rem;
-      border-radius: 12px;
-      text-align: center;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-
-    .stat-title {
-      font-size: 0.8125rem;
-      color: #6b7280;
-      font-weight: 500;
-      margin-bottom: 0.375rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #1f2937;
-      margin: 0;
-    }
-
-    .stat-card:nth-child(1) .stat-value {
-      color: #602929;
-    }
-
-    .stat-card:nth-child(2) .stat-value {
-      color: #169818;
-    }
-
-    .stat-card:nth-child(3) .stat-value {
-      color: #c7881c;
-    }
-
-    .stat-card:nth-child(4) .stat-value {
-      color: #a12424;
-    }
-
-    .table-container {
-      background: white;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
-      border: 1px solid #e2e8f0;
-    }
-
-    .table {
-      margin: 0;
-      font-size: 0.875rem;
-    }
-
-    .table thead th {
-      background: #31282848;
-      border: none;
-      font-weight: 600;
-      color: #374151;
-      padding: 1.25rem 1rem;
-      font-size: 0.8125rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .table tbody td {
-      padding: 1rem;
-      border-top: 1px solid #f1f5f9;
-      vertical-align: middle;
-    }
-
-    .table tbody tr:hover {
-      background: #f8fafc;
-    }
-
-    .order-id {
-      font-family: 'Courier New', monospace;
-      font-size: 0.8125rem;
-      background: #f1f5f9;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      color: #374151;
-    }
-
-    .item-list p {
-      margin: 0.25rem 0;
-      padding: 0.25rem 0.5rem;
-      background: #f8fafc;
-      border-radius: 6px;
-      font-size: 0.8125rem;
-      color: #4b5563;
-    }
-
-    .status-badge {
-      padding: 0.375rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .status-delivered {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .status-cancelled {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .status-returned {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .status-processing {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-
-    .amount {
-      font-weight: 600;
-      color: #059669;
-      font-size: 0.9375rem;
-    }
-
-    .no-orders {
-      text-align: center;
-      padding: 3rem;
-      color: #6b7280;
-      font-style: italic;
-    }
-
-    @media (max-width: 768px) {
-      .report-title {
-        font-size: 2.2rem;
-      }
-
-      .filters-section {
-        padding: 1.5rem;
-      }
-
-      .btn-group {
-        justify-content: center;
-      }
-
-      .stats-grid {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .stat-card {
-        padding: 1.25rem;
-        min-width: auto;
-      }
-
-      .table-container {
-        overflow-x: auto;
-      }
+    @media (max-width: 640px) {
+      .ga-page-head    { padding: 24px 16px 0; }
+      .ga-section      { padding: 0 16px 32px; }
+      .ga-filter-grid  { grid-template-columns: 1fr; }
+      .ga-stats-row    { grid-template-columns: 1fr; }
+      .ga-stats-row--3 { grid-template-columns: 1fr; }
     }
   </style>
 
-  <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 sales-report-container">
-    <div class="report-header">
-      <div class="container">
-        <h1 class="report-title">Sales Report</h1>
-      </div>
-    </div>
+  <!-- PAGE HEADER -->
+  <div class="ga-page-head">
+    <p class="ga-page-head__eyebrow">Analytics</p>
+    <h1 class="ga-page-head__title">Sales Report</h1>
+  </div>
 
-    <div class="container mt-4">
-      <div class="filters-section">
-        <form method="GET" action="/admin/sales-report" class="row g-3">
-          <div class="col-md-3">
-            <label class="filter-label">Start Date</label>
-            <input type="date" class="form-control" name="startDate" value="<%= filters.startDate || '' %>">
-          </div>
-          <div class="col-md-3">
-            <label class="filter-label">End Date</label>
-            <input type="date" class="form-control" name="endDate" value="<%= filters.endDate || '' %>">
-          </div>
-          <div class="col-md-3">
-            <label class="filter-label">Payment Method</label>
-            <select class="form-control" name="paymentMethod">
-              <option value="all">All Methods</option>
-              <option value="COD" <%=filters.paymentMethod==='COD' ? 'selected' : '' %>>Cash on Delivery</option>
-              <option value="Online" <%=filters.paymentMethod==='Online' ? 'selected' : '' %>>Online Payment</option>
-              <option value="Wallet" <%=filters.paymentMethod==='Wallet' ? 'selected' : '' %>>Wallet</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="filter-label">Order Status</label>
-            <select class="form-control" name="orderStatus">
-              <option value="all">All Status</option>
-              <option value="Delivered" <%=filters.orderStatus==='Delivered' ? 'selected' : '' %>>Delivered</option>
-              <option value="Cancelled" <%=filters.orderStatus==='Cancelled' ? 'selected' : '' %>>Cancelled</option>
-              <option value="Returned" <%=filters.orderStatus==='Returned' ? 'selected' : '' %>>Returned</option>
-            </select>
-          </div>
-          <div class="col-12 mt-4">
-            <div class="btn-group">
-              <button type="submit" class="btn btn-primary">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path
-                    d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                </svg>
-                Apply Filters
-              </button>
-              <a href="/admin/sales-report" class="btn btn-secondary">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
-                  <path
-                    d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
-                </svg>
-                Reset
-              </a>
-              <a href="/admin/sales-report/pdf?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
-                class="btn btn-danger">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path
-                    d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z" />
-                </svg>
-                PDF Report
-              </a>
-              <a href="/admin/sales-report/excel?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
-                class="btn btn-success">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                  <path
-                    d="M5.884 6.68a.5.5 0 1 0-.768.64L7.349 10l-2.233 2.68a.5.5 0 0 0 .768.64L8 10.781l2.116 2.54a.5.5 0 0 0 .768-.641L8.651 10l2.233-2.68a.5.5 0 0 0-.768-.64L8 9.219l-2.116-2.54z" />
-                  <path
-                    d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z" />
-                </svg>
-                Excel Report
-              </a>
+  <div class="ga-section">
+
+    <!-- ── FILTERS ──────────────────────────────────────── -->
+    <div class="ga-card">
+      <div class="ga-card__head">
+        <span class="ga-card__title">Filters</span>
+      </div>
+      <div class="ga-card__body">
+        <form method="GET" action="/admin/sales-report">
+          <div class="ga-filter-grid">
+            <div>
+              <label class="ga-filter-label">Start Date</label>
+              <input type="date" class="ga-input" name="startDate" value="<%= filters.startDate || '' %>">
             </div>
+            <div>
+              <label class="ga-filter-label">End Date</label>
+              <input type="date" class="ga-input" name="endDate" value="<%= filters.endDate || '' %>">
+            </div>
+            <div>
+              <label class="ga-filter-label">Payment Method</label>
+              <select class="ga-select" name="paymentMethod">
+                <option value="all">All Methods</option>
+                <option value="COD"    <%= filters.paymentMethod === 'COD'    ? 'selected' : '' %>>Cash on Delivery</option>
+                <option value="Online" <%= filters.paymentMethod === 'Online' ? 'selected' : '' %>>Online Payment</option>
+                <option value="Wallet" <%= filters.paymentMethod === 'Wallet' ? 'selected' : '' %>>Wallet</option>
+              </select>
+            </div>
+            <div>
+              <label class="ga-filter-label">Order Status</label>
+              <select class="ga-select" name="orderStatus">
+                <option value="all">All Statuses</option>
+                <option value="Delivered" <%= filters.orderStatus === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                <option value="Cancelled" <%= filters.orderStatus === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                <option value="Returned"  <%= filters.orderStatus === 'Returned'  ? 'selected' : '' %>>Returned</option>
+              </select>
+            </div>
+          </div>
+          <div class="ga-filter-actions">
+            <button type="submit" class="ga-btn ga-btn--dark">
+              <i class="bi bi-funnel"></i> Apply Filters
+            </button>
+            <a href="/admin/sales-report" class="ga-btn ga-btn--ghost">
+              <i class="bi bi-x"></i> Clear
+            </a>
+            <a href="/admin/sales-report/pdf?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
+               class="ga-btn ga-btn--pdf">
+              <i class="bi bi-file-earmark-pdf"></i> PDF
+            </a>
+            <a href="/admin/sales-report/excel?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
+               class="ga-btn ga-btn--excel">
+              <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+            </a>
           </div>
         </form>
       </div>
+    </div>
 
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-title">Total Sales</div>
-          <h2 class="stat-value">₹<%= totalSales.toFixed(2) %>
-          </h2>
+    <!-- ── STATS ROW 1 ───────────────────────────────────── -->
+    <div class="ga-stats-row">
+      <div class="ga-stat ga-stat--sales">
+        <div>
+          <p class="ga-stat__label">Total Sales</p>
+          <p class="ga-stat__value">₹<%= totalSales.toFixed(0) %></p>
         </div>
-        <div class="stat-card">
-          <div class="stat-title">Total Orders</div>
-          <h2 class="stat-value">
-            <%= totalOrders %>
-          </h2>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Average Order</div>
-          <h2 class="stat-value">₹<%= avgOrder.toFixed(2) %>
-          </h2>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Return Rate</div>
-          <h2 class="stat-value">
-            <%= returnRate.toFixed(1) %>%
-          </h2>
-        </div>
+        <div class="ga-stat__icon">💰</div>
       </div>
-
-      <!-- Discount Summary Cards -->
-      <div class="stats-grid mt-3">
-        <div class="stat-card">
-          <div class="stat-title">Total Offer Discount</div>
-          <h2 class="stat-value" style="color: #e67e22;">₹<%= totalOfferDiscount.toFixed(2) %>
-          </h2>
+      <div class="ga-stat ga-stat--orders">
+        <div>
+          <p class="ga-stat__label">Total Orders</p>
+          <p class="ga-stat__value"><%= totalOrders %></p>
         </div>
-        <div class="stat-card">
-          <div class="stat-title">Total Coupon Discount</div>
-          <h2 class="stat-value" style="color: #8e44ad;">₹<%= totalCouponDiscount.toFixed(2) %>
-          </h2>
-        </div>
-        <div class="stat-card">
-          <div class="stat-title">Total Discount Given</div>
-          <h2 class="stat-value" style="color: #c0392b;">₹<%= totalDiscount.toFixed(2) %>
-          </h2>
-        </div>
+        <div class="ga-stat__icon">📦</div>
       </div>
+      <div class="ga-stat ga-stat--avg">
+        <div>
+          <p class="ga-stat__label">Avg. Order</p>
+          <p class="ga-stat__value">₹<%= avgOrder.toFixed(0) %></p>
+        </div>
+        <div class="ga-stat__icon">📊</div>
+      </div>
+      <div class="ga-stat ga-stat--return">
+        <div>
+          <p class="ga-stat__label">Return Rate</p>
+          <p class="ga-stat__value"><%= returnRate.toFixed(1) %>%</p>
+        </div>
+        <div class="ga-stat__icon">↩</div>
+      </div>
+    </div>
 
-      <!-- Orders Table -->
-      <div class="table-container">
-        <table class="table">
+    <!-- ── STATS ROW 2 (discounts) ───────────────────────── -->
+    <div class="ga-stats-row ga-stats-row--3" style="margin-bottom:20px;">
+      <div class="ga-stat ga-stat--offer">
+        <div>
+          <p class="ga-stat__label">Offer Discounts</p>
+          <p class="ga-stat__value">₹<%= totalOfferDiscount.toFixed(0) %></p>
+        </div>
+        <div class="ga-stat__icon">🏷</div>
+      </div>
+      <div class="ga-stat ga-stat--coupon">
+        <div>
+          <p class="ga-stat__label">Coupon Discounts</p>
+          <p class="ga-stat__value">₹<%= totalCouponDiscount.toFixed(0) %></p>
+        </div>
+        <div class="ga-stat__icon">🎟</div>
+      </div>
+      <div class="ga-stat ga-stat--total-disc">
+        <div>
+          <p class="ga-stat__label">Total Discounts</p>
+          <p class="ga-stat__value">₹<%= totalDiscount.toFixed(0) %></p>
+        </div>
+        <div class="ga-stat__icon">✂</div>
+      </div>
+    </div>
+
+    <!-- ── ORDERS TABLE ──────────────────────────────────── -->
+    <div class="ga-card">
+      <div class="ga-card__head">
+        <span class="ga-card__title">Orders</span>
+        <span style="font-size:11px; color:#aaa;"><%= orders.length %> result<%= orders.length !== 1 ? 's' : '' %></span>
+      </div>
+      <div class="ga-table-wrap">
+        <table class="ga-table">
           <thead>
-            <% orders.forEach(o=> { %>
-              <tr>
-                <td><span class="order-id">#<%= o._id.toString().slice(-8) %></span></td>
-                <td>
-                  <%= o.userId ? o.userId.name : 'N/A' %>
-                </td>
-                <td>
-                  <%= o.createdAt.toDateString() %>
-                </td>
-                <td class="item-list">
-                  <% if (o.orderItems && o.orderItems.length> 0) { %>
-                    <% o.orderItems.forEach(i=> { %>
-                      <p>
-                        <%= i.productId ? i.productId.name : 'Unknown product' %> × <%= i.quantity %>
-                      </p>
-                      <% }) %>
-                        <% } else { %>
-                          <p style="color: #9ca3af;">No items</p>
-                          <% } %>
-                </td>
-                <td>
-                  <%= o.paymentMethod %>
-                </td>
-                <td>
-                  <span class="status-badge status-<%= o.status.toLowerCase() %>">
-                    <%= o.status %>
-                  </span>
-                </td>
-                <!-- NEW discount columns -->
-                <td style="color: #e67e22;">
-                  <% if (o.offerDiscount && o.offerDiscount> 0) { %>
-                    -₹<%= o.offerDiscount.toFixed(2) %>
-                      <% } else { %>
-                        —
-                        <% } %>
-                </td>
-                <td style="color: #8e44ad; font-size: 0.85rem;">
-                  <%= o.appliedCoupon || '—' %>
-                </td>
-                <td style="color: #8e44ad;">
-                  <% if (o.couponDiscount && o.couponDiscount> 0) { %>
-                    -₹<%= o.couponDiscount.toFixed(2) %>
-                      <% } else { %>
-                        —
-                        <% } %>
-                </td>
-                <td class="amount">₹<%= o.totalPrice.toFixed(2) %>
-                </td>
-              </tr>
-              <% }) %>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Offer Disc.</th>
+              <th>Coupon</th>
+              <th>Coupon Disc.</th>
+              <th>Total</th>
+            </tr>
           </thead>
           <tbody>
-            <% if (orders.length===0) { %>
-              <tr>
-                <td colspan="10" class="no-orders">
-                  <div>
-                    <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16"
-                      style="opacity: 0.3; margin-bottom: 1rem;">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                      <path
-                        d="M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                    </svg>
-                    <br>
-                    No orders found matching your criteria
-                  </div>
-                </td>
-              </tr>
-              <% } %>
-                <% orders.forEach(o=> { %>
-                  <tr>
-                    <td><span class="order-id">#<%= o._id.toString().slice(-8) %></span></td>
-                    <td>
-                      <%= o.userId ? o.userId.name : 'N/A' %>
-                    </td>
-                    <td>
-                      <%= o.createdAt.toDateString() %>
-                    </td>
-                    <td class="item-list">
-                      <% if (o.orderItems && o.orderItems.length> 0) { %>
-                        <% o.orderItems.forEach(i=> { %>
-                          <p>
-                            <%= i.productId ? i.productId.name : 'Unknown product' %> × <%= i.quantity %>
-                          </p>
-                          <% }) %>
-                            <% } else { %>
-                              <p style="color: #9ca3af;">No items</p>
-                              <% } %>
-                    </td>
-                    <td>
-                      <%= o.paymentMethod %>
-                    </td>
-                    <td>
-                      <span class="status-badge status-<%= o.status.toLowerCase() %>">
-                        <%= o.status %>
-                      </span>
-                    </td>
-                    <td class="amount">₹<%= o.totalPrice.toFixed(2) %>
-                    </td>
-                  </tr>
-                  <% }) %>
+            <% if (orders.length === 0) { %>
+            <tr>
+              <td colspan="10">
+                <div class="ga-empty">
+                  <i class="bi bi-receipt"></i>
+                  <p>No orders found matching your filters.</p>
+                </div>
+              </td>
+            </tr>
+            <% } else { %>
+            <% orders.forEach(function(o) {
+              let badgeClass = 'ga-badge--pending';
+              if      (o.status === 'Delivered')  badgeClass = 'ga-badge--delivered';
+              else if (o.status === 'Cancelled')  badgeClass = 'ga-badge--cancelled';
+              else if (o.status === 'Returned')   badgeClass = 'ga-badge--returned';
+              else if (o.status === 'Processing') badgeClass = 'ga-badge--processing';
+              else if (o.status === 'Shipped')    badgeClass = 'ga-badge--shipped';
+            %>
+            <tr>
+              <td><span class="ga-order-id">#<%= o._id.toString().slice(-8).toUpperCase() %></span></td>
+              <td><%= o.userId ? o.userId.name : 'N/A' %></td>
+              <td style="font-size:12px; color:#aaa; white-space:nowrap;"><%= o.createdAt.toDateString() %></td>
+              <td>
+                <div class="ga-item-list">
+                  <% if (o.orderItems && o.orderItems.length > 0) { %>
+                    <% o.orderItems.forEach(function(i) { %>
+                      <span><%= i.productId ? i.productId.name : 'Unknown' %> × <%= i.quantity %></span>
+                    <% }); %>
+                  <% } else { %>
+                    <span class="ga-muted">No items</span>
+                  <% } %>
+                </div>
+              </td>
+              <td style="font-size:12px;"><%= o.paymentMethod %></td>
+              <td><span class="ga-badge <%= badgeClass %>"><%= o.status %></span></td>
+              <td>
+                <% if (o.offerDiscount && o.offerDiscount > 0) { %>
+                  <span class="ga-discount-offer">−₹<%= o.offerDiscount.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="ga-muted">—</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (o.appliedCoupon) { %>
+                  <span class="ga-coupon-code"><%= o.appliedCoupon %></span>
+                <% } else { %>
+                  <span class="ga-muted">—</span>
+                <% } %>
+              </td>
+              <td>
+                <% if (o.couponDiscount && o.couponDiscount > 0) { %>
+                  <span class="ga-discount-coupon">−₹<%= o.couponDiscount.toFixed(2) %></span>
+                <% } else { %>
+                  <span class="ga-muted">—</span>
+                <% } %>
+              </td>
+              <td><span class="ga-amount">₹<%= o.totalPrice.toFixed(2) %></span></td>
+            </tr>
+            <% }); %>
+            <% } %>
           </tbody>
         </table>
       </div>
-      </div>
-    <% if (totalPages > 1) { %>
-      <nav class="d-flex justify-content-center mt-4">
-        <ul class="pagination">
-          <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
-            <a class="page-link" href="?page=<%= currentPage - 1 %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>">Previous</a>
-          </li>
-          <% for (let i = 1; i <= totalPages; i++) { %>
-            <li class="page-item <%= currentPage === i ? 'active' : '' %>">
-              <a class="page-link" href="?page=<%= i %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>"><%= i %></a>
-            </li>
-          <% } %>
-          <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
-            <a class="page-link" href="?page=<%= currentPage + 1 %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>">Next</a>
-          </li>
-        </ul>
-      </nav>
-    <% } %>
-  </div>
-</main>
     </div>
-  </main>
 
-  <%- include('../partials/admin/footer') %>
+    <!-- ── PAGINATION ────────────────────────────────────── -->
+    <% if (totalPages > 1) { %>
+    <nav>
+      <ul class="ga-pagination">
+        <li class="<%= currentPage === 1 ? 'disabled' : '' %>">
+          <a href="?page=<%= currentPage - 1 %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="<%= currentPage === i ? 'active' : '' %>">
+          <a href="?page=<%= i %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>">
+            <%= i %>
+          </a>
+        </li>
+        <% } %>
+        <li class="<%= currentPage === totalPages ? 'disabled' : '' %>">
+          <a href="?page=<%= currentPage + 1 %>&startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || 'all' %>&orderStatus=<%= filters.orderStatus || 'all' %>">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <% } %>
+
+  </div><!-- /.ga-section -->
+</main>
+
+<%- include('../partials/admin/footer') %>

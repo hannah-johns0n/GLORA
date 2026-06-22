@@ -1,457 +1,504 @@
 <%- include('../partials/admin/header') %>
 
-  <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
+<main class="ga-main">
+  <style>
+    /* ── BASE ──────────────────────────────────────────── */
+    .ga-page-head          { padding: 32px 32px 0; margin-bottom: 28px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .ga-page-head__left    {}
+    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
+    .ga-page-head__title   { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+    .ga-section            { padding: 0 32px 48px; }
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="mb-0">Order Details</h2>
-      <a href="/admin/order-list" class="btn btn-outline-secondary btn-sm">
-        <i class="fas fa-arrow-left me-1"></i> Back to Orders
-      </a>
+    /* ── BUTTONS ───────────────────────────────────────── */
+    .ga-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border-radius: 2px; }
+    .ga-btn--dark  { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover  { background: #8B1A1A; color: #fff; }
+    .ga-btn--ghost { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
+    .ga-btn--ghost:hover { border-color: #1A1A1A; color: #1A1A1A; }
+    .ga-btn--success { background: #166534; color: #fff; }
+    .ga-btn--success:hover { background: #14532d; color: #fff; }
+    .ga-btn--danger  { background: #991b1b; color: #fff; }
+    .ga-btn--danger:hover  { background: #7f1d1d; color: #fff; }
+    .ga-btn--sm { padding: 7px 13px; font-size: 9px; }
+
+    /* ── ALERTS ────────────────────────────────────────── */
+    .ga-alert { display: flex; align-items: flex-start; gap: 12px; padding: 14px 18px; border-radius: 2px; font-size: 13px; margin-bottom: 20px; position: relative; }
+    .ga-alert i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+    .ga-alert--success { background: #F0FDF4; color: #166534; border-left: 3px solid #166534; }
+    .ga-alert--warning { background: #FFFBEB; color: #92400e; border-left: 3px solid #D4A96A; }
+    .ga-alert--danger  { background: #FEF2F2; color: #991b1b; border-left: 3px solid #991b1b; }
+    .ga-alert--info    { background: #EFF6FF; color: #1e40af; border-left: 3px solid #3b82f6; }
+    .ga-alert__close   { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 16px; cursor: pointer; color: inherit; opacity: 0.5; line-height: 1; }
+    .ga-alert__close:hover { opacity: 1; }
+    .ga-alert__body    { flex: 1; }
+    .ga-alert__title   { font-weight: 600; margin-bottom: 2px; }
+    .ga-alert__sub     { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+    .ga-alert__actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    /* ── GRID ──────────────────────────────────────────── */
+    .ga-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+    /* ── CARDS ─────────────────────────────────────────── */
+    .ga-card { background: #fff; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+    .ga-card__head { padding: 16px 22px; border-bottom: 1px solid #F0EBE3; display: flex; align-items: center; justify-content: space-between; }
+    .ga-card__title { font-family: 'Cormorant Garant', serif; font-size: 20px; font-weight: 600; color: #1A1A1A; }
+    .ga-card__body  { padding: 22px; }
+
+    /* ── INFO LIST ─────────────────────────────────────── */
+    .ga-info-list { list-style: none; margin: 0; padding: 0; }
+    .ga-info-list li { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F4F1EC; font-size: 13px; }
+    .ga-info-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .ga-info-list__label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #605f5f; min-width: 96px; padding-top: 1px; flex-shrink: 0; }
+    .ga-info-list__value { color: #1A1A1A; line-height: 1.5; }
+
+    /* ── PAYMENT BADGE ─────────────────────────────────── */
+    .ga-pay-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .ga-pay-badge--paid    { background: #F0FDF4; color: #166534; }
+    .ga-pay-badge--failed  { background: #FEF2F2; color: #991b1b; }
+    .ga-pay-badge--pending { background: #FFFBEB; color: #92400e; }
+
+    /* ── STATUS UPDATE ─────────────────────────────────── */
+    .ga-status-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ga-status-form label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; white-space: nowrap; }
+    .ga-select { padding: 9px 32px 9px 12px; border: 1.5px solid #E8E2DA; border-radius: 2px; font-family: 'Poppins', sans-serif; font-size: 12px; color: #1A1A1A; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E") no-repeat right 12px center; appearance: none; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    .ga-select:focus { border-color: #8B1A1A; }
+
+    .ga-locked { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #aaa; padding: 10px 0; }
+    .ga-locked i { color: #D4A96A; }
+
+    /* ── ORDER ITEMS TABLE ─────────────────────────────── */
+    .ga-table-wrap { overflow-x: auto; }
+    .ga-table { width: 100%; border-collapse: collapse; }
+    .ga-table thead { background: #1A1A1A; }
+    .ga-table thead th { padding: 13px 16px; text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; }
+    .ga-table tbody td { padding: 14px 16px; font-size: 13px; color: #1A1A1A; border-bottom: 1px solid #F4F1EC; vertical-align: middle; }
+    .ga-table tbody tr:last-child td { border-bottom: none; }
+    .ga-table tbody tr:hover td { background: #FAF7F4; }
+    .ga-table tfoot td { padding: 11px 16px; font-size: 13px; color: #1A1A1A; border-top: 1px solid #F0EBE3; }
+    .ga-table tfoot tr:last-child td { font-weight: 700; font-size: 14px; border-top: 2px solid #1A1A1A; }
+
+    /* ── PRODUCT THUMB ─────────────────────────────────── */
+    .ga-thumb { width: 52px; height: 52px; object-fit: cover; border-radius: 2px; display: block; }
+
+    /* ── ITEM BADGES ───────────────────────────────────── */
+    .ga-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .ga-badge--pending          { background: #FFFBEB; color: #92400e; }
+    .ga-badge--processing       { background: #EFF6FF; color: #1e40af; }
+    .ga-badge--shipped          { background: #EEF2FF; color: #3730a3; }
+    .ga-badge--delivered        { background: #F0FDF4; color: #166534; }
+    .ga-badge--cancelled        { background: #FEF2F2; color: #991b1b; }
+    .ga-badge--returned         { background: #F3E8FF; color: #6b21a8; }
+    .ga-badge--return-requested { background: #FFF7ED; color: #9a3412; }
+    .ga-badge--return-rejected  { background: #FEF2F2; color: #991b1b; }
+
+    .ga-cancel-reason { font-size: 11px; color: #aaa; margin-top: 4px; }
+
+    .ga-item-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+    /* ── TOTALS ────────────────────────────────────────── */
+    .ga-totals { display: flex; flex-direction: column; align-items: flex-end; padding: 18px 22px; border-top: 1px solid #F0EBE3; gap: 8px; }
+    .ga-totals__row { display: flex; gap: 32px; justify-content: flex-end; font-size: 13px; min-width: 260px; }
+    .ga-totals__label { color: #888; }
+    .ga-totals__value { color: #1A1A1A; font-weight: 500; min-width: 80px; text-align: right; }
+    .ga-totals__row--discount .ga-totals__label,
+    .ga-totals__row--discount .ga-totals__value { color: #166534; }
+    .ga-totals__divider { width: 260px; height: 1px; background: #E8E2DA; margin: 4px 0; align-self: flex-end; }
+    .ga-totals__row--total .ga-totals__label { font-weight: 700; font-size: 14px; color: #1A1A1A; }
+    .ga-totals__row--total .ga-totals__value { font-weight: 700; font-size: 15px; color: #8B1A1A; }
+
+    /* ── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .ga-page-head { padding: 24px 16px 0; flex-direction: column; align-items: flex-start; }
+      .ga-section   { padding: 0 16px 32px; }
+      .ga-two-col   { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <!-- PAGE HEADER -->
+  <div class="ga-page-head">
+    <div class="ga-page-head__left">
+      <p class="ga-page-head__eyebrow">Orders</p>
+      <h1 class="ga-page-head__title">Order Detail</h1>
+    </div>
+    <a href="/admin/order-list" class="ga-btn ga-btn--ghost">
+      <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+
+  <div class="ga-section">
+
+    <!-- ── FLASH ALERTS ───────────────────────────────── -->
+    <% if (req.query.action === 'accepted') { %>
+    <div class="ga-alert ga-alert--success" id="ga-flash">
+      <i class="bi bi-check-circle-fill"></i>
+      <div class="ga-alert__body">Return request accepted and refund processed successfully.</div>
+      <button class="ga-alert__close" onclick="this.closest('.ga-alert').remove()">×</button>
+    </div>
+    <% } else if (req.query.action === 'rejected') { %>
+    <div class="ga-alert ga-alert--warning" id="ga-flash">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div class="ga-alert__body">Return request has been rejected.</div>
+      <button class="ga-alert__close" onclick="this.closest('.ga-alert').remove()">×</button>
+    </div>
+    <% } %>
+
+    <!-- ── RETURN REQUEST ALERT ───────────────────────── -->
+    <% if (order.status === 'Return-Requested') { %>
+    <div class="ga-alert ga-alert--warning">
+      <i class="bi bi-arrow-counterclockwise"></i>
+      <div class="ga-alert__body">
+        <p class="ga-alert__title">Return Request Pending</p>
+        <% if (order.returnRequest && order.returnRequest.reason) { %>
+          <p class="ga-alert__sub">Reason: <%= order.returnRequest.reason %></p>
+        <% } %>
+        <% if (order.returnRequest && order.returnRequest.requestedAt) { %>
+          <p class="ga-alert__sub">Requested on <%= new Date(order.returnRequest.requestedAt).toDateString() %></p>
+        <% } %>
+        <div class="ga-alert__actions">
+          <button class="ga-btn ga-btn--success ga-btn--sm" onclick="handleReturnAction('<%= order._id %>', 'accept')">
+            <i class="bi bi-check-lg"></i> Accept Return
+          </button>
+          <button class="ga-btn ga-btn--danger ga-btn--sm" onclick="handleReturnAction('<%= order._id %>', 'reject')">
+            <i class="bi bi-x-lg"></i> Reject Return
+          </button>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (order.status === 'Returned') { %>
+    <div class="ga-alert ga-alert--success">
+      <i class="bi bi-check-circle-fill"></i>
+      <div class="ga-alert__body">Return has been accepted and refund processed.</div>
+    </div>
+    <% } %>
+
+    <% if (order.status === 'Return-Rejected') { %>
+    <div class="ga-alert ga-alert--danger">
+      <i class="bi bi-x-circle-fill"></i>
+      <div class="ga-alert__body">Return request was rejected.</div>
+    </div>
+    <% } %>
+
+    <% if (order.status === 'Cancelled' && order.cancellationReason) { %>
+    <div class="ga-alert ga-alert--danger">
+      <i class="bi bi-slash-circle-fill"></i>
+      <div class="ga-alert__body">
+        <p class="ga-alert__title">Order Cancelled</p>
+        <p class="ga-alert__sub"><%= order.cancellationReason %></p>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- ── INFO + ADDRESS ─────────────────────────────── -->
+    <div class="ga-two-col">
+
+      <!-- Order Info -->
+      <div class="ga-card" style="margin-bottom:0;">
+        <div class="ga-card__head">
+          <span class="ga-card__title">Order Info</span>
+          <%
+            let badgeClass = 'ga-badge--pending';
+            if (order.status === 'Processing')        badgeClass = 'ga-badge--processing';
+            else if (order.status === 'Shipped')      badgeClass = 'ga-badge--shipped';
+            else if (order.status === 'Delivered')    badgeClass = 'ga-badge--delivered';
+            else if (order.status === 'Cancelled')    badgeClass = 'ga-badge--cancelled';
+            else if (order.status === 'Returned')     badgeClass = 'ga-badge--returned';
+            else if (order.status === 'Return-Requested' || order.status === 'Return-Requested') badgeClass = 'ga-badge--return-requested';
+            else if (order.status === 'Return-Rejected') badgeClass = 'ga-badge--return-rejected';
+          %>
+          <span class="ga-badge <%= badgeClass %>"><%= order.status %></span>
+        </div>
+        <div class="ga-card__body">
+          <ul class="ga-info-list">
+            <li>
+              <span class="ga-info-list__label">Order ID</span>
+              <span class="ga-info-list__value" style="font-family:monospace; color:#888;">#<%= order.orderId %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Date</span>
+              <span class="ga-info-list__value"><%= order.createdAt.toDateString() %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Customer</span>
+              <span class="ga-info-list__value">
+                <%= order.userId?.name %><br>
+                <span style="font-size:11px; color:#aaa;"><%= order.userId?.email %></span>
+              </span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Total</span>
+              <span class="ga-info-list__value" style="font-weight:600; color:#8B1A1A;">₹<%= order.totalPrice?.toFixed(2) %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Payment</span>
+              <span class="ga-info-list__value" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <%= order.paymentMethod %>
+                <span class="ga-pay-badge ga-pay-badge--<%= (order.paymentStatus || '').toLowerCase() %>">
+                  <%= order.paymentStatus %>
+                </span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="ga-card" style="margin-bottom:0;">
+        <div class="ga-card__head">
+          <span class="ga-card__title">Shipping Address</span>
+        </div>
+        <div class="ga-card__body">
+          <ul class="ga-info-list">
+            <li>
+              <span class="ga-info-list__label">Type</span>
+              <span class="ga-info-list__value"><%= order.addressId?.addressType || 'N/A' %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">City</span>
+              <span class="ga-info-list__value"><%= order.addressId?.city %>, <%= order.addressId?.state %> — <%= order.addressId?.pincode %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Landmark</span>
+              <span class="ga-info-list__value"><%= order.addressId?.landmark || 'N/A' %></span>
+            </li>
+            <li>
+              <span class="ga-info-list__label">Phone</span>
+              <span class="ga-info-list__value">+91 <%= order.addressId?.phoneNumber || 'N/A' %></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
     </div>
 
-    <% if (req.query.action==='accepted' ) { %>
-      <div class="alert alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle me-2"></i> Return request accepted and processed successfully!
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- ── STATUS UPDATE ──────────────────────────────── -->
+    <%
+      var finalStatuses = ['Cancelled', 'Returned', 'Return-Rejected'];
+      var isFinal = finalStatuses.indexOf(order.status) !== -1;
+      var nextOptions = [];
+      if (order.status === 'Pending')               nextOptions = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+      else if (order.status === 'Processing')       nextOptions = ['Processing', 'Shipped', 'Delivered'];
+      else if (order.status === 'Shipped')          nextOptions = ['Shipped', 'Delivered'];
+      else if (order.status === 'Delivered')        nextOptions = ['Delivered', 'Return-Requested', 'Returned'];
+      else if (order.status === 'Return-Requested') nextOptions = ['Return-Requested', 'Returned', 'Return-Rejected'];
+    %>
+    <div class="ga-card">
+      <div class="ga-card__head">
+        <span class="ga-card__title">Update Status</span>
       </div>
-      <% } else if (req.query.action==='rejected' ) { %>
-        <div class="alert alert-warning alert-dismissible fade show">
-          <i class="fas fa-exclamation-triangle me-2"></i> Return request has been rejected.
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <div class="ga-card__body">
+        <% if (isFinal) { %>
+          <div class="ga-locked">
+            <i class="bi bi-lock-fill"></i>
+            This order is <strong style="margin-left:4px;"><%= order.status %></strong> — no further updates allowed.
+          </div>
+        <% } else if (nextOptions.length === 0) { %>
+          <div class="ga-locked">
+            <i class="bi bi-info-circle"></i> No further status updates available.
+          </div>
+        <% } else { %>
+          <form id="status-form" action="/admin/order-list/<%= order._id %>/status" method="POST">
+            <div class="ga-status-form">
+              <label>New Status</label>
+              <select class="ga-select" name="status" id="status-select">
+                <% nextOptions.forEach(function(option) { %>
+                  <option value="<%= option %>"><%= option %></option>
+                <% }); %>
+              </select>
+              <button class="ga-btn ga-btn--dark" type="submit" id="status-update-btn">
+                <i class="bi bi-check-lg"></i> Apply
+              </button>
+            </div>
+          </form>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- ── ORDER ITEMS ────────────────────────────────── -->
+    <div class="ga-card">
+      <div class="ga-card__head">
+        <span class="ga-card__title">Order Items</span>
+        <span style="font-size:11px; color:#aaa;"><%= order.orderItems.length %> item<%= order.orderItems.length !== 1 ? 's' : '' %></span>
+      </div>
+      <div class="ga-table-wrap">
+        <table class="ga-table">
+          <thead>
+            <tr>
+              <th style="width:68px;">Image</th>
+              <th>Product</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th>Subtotal</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.orderItems.forEach(function(item) {
+              let itemBadge = 'ga-badge--pending';
+              if (item.status === 'Cancelled')        itemBadge = 'ga-badge--cancelled';
+              else if (item.status === 'Delivered')   itemBadge = 'ga-badge--delivered';
+              else if (item.status === 'Returned')    itemBadge = 'ga-badge--returned';
+              else if (item.status === 'Return-Requested') itemBadge = 'ga-badge--return-requested';
+              else if (item.status === 'Return-Rejected')  itemBadge = 'ga-badge--return-rejected';
+            %>
+            <tr>
+              <td>
+                <img class="ga-thumb" src="<%= item.image || '/images/placeholder.jpg' %>" alt="<%= item.name %>">
+              </td>
+              <td style="font-weight:500;"><%= item.name || 'N/A' %></td>
+              <td>₹<%= item.price ? item.price.toFixed(2) : 'N/A' %></td>
+              <td><%= item.quantity %></td>
+              <td style="font-weight:600; color:#8B1A1A;">₹<%= item.price ? (item.price * item.quantity).toFixed(2) : 'N/A' %></td>
+              <td>
+                <span class="ga-badge <%= itemBadge %>"><%= item.status || 'Pending' %></span>
+                <% if (item.status === 'Cancelled' && item.cancelReason) { %>
+                  <p class="ga-cancel-reason"><%= item.cancelReason %></p>
+                <% } %>
+                <% if (item.status === 'Return-Requested') { %>
+                  <% if (item.returnRequest && item.returnRequest.reason) { %>
+                    <p class="ga-cancel-reason">Reason: <%= item.returnRequest.reason %></p>
+                  <% } %>
+                  <div class="ga-item-actions">
+                    <button class="ga-btn ga-btn--success ga-btn--sm" onclick="handleItemReturnAction('<%= order._id %>', '<%= item.productId %>', 'accept')">
+                      <i class="bi bi-check-lg"></i> Accept
+                    </button>
+                    <button class="ga-btn ga-btn--danger ga-btn--sm" onclick="handleItemReturnAction('<%= order._id %>', '<%= item.productId %>', 'reject')">
+                      <i class="bi bi-x-lg"></i> Reject
+                    </button>
+                  </div>
+                <% } %>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div class="ga-totals">
+        <div class="ga-totals__row">
+          <span class="ga-totals__label">Subtotal</span>
+          <span class="ga-totals__value">₹<%= order.subtotal ? order.subtotal.toFixed(2) : order.totalPrice.toFixed(2) %></span>
+        </div>
+        <div class="ga-totals__row">
+          <span class="ga-totals__label">Shipping</span>
+          <span class="ga-totals__value">₹<%= (order.shipping || 50).toFixed(2) %></span>
+        </div>
+        <% if (order.discount && order.discount > 0) { %>
+        <div class="ga-totals__row ga-totals__row--discount">
+          <span class="ga-totals__label">Discount</span>
+          <span class="ga-totals__value">−₹<%= order.discount.toFixed(2) %></span>
         </div>
         <% } %>
-
-          <!-- ── ORDER INFO ─────────────────────────────────────────────── -->
-          <div class="card p-4 mb-4 shadow-sm">
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <h5 class="fw-bold mb-3">Order Information</h5>
-                <p class="mb-1"><strong>Order ID:</strong> #<%= order.orderId %>
-                </p>
-                <p class="mb-1"><strong>Date:</strong>
-                  <%= order.createdAt.toDateString() %>
-                </p>
-                <p class="mb-1"><strong>Customer:</strong>
-                  <%= order.userId?.name %> (<%= order.userId?.email %>)
-                </p>
-                <p class="mb-1"><strong>Total:</strong> ₹<%= order.totalPrice?.toFixed(2) %>
-                </p>
-                <p class="mb-1">
-                  <strong>Payment:</strong>
-                  <%= order.paymentMethod %> —
-                    <span
-                      class="badge <%= order.paymentStatus === 'Paid' ? 'bg-success' : order.paymentStatus === 'Failed' ? 'bg-danger' : 'bg-warning text-dark' %>">
-                      <%= order.paymentStatus %>
-                    </span>
-                </p>
-              </div>
-              <div class="col-md-6">
-                <h5 class="fw-bold mb-3">Shipping Address</h5>
-                <p class="mb-1"><strong>Type:</strong>
-                  <%= order.addressId?.addressType || 'N/A' %>
-                </p>
-                <p class="mb-1"><strong>City:</strong>
-                  <%= order.addressId?.city %>, <%= order.addressId?.state %> - <%= order.addressId?.pincode %>
-                </p>
-                <p class="mb-1"><strong>Landmark:</strong>
-                  <%= order.addressId?.landmark || 'N/A' %>
-                </p>
-                <p class="mb-1"><strong>Phone:</strong> +91 <%= order.addressId?.phoneNumber || 'N/A' %>
-                </p>
-              </div>
-            </div>
-
-            <!-- Status Update -->
-            <!-- Status Update -->
-<div class="border-top pt-3">
-  <%
-    var finalStatuses = ['Cancelled', 'Returned', 'Return-Rejected'];
-    var isFinal = finalStatuses.indexOf(order.status) !== -1;
-
-    var nextOptions = [];
-
-    if (order.status === 'Pending')          nextOptions = ['Pending', 'Processing', 'Shipped', 'Delivered'];
-    else if (order.status === 'Processing')  nextOptions = ['Processing', 'Shipped', 'Delivered'];
-    else if (order.status === 'Shipped')     nextOptions = ['Shipped','Delivered'];
-    else if (order.status === 'Delivered')   nextOptions = ['Delivered', 'Return-Requested', 'Returned'];
-    else if (order.status === 'Return-Requested') nextOptions = ['Return-Requested', 'Returned', 'Return-Rejected'];
-  %>
-
-  <% if (isFinal) { %>
-    <div class="alert alert-secondary py-2 mb-0">
-      <i class="fas fa-lock me-2"></i>
-      This order is <strong><%= order.status %></strong>.
-    </div>
-
-  <% } else if (nextOptions.length === 0) { %>
-    <div class="alert alert-warning py-2 mb-0">
-      No further status updates available for this order.
-    </div>
-
-  <% } else { %>
-    <form id="status-form" action="/admin/order-list/<%= order._id %>/status" method="POST">
-      <div class="d-flex align-items-center gap-2">
-        <label class="form-label mb-0 fw-medium">Update Status:</label>
-        <select class="form-select form-select-sm" name="status" id="status-select" style="max-width:200px;">
-          <% nextOptions.forEach(function(option) { %>
-            <option value="<%= option %>"><%= option %></option>
-          <% }); %>
-        </select>
-        <button class="btn btn-sm btn-primary" type="submit" id="status-update-btn">
-          <i class="fas fa-save me-1"></i> Update
-        </button>
+        <div class="ga-totals__divider"></div>
+        <div class="ga-totals__row ga-totals__row--total">
+          <span class="ga-totals__label">Total</span>
+          <span class="ga-totals__value">₹<%= order.totalPrice.toFixed(2) %></span>
+        </div>
       </div>
-    </form>
-  <% } %>
-</div>
-          </div>
+    </div>
 
-          <!-- ── RETURN REQUEST ALERT ───────────────────────────────────── -->
-          <% if (order.status==='Return-Requested' ) { %>
-            <div class="alert alert-warning d-flex align-items-center justify-content-between mb-4">
-              <div>
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Return Request Pending</strong>
-                <% if (order.returnRequest && order.returnRequest.reason) { %>
-                  <!-- ✅ Read from order.returnRequest.reason not order.returnReason -->
-                  <p class="mb-0 mt-1 text-muted">Reason: <%= order.returnRequest.reason %>
-                  </p>
-                  <% } %>
-                    <% if (order.returnRequest && order.returnRequest.requestedAt) { %>
-                      <p class="mb-0 text-muted small">
-                        Requested on: <%= new Date(order.returnRequest.requestedAt).toDateString() %>
-                      </p>
-                      <% } %>
-              </div>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-success"
-                  onclick="handleReturnAction('<%= order._id %>', 'accept')">
-                  <i class="fas fa-check me-1"></i> Accept
-                </button>
-                <button type="button" class="btn btn-sm btn-danger"
-                  onclick="handleReturnAction('<%= order._id %>', 'reject')">
-                  <i class="fas fa-times me-1"></i> Reject
-                </button>
-              </div>
-            </div>
-            <% } %>
+  </div><!-- /.ga-section -->
+</main>
 
-              <% if (order.status==='Returned' ) { %>
-                <div class="alert alert-success mb-4">
-                  <i class="fas fa-check-circle me-2"></i> Return has been accepted and processed.
-                </div>
-                <% } %>
-
-                  <% if (order.status==='Return-Rejected' ) { %>
-                    <div class="alert alert-danger mb-4">
-                      <i class="fas fa-times-circle me-2"></i> Return request was rejected.
-                    </div>
-                    <% } %>
-
-                      <% if (order.status==='Cancelled' && order.cancellationReason) { %>
-                        <div class="alert alert-danger mb-4">
-                          <strong>Cancellation Reason:</strong>
-                          <%= order.cancellationReason %>
-                        </div>
-                        <% } %>
-
-                          <!-- ── ORDER ITEMS ─────────────────────────────────────────────── -->
-                          <div class="card shadow-sm mb-4">
-                            <div class="card-header fw-bold">Order Items</div>
-                            <div class="card-body p-0">
-                              <table class="table table-bordered mb-0">
-                                <thead class="table-light">
-                                  <tr>
-                                    <th>Image</th>
-                                    <th>Product</th>
-                                    <th>Price</th>
-                                    <th>Qty</th>
-                                    <th>Subtotal</th>
-                                    <th>Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <% order.orderItems.forEach(function(item) { %>
-                                    <tr>
-                                      <td style="width:70px;">
-                                        <!-- ✅ Use item.image stored in order -->
-                                        <img src="<%= item.image || '/images/placeholder.jpg' %>" alt="<%= item.name %>"
-                                          style="width:55px; height:55px; object-fit:cover; border-radius:4px;">
-                                      </td>
-                                      <!-- ✅ Use item.name and item.price stored in order -->
-                                      <td>
-                                        <%= item.name || 'N/A' %>
-                                      </td>
-                                      <td>₹<%= item.price ? item.price.toFixed(2) : 'N/A' %>
-                                      </td>
-                                      <td>
-                                        <%= item.quantity %>
-                                      </td>
-                                      <td>₹<%= item.price ? (item.price * item.quantity).toFixed(2) : 'N/A' %>
-                                      </td>
-                                      <td>
-                                        <% if (item.status==='Cancelled' ) { %>
-                                          <span class="badge bg-danger">Cancelled</span>
-                                          <% if (item.cancelReason) { %>
-                                            <br>
-                                            <small class="text-muted">
-                                              <%= item.cancelReason %>
-                                            </small>
-                                            <% } %>
-                                              <% } else if (item.status==='Delivered' ) { %>
-                                                <span class="badge bg-success">Delivered</span>
-                                                <% } else if (item.status==='Return-Requested' ) { %>
-                                                  <span class="badge bg-warning text-dark">Return Requested</span>
-                                                  <% if (item.returnRequest && item.returnRequest.reason) { %>
-                                                    <br><small class="text-muted">Reason: <%= item.returnRequest.reason
-                                                        %></small>
-                                                    <% } %>
-                                                      <div class="mt-2 d-flex gap-1">
-                                                        <button class="btn btn-xs btn-success btn-sm py-0 px-2"
-                                                          onclick="handleItemReturnAction('<%= order._id %>', '<%= item.productId %>', 'accept')">
-                                                          <i class="fas fa-check"></i> Accept
-                                                        </button>
-                                                        <button class="btn btn-xs btn-danger btn-sm py-0 px-2"
-                                                          onclick="handleItemReturnAction('<%= order._id %>', '<%= item.productId %>', 'reject')">
-                                                          <i class="fas fa-times"></i> Reject
-                                                        </button>
-                                                      </div>
-                                                      <% } else if (item.status==='Returned' ) { %>
-                                                        <span class="badge bg-success">Returned</span>
-                                                        <% } else if (item.status==='Return-Rejected' ) { %>
-                                                          <span class="badge bg-danger">Return Rejected</span>
-                                                          <% } else { %>
-                                                            <span class="badge bg-primary">
-                                                              <%= item.status || 'Pending' %>
-                                                            </span>
-                                                            <% } %>
-                                      </td>
-                                    </tr>
-                                    <% }); %>
-                                </tbody>
-                                <tfoot class="table-light">
-                                  <tr>
-                                    <td colspan="4" class="text-end fw-bold">Subtotal</td>
-                                    <td colspan="2">₹<%= order.subtotal ? order.subtotal.toFixed(2) :
-                                        order.totalPrice.toFixed(2) %>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td colspan="4" class="text-end fw-bold">Shipping</td>
-                                    <td colspan="2">₹<%= (order.shipping || 50).toFixed(2) %>
-                                    </td>
-                                  </tr>
-                                  <% if (order.discount && order.discount> 0) { %>
-                                    <tr>
-                                      <td colspan="4" class="text-end fw-bold text-success">Discount</td>
-                                      <td colspan="2" class="text-success">-₹<%= order.discount.toFixed(2) %>
-                                      </td>
-                                    </tr>
-                                    <% } %>
-                                      <tr class="fw-bold">
-                                        <td colspan="4" class="text-end">Total</td>
-                                        <td colspan="2">₹<%= order.totalPrice.toFixed(2) %>
-                                        </td>
-                                      </tr>
-                                </tfoot>
-                              </table>
-                            </div>
-                          </div>
-
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    async function handleReturnAction(orderId, action) {
-      const confirmed = await Swal.fire({
-        title: action === 'accept' ? 'Accept Return?' : 'Reject Return?',
-        text: action === 'accept'
-          ? 'This will process a refund to the customer wallet.'
-          : 'The return request will be rejected.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: action === 'accept' ? 'Yes, Accept' : 'Yes, Reject',
-        confirmButtonColor: action === 'accept' ? '#28a745' : '#dc3545'
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  /* ── Return (order-level) ─────────────────────────── */
+  async function handleReturnAction(orderId, action) {
+    const confirmed = await Swal.fire({
+      title: action === 'accept' ? 'Accept Return?' : 'Reject Return?',
+      text:  action === 'accept'
+        ? 'A refund will be credited to the customer wallet.'
+        : 'The return request will be marked as rejected.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: action === 'accept' ? 'Yes, Accept' : 'Yes, Reject',
+      confirmButtonColor: action === 'accept' ? '#166534' : '#991b1b',
+      cancelButtonColor: '#888'
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      const res    = await fetch('/admin/order-list/' + orderId + '/verify-return?action=' + action, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
       });
-
-      if (!confirmed.isConfirmed) return;
-
-      try {
-        const res = await fetch('/admin/order-list/' + orderId + '/verify-return?action=' + action, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const result = await res.json();
-
-        if (res.ok) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Done!',
-            text: action === 'accept' ? 'Return accepted and refund processed.' : 'Return request rejected.',
-            showConfirmButton: false,
-            timer: 1500
-          });
-          window.location.reload();
-        } else {
-          throw new Error(result.message || 'Failed to process return');
-        }
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-      }
+      const result = await res.json();
+      if (res.ok) {
+        await Swal.fire({ icon: 'success', title: 'Done!',
+          text: action === 'accept' ? 'Return accepted and refund processed.' : 'Return request rejected.',
+          showConfirmButton: false, timer: 1500 });
+        window.location.reload();
+      } else { throw new Error(result.message || 'Failed to process return'); }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.message });
     }
+  }
 
-    async function handleItemReturnAction(orderId, productId, action) {
-  const confirmed = await Swal.fire({
-    title:             action === 'accept' ? 'Accept Item Return?' : 'Reject Item Return?',
-    text:              action === 'accept'
-                       ? 'Refund will be credited to the customer wallet.'
-                       : 'This item return request will be rejected.',
-    icon:              'warning',
-    showCancelButton:  true,
-    confirmButtonText: action === 'accept' ? 'Yes, Accept' : 'Yes, Reject',
-    confirmButtonColor: action === 'accept' ? '#28a745' : '#dc3545'
+  /* ── Return (item-level) ──────────────────────────── */
+  async function handleItemReturnAction(orderId, productId, action) {
+    const confirmed = await Swal.fire({
+      title: action === 'accept' ? 'Accept Item Return?' : 'Reject Item Return?',
+      text:  action === 'accept'
+        ? 'Refund will be credited to the customer wallet.'
+        : 'This item return request will be rejected.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: action === 'accept' ? 'Yes, Accept' : 'Yes, Reject',
+      confirmButtonColor: action === 'accept' ? '#166534' : '#991b1b',
+      cancelButtonColor: '#888'
+    });
+    if (!confirmed.isConfirmed) return;
+    try {
+      const res    = await fetch(
+        '/admin/order-list/' + orderId + '/verify-item-return/' + productId + '?action=' + action,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+      );
+      const result = await res.json();
+      if (res.ok && result.success) {
+        await Swal.fire({ icon: 'success', title: 'Done!',
+          text: action === 'accept' ? 'Item return accepted and refund processed.' : 'Item return rejected.',
+          showConfirmButton: false, timer: 1500 });
+        window.location.reload();
+      } else { throw new Error(result.message || 'Failed to process item return'); }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+    }
+  }
+
+  /* ── Status form ──────────────────────────────────── */
+  document.getElementById('status-form')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const status    = document.getElementById('status-select').value;
+    const orderId   = '<%= order.orderId %>';
+    const updateBtn = document.getElementById('status-update-btn');
+
+    updateBtn.disabled     = true;
+    updateBtn.innerHTML    = '<span class="spinner-border spinner-border-sm" style="width:12px;height:12px;border-width:2px;"></span> Updating…';
+
+    try {
+      const res    = await fetch(this.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        await Swal.fire({ icon: 'success', title: 'Status Updated',
+          text: 'Order #' + orderId + ' → ' + status,
+          showConfirmButton: false, timer: 1500 });
+        window.location.reload();
+      } else { throw new Error(result.message || 'Failed to update status'); }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Update Failed', text: err.message });
+    } finally {
+      updateBtn.disabled  = false;
+      updateBtn.innerHTML = '<i class="bi bi-check-lg"></i> Apply';
+    }
   });
 
-  if (!confirmed.isConfirmed) return;
+  /* ── Auto-dismiss flash alert ─────────────────────── */
+  const flash = document.getElementById('ga-flash');
+  if (flash) setTimeout(() => flash.remove(), 4000);
+</script>
 
-  try {
-    const res = await fetch(
-      '/admin/order-list/' + orderId + '/verify-item-return/' + productId + '?action=' + action,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' } }
-    );
-    const result = await res.json();
-
-    if (res.ok && result.success) {
-      await Swal.fire({
-        icon: 'success',
-        title: 'Done!',
-        text: action === 'accept' ? 'Item return accepted and refund processed.' : 'Item return rejected.',
-        showConfirmButton: false,
-        timer: 1500
-      });
-      window.location.reload();
-    } else {
-      throw new Error(result.message || 'Failed to process item return');
-    }
-  } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
-  }
-}
-
-    document.getElementById('status-form')?.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const status = document.getElementById('status-select').value;
-      const orderId = '<%= order.orderId %>';
-      const updateBtn = document.getElementById('status-update-btn');
-
-      updateBtn.disabled = true;
-      updateBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Updating...';
-
-      try {
-        const res = await fetch(this.action, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
-        });
-        const result = await res.json();
-
-        if (res.ok) {
-          await Swal.fire({
-            icon: 'success',
-            title: 'Status Updated!',
-            text: 'Order #' + orderId + ' → ' + status,
-            showConfirmButton: false,
-            timer: 1500
-          });
-          window.location.reload();
-        } else {
-          throw new Error(result.message || 'Failed to update status');
-        }
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Update Failed', text: err.message });
-      } finally {
-        updateBtn.disabled = false;
-        updateBtn.innerHTML = '<i class="fas fa-save me-1"></i> Update';
-      }
-    });
-  </script>
-
-  <%- include('../partials/admin/footer') %>
-    <style>
-      .status-update {
-        background-color: #f8f9fa;
-        padding: 12px 15px;
-        border-radius: 6px;
-        border-left: 4px solid #0d6efd;
-      }
-
-      .order-status-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        text-transform: capitalize;
-      }
-
-      .order-status-badge.pending {
-        background-color: #fff3cd;
-        color: #856404;
-      }
-
-      .order-status-badge.processing {
-        background-color: #cce5ff;
-        color: #004085;
-      }
-
-      .order-status-badge.shipped {
-        background-color: #e2e3e5;
-        color: #383d41;
-      }
-
-      .order-status-badge.delivered {
-        background-color: #d4edda;
-        color: #155724;
-      }
-
-      .order-status-badge.cancelled {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-
-      .order-status-badge.returned {
-        background-color: #e2d4ed;
-        color: #4a1c72;
-      }
-
-      #status-select {
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      #status-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-      }
-
-      #status-update-btn {
-        min-width: 90px;
-      }
-
-      @media (max-width: 576px) {
-        .status-update .d-flex {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-        }
-
-        #status-select {
-          max-width: 100% !important;
-          width: 100%;
-        }
-
-        #status-update-btn {
-          width: 100%;
-        }
-      }
-    </style>
+<%- include('../partials/admin/footer') %>

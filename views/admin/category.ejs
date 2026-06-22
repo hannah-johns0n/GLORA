@@ -1,85 +1,323 @@
 <%- include('../partials/admin/header') %>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
-  <h1 class="mb-4">Category Management</h1>
+<main class="ga-main">
 
-  <div class="d-flex justify-content-end mb-3">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-      <i class="bi bi-plus-circle me-2"></i> Add Category
-    </button>
+  <style>
+    .ga-page-head {
+      padding: 32px 32px 0;
+      margin-bottom: 28px;
+    }
+    .ga-page-head__eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #D4A96A;
+      margin-bottom: 6px;
+    }
+    .ga-page-head__row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .ga-page-head__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 36px;
+      font-weight: 600;
+      color: #1A1A1A;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .ga-section { padding: 0 32px 40px; }
+
+    .ga-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border-radius: 2px;
+    }
+    .ga-btn--dark { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover { background: #8B1A1A; color: #fff; }
+    .ga-btn--ghost { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
+    .ga-btn--ghost:hover { border-color: #8B1A1A; color: #8B1A1A; }
+
+    .ga-card { background: #fff; border-radius: 3px; overflow: hidden; }
+    .ga-table-wrap { overflow-x: auto; }
+    .ga-table { width: 100%; border-collapse: collapse; }
+    .ga-table thead { background: #1A1A1A; }
+    .ga-table thead th {
+      padding: 13px 16px;
+      text-align: left;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      white-space: nowrap;
+    }
+    .ga-table tbody td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #1A1A1A;
+      border-bottom: 1px solid #F4F1EC;
+      vertical-align: middle;
+    }
+    .ga-table tbody tr:last-child td { border-bottom: none; }
+    .ga-table tbody tr:hover td { background: #FAF7F4; }
+
+    .ga-cat-img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 2px;
+      display: block;
+    }
+    .ga-cat-img-placeholder {
+      width: 48px;
+      height: 48px;
+      background: #F0EBE3;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ga-cat-img-placeholder i { color: #ccc; font-size: 1.1rem; }
+
+    .ga-cat-name { font-weight: 500; }
+    .ga-cat-desc { font-size: 12px; color: #888; max-width: 260px; }
+
+    .ga-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .ga-badge--active  { background: #F0FDF4; color: #166534; }
+    .ga-badge--blocked { background: #FEF2F2; color: #991b1b; }
+
+    .ga-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border: 1.5px solid;
+      border-radius: 2px;
+      cursor: pointer;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+    .ga-action-btn--block   { border-color: #fca5a5; color: #991b1b; }
+    .ga-action-btn--block:hover   { background: #991b1b; color: #fff; border-color: #991b1b; }
+    .ga-action-btn--unblock { border-color: #86efac; color: #166534; }
+    .ga-action-btn--unblock:hover { background: #166634; color: #fff; border-color: #166634; }
+    .ga-action-btn--edit    { border-color: #E8E2DA; color: #555; }
+    .ga-action-btn--edit:hover    { border-color: #1A1A1A; color: #1A1A1A; }
+
+    .ga-actions-cell { display: flex; gap: 8px; align-items: center; }
+
+    .ga-pagination {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 28px;
+      list-style: none;
+      padding: 0;
+    }
+    .ga-pagination li a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid #E8E2DA;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+    .ga-pagination li a:hover { border-color: #8B1A1A; color: #8B1A1A; }
+    .ga-pagination li.active a { background: #1A1A1A; border-color: #1A1A1A; color: #fff; }
+
+    .ga-modal .modal-content {
+      border: none;
+      border-radius: 3px;
+      font-family: 'Poppins', sans-serif;
+    }
+    .ga-modal .modal-header {
+      background: #1A1A1A;
+      border-bottom: none;
+      padding: 20px 24px;
+      border-radius: 3px 3px 0 0;
+    }
+    .ga-modal .modal-title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #FAF7F4;
+      letter-spacing: 0.3px;
+    }
+    .ga-modal .btn-close { filter: invert(1); opacity: 0.6; }
+    .ga-modal .btn-close:hover { opacity: 1; }
+    .ga-modal .modal-body { padding: 24px; background: #fff; }
+    .ga-modal .modal-footer {
+      padding: 16px 24px;
+      background: #FAF7F4;
+      border-top: 1px solid #E8E2DA;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .ga-modal .form-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    .ga-modal .form-control {
+      border: 1.5px solid #E8E2DA;
+      border-radius: 2px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: #1A1A1A;
+      padding: 10px 12px;
+      transition: border-color 0.2s ease;
+    }
+    .ga-modal .form-control:focus {
+      border-color: #8B1A1A;
+      box-shadow: none;
+      outline: none;
+    }
+    .ga-modal .form-text { font-size: 11px; color: #bbb; margin-top: 5px; }
+    .ga-modal .form-required { color: #8B1A1A; }
+
+    .ga-img-preview {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 2px;
+      border: 1px solid #E8E2DA;
+      display: block;
+      margin-top: 10px;
+    }
+    .ga-img-label {
+      font-size: 10px;
+      color: #bbb;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    @media (max-width: 640px) {
+      .ga-page-head { padding: 24px 16px 0; }
+      .ga-section { padding: 0 16px 32px; }
+      .ga-page-head__row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+
+  <div class="ga-page-head">
+    <p class="ga-page-head__eyebrow">Manage</p>
+    <div class="ga-page-head__row">
+      <h1 class="ga-page-head__title">Categories</h1>
+      <button type="button" class="ga-btn ga-btn--dark" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="bi bi-plus"></i> Add Category
+      </button>
+    </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="table table-hover table-bordered mt-3">
-      <thead class="table-dark">
-        <tr>
-          <th scope="col">Image</th>
-          <th scope="col">Category Name</th>
-          <th scope="col">Description</th>
-          <th scope="col">Status</th>
-          <th scope="col">Actions</th>
-          <th scope="col">Edit</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% categories.forEach(category => { %>
-        <tr data-category-id="<%= category._id %>">
-          <td>
-            <% if (category.image) { %>
-              <img src="<%= category.image %>" alt="<%= category.categoryName %>"
-                   style="width:48px;height:48px;object-fit:cover;border-radius:6px;">
-            <% } else { %>
-              <div style="width:48px;height:48px;background:#f0ebe3;border-radius:6px;display:flex;align-items:center;justify-content:center;">
-                <i class="bi bi-image" style="color:#bbb;font-size:1.2rem;"></i>
-              </div>
-            <% } %>
-          </td>
-          <td class="category-name align-middle"><%= category.categoryName %></td>
-          <td class="category-description align-middle"><%= category.description || 'No description available' %></td>
-          <td class="align-middle">
-            <span class="badge rounded-pill <%= category.isBlocked ? 'bg-danger' : 'bg-success' %> px-3 py-2" style="font-size: 0.9rem;">
-              <i class="bi <%= category.isBlocked ? 'bi-x-circle-fill' : 'bi-check-circle-fill' %>"></i>
-              <%= category.isBlocked ? 'Blocked' : 'Active' %>
-            </span>
-          </td>
-          <td class="align-middle">
-            <button type="button"
-                    class="btn <%= category.isBlocked ? 'btn-success' : 'btn-danger' %> btn-sm block-category-btn"
+  <div class="ga-section">
+    <div class="ga-card">
+      <div class="ga-table-wrap">
+        <table class="ga-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% categories.forEach(category => { %>
+            <tr data-category-id="<%= category._id %>">
+              <td>
+                <% if (category.image) { %>
+                  <img src="<%= category.image %>" alt="<%= category.categoryName %>" class="ga-cat-img">
+                <% } else { %>
+                  <div class="ga-cat-img-placeholder"><i class="bi bi-image"></i></div>
+                <% } %>
+              </td>
+              <td class="ga-cat-name category-name"><%= category.categoryName %></td>
+              <td class="ga-cat-desc category-description"><%= category.description || '—' %></td>
+              <td>
+                <span class="ga-badge <%= category.isBlocked ? 'ga-badge--blocked' : 'ga-badge--active' %>">
+                  <%= category.isBlocked ? 'Blocked' : 'Active' %>
+                </span>
+              </td>
+              <td>
+                <div class="ga-actions-cell">
+                  <button type="button"
+                    class="ga-action-btn <%= category.isBlocked ? 'ga-action-btn--unblock' : 'ga-action-btn--block' %> block-category-btn"
                     data-category-id="<%= category._id %>"
                     data-blocked="<%= category.isBlocked %>">
-              <i class="bi <%= category.isBlocked ? 'bi-unlock' : 'bi-lock' %> me-1"></i>
-              <%= category.isBlocked ? 'Unblock' : 'Block' %>
-            </button>
-          </td>
-          <td class="align-middle">
-            <button type="button"
-                    class="btn btn-info btn-sm edit-category-btn"
+                    <i class="bi bi-<%= category.isBlocked ? 'unlock' : 'slash-circle' %>"></i>
+                    <%= category.isBlocked ? 'Unblock' : 'Block' %>
+                  </button>
+                  <button type="button"
+                    class="ga-action-btn ga-action-btn--edit edit-category-btn"
                     data-category-id="<%= category._id %>"
                     data-category-name="<%= category.categoryName %>"
                     data-category-description="<%= category.description %>"
                     data-category-image="<%= category.image || '' %>">
-              <i class="bi bi-pencil-square me-1"></i> Edit
-            </button>
-          </td>
-        </tr>
-        <% }); %>
-      </tbody>
-    </table>
+                    <i class="bi bi-pencil"></i> Edit
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
+    <% if (totalPages > 1) { %>
+    <nav>
+      <ul class="ga-pagination">
         <% for (let i = 1; i <= totalPages; i++) { %>
-          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
-          </li>
+        <li class="<%= i === currentPage ? 'active' : '' %>">
+          <a href="?page=<%= i %>"><%= i %></a>
+        </li>
         <% } %>
       </ul>
     </nav>
+    <% } %>
   </div>
 </main>
 
-<!-- ── ADD CATEGORY MODAL ─────────────────────────────── -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1">
+<!-- ADD CATEGORY MODAL -->
+<div class="modal fade ga-modal" id="addCategoryModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -88,34 +326,34 @@
       </div>
       <form id="addCategoryForm">
         <div class="modal-body">
-          <div class="mb-3">
-            <label for="categoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
+          <div class="mb-4">
+            <label for="categoryName" class="form-label">Category Name <span class="ga-modal .form-required">*</span></label>
             <input type="text" class="form-control" id="categoryName" name="name" required>
           </div>
-          <div class="mb-3">
+          <div class="mb-4">
             <label for="categoryDescription" class="form-label">Description</label>
             <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
           </div>
-          <div class="mb-3">
-            <label for="addCategoryImage" class="form-label">Category Image <span class="text-danger">*</span></label>
+          <div class="mb-2">
+            <label for="addCategoryImage" class="form-label">Category Image <span style="color:#8B1A1A;">*</span></label>
             <input type="file" class="form-control" id="addCategoryImage" name="image" accept="image/*" required>
-            <div id="addImagePreview" class="mt-2" style="display:none;">
-              <img id="addPreviewImg" src="" alt="Preview"
-                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            <div id="addImagePreview" style="display:none;">
+              <p class="ga-img-label mt-2">Preview</p>
+              <img id="addPreviewImg" src="" alt="Preview" class="ga-img-preview">
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add Category</button>
+          <button type="button" class="ga-btn ga-btn--ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="ga-btn ga-btn--dark">Add Category</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- ── EDIT CATEGORY MODAL ────────────────────────────── -->
-<div class="modal fade" id="editCategoryModal" tabindex="-1">
+<!-- EDIT CATEGORY MODAL -->
+<div class="modal fade ga-modal" id="editCategoryModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -125,33 +363,31 @@
       <form id="editCategoryForm">
         <input type="hidden" id="editCategoryId" name="categoryId">
         <div class="modal-body">
-          <div class="mb-3">
-            <label for="editCategoryName" class="form-label">Category Name <span class="text-danger">*</span></label>
+          <div class="mb-4">
+            <label for="editCategoryName" class="form-label">Category Name <span style="color:#8B1A1A;">*</span></label>
             <input type="text" class="form-control" id="editCategoryName" name="name" required>
           </div>
-          <div class="mb-3">
+          <div class="mb-4">
             <label for="editCategoryDescription" class="form-label">Description</label>
             <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
           </div>
-          <div class="mb-3">
+          <div class="mb-2">
             <label for="editCategoryImage" class="form-label">Category Image</label>
-            <div id="editCurrentImageWrap" class="mb-2" style="display:none;">
-              <p class="text-muted mb-1" style="font-size:12px;">Current image:</p>
-              <img id="editCurrentImg" src="" alt="Current"
-                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            <div id="editCurrentImageWrap" style="display:none; margin-bottom:10px;">
+              <p class="ga-img-label">Current image</p>
+              <img id="editCurrentImg" src="" alt="Current" class="ga-img-preview">
             </div>
             <input type="file" class="form-control" id="editCategoryImage" name="image" accept="image/*">
-            <small class="text-muted">Leave empty to keep the current image</small>
-            <div id="editImagePreview" class="mt-2" style="display:none;">
-              <p class="text-muted mb-1" style="font-size:12px;">New image preview:</p>
-              <img id="editPreviewImg" src="" alt="Preview"
-                   style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+            <div class="form-text">Leave empty to keep the current image.</div>
+            <div id="editImagePreview" style="display:none;">
+              <p class="ga-img-label mt-2">New preview</p>
+              <img id="editPreviewImg" src="" alt="Preview" class="ga-img-preview">
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="ga-btn ga-btn--ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="ga-btn ga-btn--dark">Save Changes</button>
         </div>
       </form>
     </div>
@@ -161,4 +397,4 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/js/admin/category.js"></script>
 
-
+<%- include('../partials/admin/footer') %>

@@ -1,5 +1,24 @@
-<footer class="footer mt-auto py-3 bg-light">
-  <div class="container text-center">
-    <span class="text-muted">&copy; <%= new Date().getFullYear() %> Admin Panel. All rights reserved.</span>
   </div>
-</footer>
+
+  <footer style="
+    margin-left: 220px;
+    padding: 18px 32px;
+    border-top: 1px solid #E8E2DA;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  ">
+    <span style="font-family:'Cormorant Garant',serif; font-size:16px; font-weight:600; color:#1A1A1A; letter-spacing:1px;">GLORA</span>
+    <span style="font-size:11px; color:#aaa; letter-spacing:0.5px;">&copy; <%= new Date().getFullYear() %> Admin Panel. All rights reserved.</span>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (toggle && sidebar) {
+      toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+    }
+  </script>
+</body>
+</html>

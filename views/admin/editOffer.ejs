@@ -1,262 +1,325 @@
 <%- include('../partials/admin/header') %>
 
-<style>
-    .page-container {
-        background-color: #f8f9fa;
-        padding-top: 2rem;
-        padding-bottom: 3rem;
+<main class="ga-main">
+  <style>
+    /* ── Page Header ── */
+    .ga-page-head { padding: 32px 32px 0; margin-bottom: 28px; }
+    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
+    .ga-page-head__title { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+
+    /* ── Section wrapper ── */
+    .ga-section { padding: 0 32px 40px; }
+
+    /* ── Form card ── */
+    .ga-form-card { background: #fff; border-radius: 3px; overflow: hidden; max-width: 860px; margin: 0 auto; }
+
+    /* ── Card top bar ── */
+    .ga-form-card__bar { background: #1A1A1A; padding: 18px 28px; display: flex; align-items: center; gap: 10px; }
+    .ga-form-card__bar-title { font-family: 'Cormorant Garant', serif; font-size: 22px; font-weight: 600; color: #fff; }
+    .ga-form-card__bar-icon { color: #D4A96A; font-size: 16px; }
+
+    /* ── Form body ── */
+    .ga-form-body { padding: 32px 28px; }
+
+    /* ── Two-column grid ── */
+    .ga-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+
+    /* ── Each field group ── */
+    .ga-field { margin-bottom: 24px; }
+
+    /* ── Labels ── */
+    .ga-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+
+    /* ── Inputs, selects, textareas ── */
+    .ga-input,
+    .ga-select,
+    .ga-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #E8E2DA;
+      border-radius: 2px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: #1A1A1A;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
     }
+    .ga-input:focus,
+    .ga-select:focus,
+    .ga-textarea:focus { border-color: #8B1A1A; }
+    .ga-input::placeholder,
+    .ga-textarea::placeholder { color: #ccc; }
 
-    .card.shadow-form {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-        border: none;
-        transition: all 0.3s ease-in-out;
+    /* ── Textarea specific ── */
+    .ga-textarea { resize: vertical; min-height: 90px; }
+
+    /* ── Input with a prefix symbol (like ₹ or %) ── */
+    .ga-input-wrap { display: flex; align-items: stretch; }
+    .ga-input-prefix { display: flex; align-items: center; padding: 0 12px; background: #F4F1EC; border: 1.5px solid #E8E2DA; border-right: none; border-radius: 2px 0 0 2px; font-size: 13px; color: #888; white-space: nowrap; }
+    .ga-input-wrap .ga-input { border-radius: 0 2px 2px 0; }
+
+    /* ── Divider line ── */
+    .ga-divider { border: none; border-top: 1px solid #F4F1EC; margin: 8px 0 28px; }
+
+    /* ── Toggle switch for status ── */
+    .ga-toggle-wrap { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+    .ga-toggle { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+    .ga-toggle input { opacity: 0; width: 0; height: 0; }
+    .ga-toggle-slider { position: absolute; inset: 0; background: #E8E2DA; border-radius: 26px; cursor: pointer; transition: background 0.2s; }
+    .ga-toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .ga-toggle input:checked + .ga-toggle-slider { background: #2e6e4a; }
+    .ga-toggle input:checked + .ga-toggle-slider::before { transform: translateX(22px); }
+    #statusLabel.text-success { color: #2e6e4a; font-weight: 600; }
+    #statusLabel.text-danger  { color: #8B1A1A; font-weight: 600; }
+
+    /* ── Form footer buttons ── */
+    .ga-form-footer { display: flex; justify-content: flex-end; gap: 10px; }
+    .ga-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border-radius: 2px; }
+    .ga-btn--dark   { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover { background: #8B1A1A; color: #fff; }
+    .ga-btn--ghost  { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
+    .ga-btn--ghost:hover { border-color: #8B1A1A; color: #8B1A1A; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .ga-page-head { padding: 24px 16px 0; }
+      .ga-section { padding: 0 16px 32px; }
+      .ga-form-body { padding: 24px 16px; }
+      .ga-form-grid { grid-template-columns: 1fr; }
     }
+  </style>
 
-    .card.shadow-form:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
-        transform: translateY(-2px);
-    }
+  <!-- Page Header -->
+  <div class="ga-page-head">
+    <p class="ga-page-head__eyebrow">Manage</p>
+    <h1 class="ga-page-head__title">Edit Offer</h1>
+  </div>
 
-    .card-header.form-header {
-        background: linear-gradient(135deg, #6c0d0d, #470404);
-        color: white;
-        border-bottom: none;
-        padding: 1.25rem 1.5rem;
-    }
+  <div class="ga-section">
+    <div class="ga-form-card">
 
-    .card-header.form-header h4 {
-        font-weight: 600;
-        margin-bottom: 0;
-    }
+      <!-- Card top bar -->
+      <div class="ga-form-card__bar">
+        <i class="bi bi-tag ga-form-card__bar-icon"></i>
+        <span class="ga-form-card__bar-title">Edit Offer</span>
+      </div>
 
-    .card-body {
-        padding: 2rem;
-    }
+      <div class="ga-form-body">
+        <form action="/admin/offers/edit/<%= offer._id %>" method="POST" id="editOfferForm">
 
-    .form-label.fw-bold {
-        color: #343a40;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+          <div class="ga-form-grid">
 
-    .input-group-text {
-        background-color: #e9ecef;
-        border-right: 0;
-        color: #6c757d;
-    }
+            <!-- ── LEFT COLUMN ── -->
+            <div>
 
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
+              <!-- Offer Title -->
+              <div class="ga-field">
+                <label for="title" class="ga-label">Offer Title</label>
+                <input type="text" name="title" id="title" class="ga-input" value="<%= offer.title %>" required>
+              </div>
 
-    .form-check-input:checked {
-        background-color: #198754;
-        border-color: #198754;
-    }
+              <!-- Description -->
+              <div class="ga-field">
+                <label for="description" class="ga-label">Description</label>
+                <textarea name="description" id="description" class="ga-textarea" required><%= offer.description %></textarea>
+              </div>
 
-    .btn-action {
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-</style>
+              <!-- Discount Type -->
+              <div class="ga-field">
+                <label for="discountType" class="ga-label">Discount Type</label>
+                <select name="discountType" id="discountType" class="ga-select" required>
+                  <option value="Percentage" <%= offer.discountType === 'Percentage' ? 'selected' : '' %>>Percentage (%)</option>
+                  <option value="Fixed Amount" <%= offer.discountType === 'Fixed Amount' ? 'selected' : '' %>>Fixed Amount (₹)</option>
+                </select>
+              </div>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
-    <div class="page-container">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="card shadow-form">
-                        <div class="card-header form-header">
-                            <h4><i class="fas fa-tags me-2"></i>Edit Offer</h4>
-                        </div>
-                        <div class="card-body">
-                            <form action="/admin/offers/edit/<%= offer._id %>" method="POST" id="editOfferForm">
-                                <div class="row">
-                                    <!-- LEFT COLUMN -->
-                                    <div class="col-md-6">
-                                        <!-- Offer Title -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Offer Title</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                                <input type="text" name="title" class="form-control" value="<%= offer.title %>" required>
-                                            </div>
-                                        </div>
-
-                                        <!-- Description -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Description</label>
-                                            <textarea name="description" class="form-control" rows="3" required><%= offer.description %></textarea>
-                                        </div>
-
-                                        <!-- Discount Type -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Discount Type</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="fas fa-tags"></i></span>
-                                                <select name="discountType" id="discountType" class="form-select" required>
-                                                    <option value="Percentage" <%= offer.discountType === 'Percentage' ? 'selected' : '' %>>Percentage (%)</option>
-                                                    <option value="Fixed Amount" <%= offer.discountType === 'Fixed Amount' ? 'selected' : '' %>>Fixed Amount (₹)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- Discount Value -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Discount Value</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text" id="discount-symbol"><%= offer.discountType === 'Percentage' ? '%' : '₹' %></span>
-                                                <input type="number" name="discountValue" class="form-control" value="<%= offer.discountValue %>" required step="0.01">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- RIGHT COLUMN -->
-                                    <div class="col-md-6">
-                                        <!-- Minimum Purchase -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Minimum Purchase</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">₹</span>
-                                                <input type="number" name="minPurchase" class="form-control" value="<%= offer.minPurchase %>" required>
-                                            </div>
-                                        </div>
-
-                                        <!-- Expiry Date -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Expiry Date</label>
-                                            <input type="date" name="endDate" id="endDate" class="form-control" value="<%= offer.endDate.toISOString().split('T')[0] %>" required>
-                                        </div>
-
-                                        <!-- Total Uses -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Total Uses</label>
-                                            <input type="number" name="totalUses" class="form-control" value="<%= offer.totalUses %>" required>
-                                        </div>
-
-                                        <!-- Offer Type -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Offer Type</label>
-                                            <select name="offerType" id="offerType" class="form-select" required>
-                                                <option value="Global" <%= offer.offerType === 'Global' ? 'selected' : '' %>>Global (All Products)</option>
-                                                <option value="Category" <%= offer.offerType === 'Category' ? 'selected' : '' %>>Category Specific</option>
-                                                <option value="Product" <%= offer.offerType === 'Product' ? 'selected' : '' %>>Product Specific</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Target Selection -->
-                                        <div class="mb-4" id="targetSelection">
-                                            <% if(offer.offerType === 'Product'){ %>
-                                                <label class="form-label fw-bold">Selected Product</label>
-                                                <select name="product" class="form-select" required>
-                                                    <% products.forEach(product => { %>
-                                                        <option value="<%= product._id %>" <%= offer.product && offer.product.toString() === product._id.toString() ? 'selected' : '' %>>
-                                                            <%= product.productName %>
-                                                        </option>
-                                                    <% }) %>
-                                                </select>
-                                            <% } else if(offer.offerType === 'Category'){ %>
-                                                <label class="form-label fw-bold">Selected Category</label>
-                                                <select name="category" class="form-select" required>
-                                                    <% categories.forEach(category => { %>
-                                                        <option value="<%= category._id %>" <%= offer.category && offer.category.toString() === category._id.toString() ? 'selected' : '' %>>
-                                                            <%= category.categoryName %>
-                                                        </option>
-                                                    <% }) %>
-                                                </select>
-                                            <% } %>
-                                        </div>
-
-                                        <!-- Status -->
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold">Status</label>
-                                            <div class="form-check form-switch fs-5">
-                                                <input class="form-check-input" type="checkbox" id="isActive" name="isActive" <%= offer.isActive ? 'checked' : '' %>>
-                                                <label class="form-check-label" for="isActive" id="statusLabel"><%= offer.isActive ? 'Active' : 'Inactive' %></label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr class="my-4">
-                                <div class="text-end">
-                                    <a href="/admin/offers" class="btn btn-secondary btn-action me-2">
-                                        <i class="fas fa-times me-1"></i> Cancel
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-action">
-                                        <i class="fas fa-save me-1"></i> Update Offer
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+              <!-- Discount Value -->
+              <div class="ga-field">
+                <label for="discountValue" class="ga-label">Discount Value</label>
+                <div class="ga-input-wrap">
+                  <span class="ga-input-prefix" id="discount-symbol"><%= offer.discountType === 'Percentage' ? '%' : '₹' %></span>
+                  <input type="number" name="discountValue" id="discountValue" class="ga-input" value="<%= offer.discountValue %>" required step="0.01">
                 </div>
-            </div>
-        </div>
-    </div>
+              </div>
+
+            </div><!-- end left column -->
+
+            <!-- ── RIGHT COLUMN ── -->
+            <div>
+
+              <!-- Minimum Purchase -->
+              <div class="ga-field">
+                <label for="minPurchase" class="ga-label">Minimum Purchase</label>
+                <div class="ga-input-wrap">
+                  <span class="ga-input-prefix">₹</span>
+                  <input type="number" name="minPurchase" id="minPurchase" class="ga-input" value="<%= offer.minPurchase %>" required>
+                </div>
+              </div>
+
+              <!-- Expiry Date -->
+              <div class="ga-field">
+                <label for="endDate" class="ga-label">Expiry Date</label>
+                <input type="date" name="endDate" id="endDate" class="ga-input" value="<%= offer.endDate.toISOString().split('T')[0] %>" required>
+              </div>
+
+              <!-- Total Uses -->
+              <div class="ga-field">
+                <label for="totalUses" class="ga-label">Total Uses</label>
+                <input type="number" name="totalUses" id="totalUses" class="ga-input" value="<%= offer.totalUses %>" required>
+              </div>
+
+              <!-- Offer Type -->
+              <div class="ga-field">
+                <label for="offerType" class="ga-label">Offer Type</label>
+                <select name="offerType" id="offerType" class="ga-select" required>
+                  <option value="Global" <%= offer.offerType === 'Global' ? 'selected' : '' %>>Global (All Products)</option>
+                  <option value="Category" <%= offer.offerType === 'Category' ? 'selected' : '' %>>Category Specific</option>
+                  <option value="Product" <%= offer.offerType === 'Product' ? 'selected' : '' %>>Product Specific</option>
+                </select>
+              </div>
+
+              <!-- Target Selection -->
+              <div class="ga-field" id="targetSelection">
+                <% if (offer.offerType === 'Product') { %>
+                  <label class="ga-label">Selected Product</label>
+                  <select name="product" class="ga-select" required>
+                    <% products.forEach(product => { %>
+                      <option value="<%= product._id %>" <%= offer.product && offer.product.toString() === product._id.toString() ? 'selected' : '' %>>
+                        <%= product.productName %>
+                      </option>
+                    <% }) %>
+                  </select>
+                <% } else if (offer.offerType === 'Category') { %>
+                  <label class="ga-label">Selected Category</label>
+                  <select name="category" class="ga-select" required>
+                    <% categories.forEach(category => { %>
+                      <option value="<%= category._id %>" <%= offer.category && offer.category.toString() === category._id.toString() ? 'selected' : '' %>>
+                        <%= category.categoryName %>
+                      </option>
+                    <% }) %>
+                  </select>
+                <% } %>
+              </div>
+
+              <!-- Status Toggle -->
+              <div class="ga-field">
+                <label class="ga-label">Status</label>
+                <div class="ga-toggle-wrap">
+                  <label class="ga-toggle">
+                    <input type="checkbox" id="isActive" name="isActive" <%= offer.isActive ? 'checked' : '' %>>
+                    <span class="ga-toggle-slider"></span>
+                  </label>
+                  <span id="statusLabel" class="<%= offer.isActive ? 'text-success' : 'text-danger' %>">
+                    <%= offer.isActive ? 'Active' : 'Inactive' %>
+                  </span>
+                </div>
+              </div>
+
+            </div><!-- end right column -->
+          </div><!-- end ga-form-grid -->
+
+          <hr class="ga-divider">
+
+          <!-- Footer buttons -->
+          <div class="ga-form-footer">
+            <a href="/admin/offers" class="ga-btn ga-btn--ghost">
+              <i class="bi bi-x-lg"></i> Cancel
+            </a>
+            <button type="submit" class="ga-btn ga-btn--dark">
+              <i class="bi bi-check-lg"></i> Update Offer
+            </button>
+          </div>
+
+        </form>
+      </div><!-- end ga-form-body -->
+    </div><!-- end ga-form-card -->
+  </div><!-- end ga-section -->
+
 </main>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Set minimum expiry date
-        const endDate = document.getElementById('endDate');
-        endDate.min = new Date().toISOString().split('T')[0];
+  document.addEventListener('DOMContentLoaded', function () {
 
-        // Update discount symbol
-        const discountType = document.getElementById('discountType');
-        const discountSymbol = document.getElementById('discount-symbol');
-        discountType.addEventListener('change', (e) => {
-            discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
-        });
+    // Set minimum expiry date
+    const endDate = document.getElementById('endDate');
+    endDate.min = new Date().toISOString().split('T')[0];
 
-        // Toggle switch label
-        const isActiveSwitch = document.getElementById('isActive');
-        const statusLabel = document.getElementById('statusLabel');
-        const updateStatusLabel = () => {
-            if (isActiveSwitch.checked) {
-                statusLabel.textContent = 'Active';
-                statusLabel.classList.remove('text-danger');
-                statusLabel.classList.add('text-success');
-            } else {
-                statusLabel.textContent = 'Inactive';
-                statusLabel.classList.remove('text-success');
-                statusLabel.classList.add('text-danger');
-            }
-        };
-        isActiveSwitch.addEventListener('change', updateStatusLabel);
-        updateStatusLabel();
-
-        // Offer Type dynamic selection
-        document.getElementById('offerType').addEventListener('change', function () {
-            const targetSelection = document.getElementById('targetSelection');
-            if (this.value === 'Product') {
-                targetSelection.innerHTML = `
-                    <label class="form-label fw-bold">Select Product</label>
-                    <select name="product" class="form-select" required>
-                        <option value="" disabled>Select a product</option>
-                        <% products.forEach(product => { %>
-                            <option value="<%= product._id %>"><%= product.productName %></option>
-                        <% }) %>
-                    </select>`;
-            } else if (this.value === 'Category') {
-                targetSelection.innerHTML = `
-                    <label class="form-label fw-bold">Select Category</label>
-                    <select name="category" class="form-select" required>
-                        <option value="" disabled>Select a category</option>
-                        <% categories.forEach(category => { %>
-                            <option value="<%= category._id %>"><%= category.categoryName %></option>
-                        <% }) %>
-                    </select>`;
-            } else {
-                targetSelection.innerHTML = '';
-            }
-        });
+    // Update discount symbol
+    const discountType = document.getElementById('discountType');
+    const discountSymbol = document.getElementById('discount-symbol');
+    discountType.addEventListener('change', (e) => {
+      discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
     });
+
+    // Toggle switch label
+    const isActiveSwitch = document.getElementById('isActive');
+    const statusLabel = document.getElementById('statusLabel');
+    const updateStatusLabel = () => {
+      if (isActiveSwitch.checked) {
+        statusLabel.textContent = 'Active';
+        statusLabel.classList.remove('text-danger');
+        statusLabel.classList.add('text-success');
+      } else {
+        statusLabel.textContent = 'Inactive';
+        statusLabel.classList.remove('text-success');
+        statusLabel.classList.add('text-danger');
+      }
+    };
+    isActiveSwitch.addEventListener('change', updateStatusLabel);
+    updateStatusLabel();
+
+    // Offer Type dynamic selection
+    document.getElementById('offerType').addEventListener('change', function () {
+      const targetSelection = document.getElementById('targetSelection');
+      if (this.value === 'Product') {
+        targetSelection.innerHTML = `
+          <label class="ga-label">Select Product</label>
+          <select name="product" class="ga-select" required>
+            <option value="" disabled selected>Select a product</option>
+            <% products.forEach(product => { %>
+              <option value="<%= product._id %>"><%= product.productName %></option>
+            <% }) %>
+          </select>`;
+      } else if (this.value === 'Category') {
+        targetSelection.innerHTML = `
+          <label class="ga-label">Select Category</label>
+          <select name="category" class="ga-select" required>
+            <option value="" disabled selected>Select a category</option>
+            <% categories.forEach(category => { %>
+              <option value="<%= category._id %>"><%= category.categoryName %></option>
+            <% }) %>
+          </select>`;
+      } else {
+        targetSelection.innerHTML = '';
+      }
+    });
+
+    // SweetAlert validation before submit
+    document.getElementById('editOfferForm').addEventListener('submit', function (e) {
+      const title = this.querySelector('[name="title"]').value.trim();
+      const description = this.querySelector('[name="description"]').value.trim();
+      const discountValue = this.querySelector('[name="discountValue"]').value.trim();
+      const minPurchase = this.querySelector('[name="minPurchase"]').value.trim();
+      const endDateValue = this.querySelector('[name="endDate"]').value.trim();
+      const totalUses = this.querySelector('[name="totalUses"]').value.trim();
+      const offerType = this.querySelector('[name="offerType"]').value.trim();
+
+      if (!title || !description || !discountValue || !minPurchase || !endDateValue || !totalUses || !offerType) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'Missing Fields',
+          text: 'Please fill in all required fields before submitting.',
+          icon: 'error',
+          confirmButtonColor: '#1A1A1A'
+        });
+      }
+    });
+  });
 </script>
 
 <%- include('../partials/admin/footer') %>

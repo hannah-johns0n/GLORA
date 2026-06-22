@@ -1,108 +1,225 @@
 <%- include('../partials/admin/header') %>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Offer Management</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<main class="ga-main">
   <style>
-  .custom-red {
-    background-color: #420404; /* Dark Red */
-    color: #fff;
-    border: none;
-  }
-  .custom-red:hover {
-    background-color: #601212; 
-    color: #fff;
-  }
-</style>
+    /* ── Page Header ── */
+    .ga-page-head { padding: 32px 32px 0; margin-bottom: 28px; }
+    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
+    .ga-page-head__title { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+    .ga-page-head__row { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 
-</head>
-<body>
-  <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4">
-  <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Offer Management</h2>
-      <a href="/admin/offers/add" class="btn custom-red">+ Add New Offer</a>
+    /* ── Main section wrapper ── */
+    .ga-section { padding: 0 32px 40px; }
 
+    /* ── Button styles (same as coupons page) ── */
+    .ga-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border-radius: 2px; }
+    .ga-btn--dark { background: #1A1A1A; color: #fff; }
+    .ga-btn--dark:hover { background: #8B1A1A; color: #fff; }
+    .ga-btn--edit { background: transparent; border: 1.5px solid #D4A96A; color: #D4A96A; }
+    .ga-btn--edit:hover { background: #D4A96A; color: #1A1A1A; }
+    .ga-btn--delete { background: transparent; border: 1.5px solid #E8E2DA; color: #717171; }
+    .ga-btn--delete:hover { border-color: #8B1A1A; color: #8B1A1A; }
+
+    /* ── Stat cards (same layout as coupons page) ── */
+    .ga-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .ga-stat { background: #fff; border-radius: 3px; padding: 24px 22px; border-bottom: 3px solid transparent; display: flex; align-items: flex-start; justify-content: space-between; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .ga-stat:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .ga-stat--total    { border-bottom-color: #D4A96A; }
+    .ga-stat--active   { border-bottom-color: #2e6e4a; }
+    .ga-stat--inactive { border-bottom-color: #8B1A1A; }
+    .ga-stat__label { font-size: 10px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: #aaa; margin-bottom: 10px; }
+    .ga-stat__value { font-family: 'Cormorant Garant', serif; font-size: 38px; font-weight: 600; color: #1A1A1A; line-height: 1; }
+    .ga-stat__icon { font-size: 28px; opacity: 0.5; margin-top: 2px; }
+
+    /* ── Card & Table (same as coupons page) ── */
+    .ga-card { background: #fff; border-radius: 3px; overflow: hidden; }
+    .ga-table-wrap { overflow-x: auto; }
+    .ga-table { width: 100%; border-collapse: collapse; }
+    .ga-table thead { background: #1A1A1A; }
+    .ga-table thead th { padding: 13px 16px; text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); white-space: nowrap; }
+    .ga-table tbody td { padding: 14px 16px; font-size: 13px; color: #1A1A1A; border-bottom: 1px solid #F4F1EC; vertical-align: middle; }
+    .ga-table tbody tr:last-child td { border-bottom: none; }
+    .ga-table tbody tr:hover td { background: #FAF7F4; }
+
+    /* ── Offer-specific elements ── */
+    .ga-offer-title { font-weight: 600; color: #1A1A1A; }
+    .ga-offer-desc { font-size: 12px; color: #888; max-width: 240px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ga-discount { font-weight: 600; color: #2e6e4a; font-size: 13px; }
+    .ga-date { font-size: 12px; color: #737272; }
+    .ga-scope-pill { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; background: #F4F1EC; color: #6b5e4e; }
+
+    /* ── Badges (same pattern as coupons page) ── */
+    .ga-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+    .ga-badge--active   { background: #F0FDF4; color: #166534; }
+    .ga-badge--inactive { background: #FEF2F2; color: #991b1b; }
+
+    /* ── Action button group ── */
+    .ga-action-group { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Empty state ── */
+    .ga-empty { text-align: center; padding: 64px 20px; color: #bbb; }
+    .ga-empty i { font-size: 2.5rem; display: block; margin-bottom: 14px; color: #E8E2DA; }
+    .ga-empty p { font-size: 13px; margin-bottom: 20px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .ga-page-head { padding: 24px 16px 0; }
+      .ga-section { padding: 0 16px 32px; }
+      .ga-stats { grid-template-columns: 1fr; }
+      .ga-action-group { flex-direction: column; }
+      .ga-offer-desc { max-width: 160px; }
+    }
+  </style>
+
+  <!-- Page Header -->
+  <div class="ga-page-head">
+    <div class="ga-page-head__row">
+      <div>
+        <p class="ga-page-head__eyebrow">Manage</p>
+        <h1 class="ga-page-head__title">Offers</h1>
+      </div>
+      <a href="/admin/offers/add" class="ga-btn ga-btn--dark">
+        <i class="bi bi-plus-lg"></i> Add Offer
+      </a>
+    </div>
+  </div>
+
+  <div class="ga-section">
+
+    <!-- Stat Cards -->
+    <div class="ga-stats">
+      <div class="ga-stat ga-stat--total">
+        <div>
+          <p class="ga-stat__label">Total Offers</p>
+          <p class="ga-stat__value"><%= offers ? offers.length : 0 %></p>
+        </div>
+        <div class="ga-stat__icon">🏷️</div>
+      </div>
+      <div class="ga-stat ga-stat--active">
+        <div>
+          <p class="ga-stat__label">Active</p>
+          <p class="ga-stat__value"><%= offers ? offers.filter(o => o.isActive).length : 0 %></p>
+        </div>
+        <div class="ga-stat__icon">✅</div>
+      </div>
+      <div class="ga-stat ga-stat--inactive">
+        <div>
+          <p class="ga-stat__label">Inactive</p>
+          <p class="ga-stat__value"><%= offers ? offers.filter(o => !o.isActive).length : 0 %></p>
+        </div>
+        <div class="ga-stat__icon">🚫</div>
+      </div>
     </div>
 
-    <table class="table table-bordered table-hover">
-      <thead class="table-dark">
-        <tr>
-          <th>Title</th>
-          <th>Description</th>
-          <th>Discount</th>
-          <th>Valid Till</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (offers && offers.length > 0) { %>
-          <% offers.forEach(offer => { %>
+    <!-- Table or Empty State -->
+    <% if (offers && offers.length > 0) { %>
+    <div class="ga-card">
+      <div class="ga-table-wrap">
+        <table class="ga-table">
+          <thead>
             <tr>
-              <td><%= offer.title %></td>
-              <td><%= offer.description %></td>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Applies To</th>
+              <th>Discount</th>
+              <th>Valid Till</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% offers.forEach(offer => { %>
+            <tr>
               <td>
-                <%= offer.discountType === 'Percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue %>
+                <span class="ga-offer-title"><%= offer.title %></span>
               </td>
               <td>
-  <% if (offer.endDate) { %>
-    <%= new Date(offer.endDate).toDateString() %>
-  <% } else { %>
-    No Expiry
-  <% } %>
-</td>
-
-
+                <span class="ga-offer-desc" title="<%= offer.description %>"><%= offer.description %></span>
+              </td>
               <td>
-                <% if (offer.isActive) { %>
-                  <span class="badge bg-success">Active</span>
+                <!-- Adjust offer.offerType to match your schema field name if different -->
+                <span class="ga-scope-pill"><%= offer.offerType || 'General' %></span>
+              </td>
+              <td>
+                <span class="ga-discount">
+                  <%= offer.discountType === 'Percentage' ? offer.discountValue + '%' : '₹' + offer.discountValue %>
+                </span>
+              </td>
+              <td>
+                <% if (offer.endDate) { %>
+                  <span class="ga-date"><%= new Date(offer.endDate).toDateString() %></span>
                 <% } else { %>
-                  <span class="badge bg-secondary">Inactive</span>
+                  <span class="ga-date">No Expiry</span>
                 <% } %>
               </td>
               <td>
-                <a href="/admin/offers/edit/<%= offer._id %>" class="btn btn-sm btn-warning">Edit</a>
-                <button class="btn btn-sm btn-danger" onclick="deleteOffer('<%= offer._id %>')">Delete</button>
+                <% if (offer.isActive) { %>
+                  <span class="ga-badge ga-badge--active">Active</span>
+                <% } else { %>
+                  <span class="ga-badge ga-badge--inactive">Inactive</span>
+                <% } %>
+              </td>
+              <td>
+                <div class="ga-action-group">
+                  <a href="/admin/offers/edit/<%= offer._id %>" class="ga-btn ga-btn--edit">
+                    <i class="bi bi-pencil"></i> Edit
+                  </a>
+                  <button type="button" class="ga-btn ga-btn--delete" onclick="deleteOffer('<%= offer._id %>')">
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+                </div>
               </td>
             </tr>
-          <% }) %>
-        <% } else { %>
-          <tr><td colspan="6" class="text-center">No offers found</td></tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <script>
-    function deleteOffer(offerId) {
-      Swal.fire({
-        title: "Are you sure?",
-        text: "This action cannot be undone.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, delete it!"
-      }).then((result) => {
-        if (result.isConfirmed) {
-          fetch(`/admin/offers/delete/${offerId}`, {
-            method: "POST"
-          }).then(res => {
-            if (res.ok) {
-              Swal.fire("Deleted!", "Offer has been deleted.", "success")
-                .then(() => location.reload());
-            }
-          })
-        }
-      });
-    }
-  </script>
-  </main>
-</body>
+    <% } else { %>
+    <!-- Empty state -->
+    <div class="ga-card">
+      <div class="ga-empty">
+        <i class="bi bi-tag"></i>
+        <p>No offers yet. Create your first one.</p>
+        <a href="/admin/offers/add" class="ga-btn ga-btn--dark">
+          <i class="bi bi-plus-lg"></i> Add Offer
+        </a>
+      </div>
+    </div>
+    <% } %>
+
+  </div>
+</main>
+
+<!-- SweetAlert2 — same CDN as before, untouched -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  /* ── Delete logic — unchanged (fetch + POST) ── */
+  function deleteOffer(offerId) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#8B1A1A",
+      cancelButtonColor: "#717171",
+      confirmButtonText: "Yes, delete it!"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`/admin/offers/delete/${offerId}`, {
+          method: "POST"
+        }).then(res => {
+          if (res.ok) {
+            Swal.fire("Deleted!", "Offer has been deleted.", "success")
+              .then(() => location.reload());
+          } else {
+            Swal.fire("Error", "Something went wrong while deleting the offer.", "error");
+          }
+        });
+      }
+    });
+  }
+</script>
+
 <%- include('../partials/admin/footer') %>
-</html>

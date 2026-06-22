@@ -1,691 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="/css/admin.css" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Dashboard — GLORA Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body {
-      background-color: #f8f9fa;
+    .ga-page-head {
+      padding: 32px 32px 0;
+      margin-bottom: 28px;
     }
 
-    main {
-      background-color: #f8f9fa;
-      padding-bottom: 40px;
-    }
-
-    h1 {
-      color: #2c1810;
-      font-weight: 600;
-      margin-bottom: 30px;
-      font-size: 28px;
-    }
-
-    /* ── STAT CARDS ────────────────────────────────────────────── */
-    .stat-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      padding: 24px;
-      border-left: 4px solid;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    }
-
-    .stat-card.customers {
-      border-left-color: #667eea;
-    }
-
-    .stat-card.orders {
-      border-left-color: #059669;
-    }
-
-    .stat-card.products {
-      border-left-color: #f59e0b;
-    }
-
-    .stat-card.sales {
-      border-left-color: #dc2626;
-    }
-
-    .stat-card-content h5 {
-      color: #6b7280;
-      font-size: 12px;
+    .ga-page-head__eyebrow {
+      font-size: 10px;
       font-weight: 500;
+      letter-spacing: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 8px 0;
+      color: #D4A96A;
+      margin-bottom: 6px;
     }
 
-    .stat-card-content p {
+    .ga-page-head__title {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 36px;
+      font-weight: 600;
+      color: #1A1A1A;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .ga-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 0 32px 32px;
+    }
+
+    .ga-stat {
+      background: #fff;
+      border-radius: 3px;
+      padding: 24px 22px;
+      border-bottom: 3px solid transparent;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .ga-stat:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+    }
+
+    .ga-stat--customers { border-bottom-color: #D4A96A; }
+    .ga-stat--orders    { border-bottom-color: #2e6e4a; }
+    .ga-stat--products  { border-bottom-color: #2e4a6e; }
+    .ga-stat--revenue   { border-bottom-color: #8B1A1A; }
+
+    .ga-stat__label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .ga-stat__value {
+      font-family: 'Cormorant Garant', serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: #1A1A1A;
+      line-height: 1;
+    }
+
+    .ga-stat__icon {
       font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      margin: 0;
+      opacity: 0.12;
+      margin-top: 2px;
     }
 
-    .stat-card-icon {
-      font-size: 32px;
-      opacity: 0.2;
+    .ga-section {
+      padding: 0 32px 32px;
     }
 
-    /* ── ANALYTICS SECTION ────────────────────────────────────── */
-    .analytics-section {
-      margin-top: 40px;
+    .ga-section__title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: #D4A96A;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #E8E2DA;
     }
 
-    .section-title {
+    .ga-card {
+      background: #fff;
+      border-radius: 3px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .ga-card__head {
+      padding: 18px 22px 16px;
+      border-bottom: 1px solid #F0EBE3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ga-card__head-title {
+      font-family: 'Cormorant Garant', serif;
       font-size: 20px;
       font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e5e7eb;
+      color: #1A1A1A;
     }
 
-    .card {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      margin-bottom: 24px;
+    .ga-card__head-sub {
+      font-size: 11px;
+      color: #bbb;
+      letter-spacing: 0.3px;
     }
 
-    .card-header {
-      background: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 20px 24px;
+    .ga-card__body {
+      padding: 22px;
+    }
+
+    .ga-filter-group {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 12px 12px 0 0;
-    }
-
-    .card-header h5 {
-      color: #1f2937;
-      font-weight: 600;
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .card-body {
-      padding: 24px;
-      background: white;
-    }
-
-    /* ── REVENUE CHART SECTION ────────────────────────────────── */
-    .revenue-filter {
-      display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
 
-    .filter-label {
-      font-size: 13px;
+    .ga-filter-label {
+      font-size: 10px;
       font-weight: 500;
-      color: #6b7280;
-      white-space: nowrap;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-right: 4px;
     }
 
-    .filter-btn {
-      padding: 6px 12px;
-      border: 1px solid #d1d5db;
-      background: white;
-      color: #6b7280;
-      border-radius: 6px;
+    .ga-filter-btn {
+      padding: 5px 13px;
+      border: 1px solid #E8E2DA;
+      background: #fff;
+      color: #888;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
       cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
+      border-radius: 2px;
       transition: all 0.2s ease;
     }
 
-    .filter-btn.active {
-      background: #2c1810;
-      color: white;
-      border-color: #2c1810;
+    .ga-filter-btn.active {
+      background: #1A1A1A;
+      color: #fff;
+      border-color: #1A1A1A;
     }
 
-    .filter-btn:hover {
-      border-color: #2c1810;
-      color: #2c1810;
+    .ga-filter-btn:hover:not(.active) {
+      border-color: #8B1A1A;
+      color: #8B1A1A;
     }
 
-    .chart-container {
+    .ga-chart-wrap {
       position: relative;
-      height: 400px;
-      margin-bottom: 20px;
+      height: 340px;
     }
 
-    /* ── TOP PRODUCTS TABLE ────────────────────────────────────── */
-    .products-table {
+    .ga-chart-note {
+      text-align: center;
+      font-size: 11px;
+      color: #ccc;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+      text-transform: uppercase;
+    }
+
+    .ga-table {
       width: 100%;
       border-collapse: collapse;
     }
 
-    .products-table thead {
-      background: #f9fafb;
-      border-bottom: 2px solid #e5e7eb;
+    .ga-table thead {
+      border-bottom: 1px solid #F0EBE3;
     }
 
-    .products-table th {
-      padding: 16px 12px;
+    .ga-table th {
+      padding: 12px 14px;
       text-align: left;
-      font-size: 12px;
+      font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #6b7280;
+      letter-spacing: 2px;
+      color: #bbb;
     }
 
-    .products-table td {
-      padding: 16px 12px;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 14px;
-      color: #1f2937;
+    .ga-table td {
+      padding: 14px 14px;
+      border-bottom: 1px solid #F9F6F3;
+      font-size: 13px;
+      color: #1A1A1A;
+      vertical-align: middle;
     }
 
-    .products-table tbody tr {
-      transition: background-color 0.2s ease;
-    }
+    .ga-table tbody tr:last-child td { border-bottom: none; }
 
-    .products-table tbody tr:hover {
-      background-color: #fafbfc;
-    }
+    .ga-table tbody tr:hover td { background: #FAF7F4; }
 
-    .rank-badge {
+    .ga-rank {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 32px;
-      height: 32px;
-      background: #2c1810;
-      color: white;
+      width: 28px;
+      height: 28px;
+      background: #1A1A1A;
+      color: #D4A96A;
       border-radius: 50%;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
+      font-family: 'Cormorant Garant', serif;
     }
 
-    .product-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .product-name {
+    .ga-product-name {
       font-weight: 500;
-      color: #1f2937;
-    }
-
-    .product-variant {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .metric-value {
-      font-weight: 600;
-      color: #2c1810;
-      font-size: 15px;
-    }
-
-    .revenue-badge {
-      display: inline-block;
-      background: #f0fdf4;
-      color: #059669;
-      padding: 4px 8px;
-      border-radius: 4px;
       font-size: 13px;
-      font-weight: 500;
+      color: #1A1A1A;
     }
 
-    /* ── RECENT ORDERS SECTION ────────────────────────────────── */
-    .orders-table {
-      width: 100%;
-      border-collapse: collapse;
+    .ga-product-meta {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 2px;
     }
 
-    .orders-table thead {
-      background: #f9fafb;
-      border-bottom: 2px solid #e5e7eb;
-    }
-
-    .orders-table th {
-      padding: 16px 12px;
-      text-align: left;
-      font-size: 12px;
+    .ga-metric {
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #6b7280;
-    }
-
-    .orders-table td {
-      padding: 16px 12px;
-      border-bottom: 1px solid #f3f4f6;
       font-size: 14px;
-      color: #1f2937;
+      color: #1A1A1A;
     }
 
-    .orders-table tbody tr:hover {
-      background-color: #fafbfc;
-    }
-
-    .status-badge {
+    .ga-revenue-tag {
       display: inline-block;
-      padding: 6px 12px;
-      border-radius: 20px;
+      background: #F0FDF4;
+      color: #166534;
+      padding: 3px 10px;
+      border-radius: 2px;
       font-size: 12px;
       font-weight: 500;
+    }
+
+    .ga-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
       text-transform: uppercase;
     }
 
-    .status-delivered {
-      background: #dcfce7;
-      color: #166534;
+    .ga-status--delivered   { background: #F0FDF4; color: #166534; }
+    .ga-status--processing  { background: #EFF6FF; color: #1e40af; }
+    .ga-status--pending     { background: #FFFBEB; color: #92400e; }
+    .ga-status--shipped     { background: #EEF2FF; color: #3730a3; }
+    .ga-status--cancelled   { background: #FEF2F2; color: #991b1b; }
+
+    .ga-order-id {
+      font-family: monospace;
+      font-size: 12px;
+      color: #888;
+      letter-spacing: 0.5px;
     }
 
-    .status-processing {
-      background: #dbeafe;
-      color: #1e40af;
+    .ga-amount {
+      font-weight: 600;
+      color: #8B1A1A;
     }
 
-    .status-pending {
-      background: #fef3c7;
-      color: #92400e;
+    .ga-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: #bbb;
+      font-size: 13px;
     }
 
-    .status-shipped {
-      background: #e0e7ff;
-      color: #3730a3;
+    .ga-empty i {
+      display: block;
+      font-size: 2rem;
+      color: #E8E2DA;
+      margin-bottom: 12px;
     }
 
-    /* ── RESPONSIVE DESIGN ────────────────────────────────────── */
-    @media (max-width: 768px) {
-      h1 {
-        font-size: 24px;
-      }
+    .ga-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
 
-      .stat-card {
-        margin-bottom: 16px;
-      }
+    @media (max-width: 1100px) {
+      .ga-stats { grid-template-columns: repeat(2, 1fr); }
+      .ga-two-col { grid-template-columns: 1fr; }
+    }
 
-      .revenue-filter {
-        flex-wrap: wrap;
-      }
-
-      .chart-container {
-        height: 300px;
-      }
-
-      .products-table,
-      .orders-table {
-        font-size: 12px;
-      }
-
-      .products-table th,
-      .products-table td,
-      .orders-table th,
-      .orders-table td {
-        padding: 12px 8px;
-      }
+    @media (max-width: 640px) {
+      .ga-stats { grid-template-columns: 1fr; padding: 0 16px 24px; }
+      .ga-page-head { padding: 24px 16px 0; }
+      .ga-section { padding: 0 16px 24px; }
     }
   </style>
 </head>
-
 <body>
   <%- include('../partials/admin/header') %>
 
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-      <div class="container-fluid">
-        <!-- Header -->
-        <h1>Admin Dashboard</h1>
+  <main class="ga-main">
 
-        <!-- Stat Cards Row -->
-        <div class="row g-4 mb-5">
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-card customers">
-              <div class="stat-card-content">
-                <h5>Total Customers</h5>
-                <p>
-                  <%= typeof totalCustomers !=='undefined' ? totalCustomers : '0' %>
-                </p>
-              </div>
-              <div class="stat-card-icon">👥</div>
-            </div>
+    <div class="ga-page-head">
+      <p class="ga-page-head__eyebrow">Overview</p>
+      <h1 class="ga-page-head__title">Dashboard</h1>
+    </div>
+
+    <div class="ga-stats">
+      <div class="ga-stat ga-stat--customers">
+        <div>
+          <p class="ga-stat__label">Customers</p>
+          <p class="ga-stat__value"><%= typeof totalCustomers !== 'undefined' ? totalCustomers : '0' %></p>
+        </div>
+        <div class="ga-stat__icon">👥</div>
+      </div>
+      <div class="ga-stat ga-stat--orders">
+        <div>
+          <p class="ga-stat__label">Orders</p>
+          <p class="ga-stat__value"><%= typeof totalOrders !== 'undefined' ? totalOrders : '0' %></p>
+        </div>
+        <div class="ga-stat__icon">📦</div>
+      </div>
+      <div class="ga-stat ga-stat--products">
+        <div>
+          <p class="ga-stat__label">Products</p>
+          <p class="ga-stat__value"><%= typeof totalProducts !== 'undefined' ? totalProducts : '0' %></p>
+        </div>
+        <div class="ga-stat__icon">🛍️</div>
+      </div>
+      <div class="ga-stat ga-stat--revenue">
+        <div>
+          <p class="ga-stat__label">Revenue</p>
+          <p class="ga-stat__value">₹<%= typeof totalSales !== 'undefined' ? totalSales.toFixed(0) : '0' %></p>
+        </div>
+        <div class="ga-stat__icon">💰</div>
+      </div>
+    </div>
+
+    <div class="ga-section">
+      <p class="ga-section__title">Sales Analytics</p>
+
+      <div class="ga-card">
+        <div class="ga-card__head">
+          <span class="ga-card__head-title">Revenue Trend</span>
+          <div class="ga-filter-group">
+            <span class="ga-filter-label">Period</span>
+            <button class="ga-filter-btn <%= currentFilter === 'daily'   ? 'active' : '' %>" onclick="changeFilter('daily')">Daily</button>
+            <button class="ga-filter-btn <%= currentFilter === 'weekly'  ? 'active' : '' %>" onclick="changeFilter('weekly')">Weekly</button>
+            <button class="ga-filter-btn <%= currentFilter === 'monthly' ? 'active' : '' %>" onclick="changeFilter('monthly')">Monthly</button>
+            <button class="ga-filter-btn <%= currentFilter === 'yearly'  ? 'active' : '' %>" onclick="changeFilter('yearly')">Yearly</button>
           </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-card orders">
-              <div class="stat-card-content">
-                <h5>Total Orders</h5>
-                <p>
-                  <%= typeof totalOrders !=='undefined' ? totalOrders : '0' %>
-                </p>
-              </div>
-              <div class="stat-card-icon">📦</div>
-            </div>
+        </div>
+        <div class="ga-card__body">
+          <div class="ga-chart-wrap">
+            <canvas id="revenueTrendChart"></canvas>
           </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-card products">
-              <div class="stat-card-content">
-                <h5>Total Products</h5>
-                <p>
-                  <%= typeof totalProducts !=='undefined' ? totalProducts : '0' %>
-                </p>
-              </div>
-              <div class="stat-card-icon">🛍️</div>
-            </div>
+          <p class="ga-chart-note">Revenue over <%= currentFilter %> periods</p>
+        </div>
+      </div>
+
+      <div class="ga-two-col">
+        <div class="ga-card">
+          <div class="ga-card__head">
+            <span class="ga-card__head-title">Top 5 Products</span>
+            <span class="ga-card__head-sub">By completed orders</span>
           </div>
-          <div class="col-md-6 col-lg-3">
-            <div class="stat-card sales">
-              <div class="stat-card-content">
-                <h5>Total Revenue</h5>
-                <p>₹<%= typeof totalSales !=='undefined' ? totalSales.toFixed(0) : '0' %>
-                </p>
-              </div>
-              <div class="stat-card-icon">💰</div>
-            </div>
+          <div class="ga-card__body" style="padding: 0;">
+            <% if (bestSellingProducts && bestSellingProducts.length > 0) { %>
+            <table class="ga-table">
+              <thead>
+                <tr>
+                  <th style="width:8%;">#</th>
+                  <th>Product</th>
+                  <th>Units</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bestSellingProducts.forEach((product, index) => { %>
+                <tr>
+                  <td><span class="ga-rank"><%= index + 1 %></span></td>
+                  <td>
+                    <div class="ga-product-name"><%= product.productName %></div>
+                    <div class="ga-product-meta"><%= product.variant?.unit || 'N/A' %></div>
+                  </td>
+                  <td><span class="ga-metric"><%= product.totalQuantity %></span></td>
+                  <td><span class="ga-revenue-tag">₹<%= product.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></span></td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <div class="ga-empty"><i class="bi bi-box"></i>No sales data yet</div>
+            <% } %>
           </div>
         </div>
 
-        <!-- Analytics Section -->
-        <div class="analytics-section">
-          <h2 class="section-title">Sales Analytics</h2>
-
-          <!-- Revenue Trend Chart -->
-          <div class="card">
-            <div class="card-header">
-              <h5>Revenue Trend</h5>
-              <div class="revenue-filter">
-                <span class="filter-label">Period:</span>
-                <button class="filter-btn <%= currentFilter === 'daily' ? 'active' : '' %>"
-                  onclick="changeFilter('daily')">Daily</button>
-                <button class="filter-btn <%= currentFilter === 'weekly' ? 'active' : '' %>"
-                  onclick="changeFilter('weekly')">Weekly</button>
-                <button class="filter-btn <%= currentFilter === 'monthly' ? 'active' : '' %>"
-                  onclick="changeFilter('monthly')">Monthly</button>
-                <button class="filter-btn <%= currentFilter === 'yearly' ? 'active' : '' %>"
-                  onclick="changeFilter('yearly')">Yearly</button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="chart-container">
-                <canvas id="revenueTrendChart"></canvas>
-              </div>
-              <div style="text-align: center; color: #9ca3af; font-size: 13px;">
-                Sales revenue over <%= currentFilter %> periods
-              </div>
-            </div>
+        <div class="ga-card">
+          <div class="ga-card__head">
+            <span class="ga-card__head-title">Top 3 Categories</span>
+            <span class="ga-card__head-sub">By completed orders</span>
           </div>
-
-          <!-- Top 5 Best-Selling Products -->
-          <div class="card">
-            <div class="card-header">
-              <h5>Top 5 Best-Selling Products</h5>
-              <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
-            </div>
-            <div class="card-body">
-              <% if (bestSellingProducts && bestSellingProducts.length> 0) { %>
-                <table class="products-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 8%;">Rank</th>
-                      <th style="width: 40%;">Product</th>
-                      <th style="width: 18%;">Units Sold</th>
-                      <th style="width: 34%;">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% bestSellingProducts.forEach((product, index)=> { %>
-                      <tr>
-                        <td>
-                          <span class="rank-badge">
-                            <%= index + 1 %>
-                          </span>
-                        </td>
-                        <td>
-                          <div class="product-info">
-                            <span class="product-name">
-                              <%= product.productName %>
-                            </span>
-                            <span class="product-variant">
-                              <%= product.variant?.unit || 'N/A' %>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <span class="metric-value">
-                            <%= product.totalQuantity %>
-                          </span>
-                        </td>
-                        <td>
-                          <span class="revenue-badge">₹<%= product.totalRevenue.toLocaleString('en-IN', {
-                              maximumFractionDigits: 0 }) %></span>
-                        </td>
-                      </tr>
-                      <% }) %>
-                  </tbody>
-                </table>
-                <% } else { %>
-                  <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                    <p>No sales data available yet</p>
-                  </div>
-                  <% } %>
-            </div>
-          </div>
-          <!-- Top 3 Best Selling Categories -->
-          <div class="card">
-            <div class="card-header">
-              <h5>Top 3 Best-Selling Categories</h5>
-              <span style="color: #9ca3af; font-size: 12px;">Based on completed orders</span>
-            </div>
-            <div class="card-body">
-              <% if (bestSellingCategories && bestSellingCategories.length> 0) { %>
-                <table class="products-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 10%;">Rank</th>
-                      <th style="width: 40%;">Category</th>
-                      <th style="width: 25%;">Units Sold</th>
-                      <th style="width: 25%;">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% bestSellingCategories.forEach(function(cat, index) { %>
-                      <tr>
-                        <td>
-                          <span class="rank-badge">
-                            <%= index + 1 %>
-                          </span>
-                        </td>
-                        <td>
-                          <span class="product-name">
-                            <%= cat.category %>
-                          </span>
-                        </td>
-                        <td>
-                          <span class="metric-value">
-                            <%= cat.totalQuantity %>
-                          </span>
-                        </td>
-                        <td>
-                          <span class="revenue-badge">
-                            ₹<%= cat.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %>
-                          </span>
-                        </td>
-                      </tr>
-                      <% }) %>
-                  </tbody>
-                </table>
-                <% } else { %>
-                  <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                    <p>No category data available yet</p>
-                  </div>
-                  <% } %>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Orders Section -->
-        <div class="row mt-5">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h5>Recent Orders</h5>
-              </div>
-              <div class="card-body">
-                <% if (recentOrders && recentOrders.length> 0) { %>
-                  <table class="orders-table">
-                    <thead>
-                      <tr>
-                        <th>Order ID</th>
-                        <th>Customer</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% recentOrders.forEach(function(order) { %>
-                        <tr>
-                          <td><span style="font-family: monospace; font-size: 12px;"><%- order._id.toString().slice(0,
-                                8).toUpperCase() %></span></td>
-                          <td>
-                            <%= order.customerName %>
-                          </td>
-                          <td>
-                            <%= order.date %>
-                          </td>
-                          <td>
-                            <span class="status-badge status-<%= order.status.toLowerCase().replace(/[-]/g, '-') %>">
-                              <%= order.status %>
-                            </span>
-                          </td>
-                          <td><strong>₹<%= order.total.toFixed(2) %></strong></td>
-                        </tr>
-                        <% }) %>
-                    </tbody>
-                  </table>
-                  <% } else { %>
-                    <div style="text-align: center; padding: 40px; color: #9ca3af;">
-                      <p>No recent orders found</p>
-                    </div>
-                    <% } %>
-              </div>
-            </div>
+          <div class="ga-card__body" style="padding: 0;">
+            <% if (bestSellingCategories && bestSellingCategories.length > 0) { %>
+            <table class="ga-table">
+              <thead>
+                <tr>
+                  <th style="width:8%;">#</th>
+                  <th>Category</th>
+                  <th>Units</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bestSellingCategories.forEach(function(cat, index) { %>
+                <tr>
+                  <td><span class="ga-rank"><%= index + 1 %></span></td>
+                  <td><span class="ga-product-name"><%= cat.category %></span></td>
+                  <td><span class="ga-metric"><%= cat.totalQuantity %></span></td>
+                  <td><span class="ga-revenue-tag">₹<%= cat.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 }) %></span></td>
+                </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <div class="ga-empty"><i class="bi bi-grid"></i>No category data yet</div>
+            <% } %>
           </div>
         </div>
       </div>
-    </main>
 
-    <script>
-  // Step 1: Get the canvas element
-  const chartCtx = document.getElementById('revenueTrendChart');
+      <div class="ga-card">
+        <div class="ga-card__head">
+          <span class="ga-card__head-title">Recent Orders</span>
+        </div>
+        <div class="ga-card__body" style="padding: 0;">
+          <% if (recentOrders && recentOrders.length > 0) { %>
+          <table class="ga-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentOrders.forEach(function(order) { %>
+              <tr>
+                <td><span class="ga-order-id"><%- order._id.toString().slice(0, 8).toUpperCase() %></span></td>
+                <td><%= order.customerName %></td>
+                <td><%= order.date %></td>
+                <td>
+                  <span class="ga-status ga-status--<%= order.status.toLowerCase().replace(/[-\s]/g, '-') %>">
+                    <%= order.status %>
+                  </span>
+                </td>
+                <td><span class="ga-amount">₹<%= order.total.toFixed(2) %></span></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <div class="ga-empty"><i class="bi bi-cart"></i>No recent orders</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
 
-  // Step 2: Store the chart instance so we can destroy it before re-creating
-  let revenueTrendChart = null;
+  </main>
 
-  // Step 3: Read the data from the server (EJS injects it here)
-  const revenueLabels = <%- JSON.stringify(chartLabels) %>;
-  const revenueData   = <%- JSON.stringify(chartData) %>;
+  <script>
+    const chartCtx = document.getElementById('revenueTrendChart');
+    let revenueTrendChart = null;
 
-  // Step 4: Function to build the chart
-  function initRevenueTrendChart() {
-    console.log('Labels:', revenueLabels);
-    console.log('Data:', revenueData);
-    console.log('Chart.js loaded?', typeof Chart);
+    const revenueLabels = <%- JSON.stringify(chartLabels) %>;
+    const revenueData   = <%- JSON.stringify(chartData) %>;
 
-    // If a chart already exists on this canvas, destroy it first
-    if (revenueTrendChart) {
-      revenueTrendChart.destroy();
-    }
+    function initRevenueTrendChart() {
+      if (revenueTrendChart) revenueTrendChart.destroy();
 
-    revenueTrendChart = new Chart(chartCtx, {
-      type: 'line',
-      data: {
-        labels: revenueLabels,
-        datasets: [{
-          label: 'Revenue (₹)',
-          data: revenueData,
-          borderColor: '#2c1810',
-          backgroundColor: 'rgba(44, 24, 16, 0.05)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#2c1810',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointHoverRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              font: { size: 12, weight: '500' },
-              color: '#6b7280',
-              padding: 16,
-              usePointStyle: true
-            }
-          },
-          tooltip: {
-            backgroundColor: '#1f2937',
-            titleFont: { size: 12, weight: '600' },
-            bodyFont: { size: 13 },
-            padding: 12,
-            borderRadius: 8,
-            displayColors: false,
-            callbacks: {
-              label: function(context) {
-                return '₹' + context.parsed.y.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-              }
-            }
-          }
+      revenueTrendChart = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+          labels: revenueLabels,
+          datasets: [{
+            label: 'Revenue (₹)',
+            data: revenueData,
+            borderColor: '#8B1A1A',
+            backgroundColor: 'rgba(139, 26, 26, 0.05)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#8B1A1A',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 6
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: '#e5e7eb', drawBorder: false },
-            ticks: {
-              font: { size: 12 },
-              color: '#6b7280',
-              callback: function(value) {
-                return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                font: { size: 11, family: 'Poppins', weight: '500' },
+                color: '#aaa',
+                padding: 16,
+                usePointStyle: true
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1A1A1A',
+              titleFont: { size: 11, family: 'Poppins', weight: '600' },
+              bodyFont: { size: 12, family: 'Poppins' },
+              padding: 12,
+              borderRadius: 2,
+              displayColors: false,
+              callbacks: {
+                label: function(context) {
+                  return '₹' + context.parsed.y.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                }
               }
             }
           },
-          x: {
-            grid: { display: false },
-            ticks: { font: { size: 12 }, color: '#6b7280' }
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#F0EBE3', drawBorder: false },
+              ticks: {
+                font: { size: 11, family: 'Poppins' },
+                color: '#bbb',
+                callback: function(value) {
+                  return '₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+                }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11, family: 'Poppins' }, color: '#bbb' }
+            }
           }
         }
-      }
+      });
+    }
+
+    function changeFilter(filterType) {
+      window.location.href = '/admin/dashboard?filter=' + filterType;
+    }
+
+    window.addEventListener('load', function() {
+      initRevenueTrendChart();
     });
-  }
+  </script>
 
-  // Step 5: Filter buttons
-  function changeFilter(filterType) {
-    window.location.href = '/admin/dashboard?filter=' + filterType;
-  }
-
-  // Step 6: Wait for Chart.js CDN to fully load, then init
-  window.addEventListener('load', function() {
-    initRevenueTrendChart();
-  });
-</script>
-</body>
-
-</html>
+  <%- include('../partials/admin/footer') %>
