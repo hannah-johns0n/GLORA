@@ -25,7 +25,7 @@
   /* ── PAGE WRAPPER ───────────────────────────────────── */
   .glora-account {
     min-height: calc(100vh - 72px);
-    padding: 60px 0 100px;
+    padding: 40px 0 100px;
     margin-top: 72px;
   }
 
@@ -71,45 +71,46 @@
   /* ════════════════════════════════════════════════════
      SHARED SIDEBAR
   ════════════════════════════════════════════════════ */
-  .glora-sidebar {
+  .profile-sidebar {
     background: #fff;
     border: 1px solid var(--glora-border);
     position: sticky;
-    top: 92px;
+    top: 96px;
   }
 
-  .glora-sidebar__user {
-    padding: 28px 24px 20px;
-    border-bottom: 1px solid rgba(26,26,26,0.07);
+  .profile-sidebar__user {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--glora-border);
     text-align: center;
   }
 
-  .glora-sidebar__avatar {
-    width: 56px;
-    height: 56px;
+  .profile-sidebar__avatar {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: var(--glora-blush);
     border: 2px solid var(--glora-border);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 12px;
+    margin: 0 auto 14px;
   }
 
-  .glora-sidebar__avatar i { font-size: 22px; color: var(--glora-muted); }
+  .profile-sidebar__avatar i {
+    font-size: 26px;
+    color: var(--glora-muted);
+  }
 
-  .glora-sidebar__name {
+  .profile-sidebar__name {
     font-family: 'Cormorant Garant', serif;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--glora-dark);
+    letter-spacing: 0.3px;
     margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .glora-sidebar__label {
+  .profile-sidebar__label {
     font-size: 9px;
     font-weight: 500;
     letter-spacing: 3px;
@@ -117,83 +118,71 @@
     color: var(--glora-gold);
   }
 
-  .glora-sidebar__nav { padding: 12px 0; }
+  /* Nav links */
+  .profile-sidebar__nav {
+    padding: 12px 0;
+  }
 
-  .glora-sidebar__nav-item {
+  .profile-sidebar__nav a {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 11px 24px;
+    padding: 12px 24px;
     font-size: 11px;
     font-weight: 500;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
     color: var(--glora-muted);
     text-decoration: none;
-    transition: background 0.2s ease, color 0.2s ease;
-    position: relative;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
   }
 
-  .glora-sidebar__nav-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 2px;
-    background: var(--glora-red);
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .glora-sidebar__nav-item:hover {
-    background: var(--glora-cream);
-    color: var(--glora-dark);
-    text-decoration: none;
-  }
-
-  .glora-sidebar__nav-item.active {
-    background: var(--glora-cream);
-    color: var(--glora-dark);
-    font-weight: 600;
-  }
-
-  .glora-sidebar__nav-item.active::before { opacity: 1; }
-
-  .glora-sidebar__nav-item i {
+  .profile-sidebar__nav a i {
     font-size: 13px;
     width: 16px;
     text-align: center;
-    flex-shrink: 0;
-    color: var(--glora-muted);
-    transition: color 0.2s ease;
   }
 
-  .glora-sidebar__nav-item:hover i,
-  .glora-sidebar__nav-item.active i { color: var(--glora-red); }
-
-  .glora-sidebar__footer {
-    padding: 12px 16px 20px;
-    border-top: 1px solid rgba(26,26,26,0.07);
+  .profile-sidebar__nav a:hover {
+    color: var(--glora-dark);
+    background: var(--glora-blush);
+    border-left-color: var(--glora-border);
   }
 
-  .glora-sidebar__logout {
+  .profile-sidebar__nav a.active {
+    color: var(--glora-red);
+    border-left-color: var(--glora-red);
+    background: #fdf5f5;
+  }
+
+  /* Logout */
+  .profile-sidebar__logout {
+    padding: 16px 24px;
+    border-top: 1px solid var(--glora-border);
+  }
+
+  .profile-sidebar__logout form { margin: 0; }
+
+  .btn-glora-logout {
     display: block;
     width: 100%;
-    padding: 10px;
-    background: none;
-    border: 1px solid rgba(26,26,26,0.15);
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--glora-muted);
-    cursor: pointer;
+    padding: 11px;
+    background: transparent;
+    border: 1.5px solid var(--glora-dark);
+    color: var(--glora-dark);
     font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
   }
 
-  .glora-sidebar__logout:hover {
+  .btn-glora-logout:hover {
     background: var(--glora-dark);
-    border-color: var(--glora-dark);
     color: #fff;
   }
 
@@ -412,56 +401,56 @@
 
 <div class="glora-account">
   <div class="glora-account__container">
-
-    <div class="glora-account__heading">
-      <span class="glora-account__eyebrow">Your account</span>
-      <h1 class="glora-account__title">Manage Addresses</h1>
-    </div>
-
     <div class="glora-account__layout">
 
       <!-- ══ SHARED SIDEBAR ══════════════════════════════ -->
-      <aside class="glora-sidebar">
-        <div class="glora-sidebar__user">
-          <div class="glora-sidebar__avatar">
-            <i class="fas fa-user"></i>
-          </div>
-          <p class="glora-sidebar__name"><%= userName || 'User' %></p>
-          <span class="glora-sidebar__label">Member</span>
-        </div>
+      <aside class="profile-sidebar">
 
-        <nav class="glora-sidebar__nav">
-          <a href="/profile" class="glora-sidebar__nav-item">
-            <i class="fas fa-user"></i> My Account
-          </a>
-          <a href="/my-orders" class="glora-sidebar__nav-item">
-            <i class="fas fa-box"></i> My Orders
-          </a>
-          <a href="/manage-address" class="glora-sidebar__nav-item active">
-            <i class="fas fa-map-marker-alt"></i> Addresses
-          </a>
-          <a href="/wallet" class="glora-sidebar__nav-item">
-            <i class="fas fa-wallet"></i> Wallet
-          </a>
-          <a href="/wishlist" class="glora-sidebar__nav-item">
-            <i class="fas fa-heart"></i> Wishlist
-          </a>
-          <a href="/add-account" class="glora-sidebar__nav-item">
-            <i class="fas fa-link"></i> Linked Accounts
-          </a>
-        </nav>
-
-        <div class="glora-sidebar__footer">
-          <form action="/logout" method="POST">
-            <button type="submit" class="glora-sidebar__logout">
-              <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
-            </button>
-          </form>
+      <div class="profile-sidebar__user">
+        <div class="profile-sidebar__avatar">
+          <i class="fas fa-user"></i>
         </div>
-      </aside>
+        <p class="profile-sidebar__name"><%= userName || 'User' %></p>
+        <span class="profile-sidebar__label">My Account</span>
+      </div>
+
+      <nav class="profile-sidebar__nav">
+        <a href="/profile" class="<%= url === '/profile' ? 'active' : '' %>">
+          <i class="fas fa-user"></i> Profile
+        </a>
+        <a href="/my-orders" class="<%= url === '/my-orders' ? 'active' : '' %>">
+          <i class="fas fa-box"></i> Orders
+        </a>
+        <a href="/manage-address" class="<%= url === '/manage-address' ? 'active' : '' %>">
+          <i class="fas fa-map-marker-alt"></i> Addresses
+        </a>
+        <a href="/wallet" class="<%= url === '/wallet' ? 'active' : '' %>">
+          <i class="fas fa-wallet"></i> Wallet
+        </a>
+        <a href="/wishlist" class="<%= url === '/wishlist' ? 'active' : '' %>">
+          <i class="fas fa-heart"></i> Wishlist
+        </a>
+        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
+          <i class="fas fa-plus-circle"></i> Add Account
+        </a>
+      </nav>
+
+      <div class="profile-sidebar__logout">
+        <form action="/logout" method="POST">
+          <button type="submit" class="btn-glora-logout">
+            <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Log Out
+          </button>
+        </form>
+      </div>
+
+    </aside>
 
       <!-- ══ ADDRESS PANEL ═══════════════════════════════ -->
       <div class="address-panel">
+        <div class="glora-account__heading">
+      <span class="glora-account__eyebrow">Your account</span>
+      <h1 class="glora-account__title">Manage Addresses</h1>
+    </div>
 
         <% if (addresses.length === 0) { %>
 

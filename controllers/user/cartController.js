@@ -71,6 +71,7 @@ const addToCart = async (req, res) => {
     const productId = req.params.id;
 
     const variantIndex = parseInt(req.body.variantIndex) || 0;
+    const quantity = parseInt(req.body.quantity) || 1;
 
     const product = await Product.findById(productId);
     if (!product) {
@@ -112,20 +113,25 @@ const addToCart = async (req, res) => {
     );
 
     if (existingItem) {
-      if (existingItem.quantity >= MAX_QTY) {
+      const newQty = existingItem.quantity + quantity;
+
+      if (newQty > MAX_QTY) {
         return res.status(400).json({ success: false, message: `Maximum ${MAX_QTY} items allowed per product` });
       }
-      if (existingItem.quantity >= variant.quantity) {
+      if (newQty > variant.quantity) {
         return res.status(400).json({ success: false, message: 'Not enough stock available' });
       }
-      existingItem.quantity += 1;
+      existingItem.quantity = newQty;
       existingItem.totalPrice = existingItem.quantity * price;
     } else {
+      if (quantity > variant.quantity) {
+        return res.status(400).json({ success: false, message: 'Not enough stock available' });
+      }
       cart.items.push({
         productId,
         variantIndex,
-        quantity: 1,
-        totalPrice: price
+        quantity,
+        totalPrice: quantity * price
       });
     }
 

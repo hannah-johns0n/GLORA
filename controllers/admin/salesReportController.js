@@ -27,7 +27,7 @@ async function fetchOrders(query = {}) {
 
 const getSalesReport = async (req, res) => {
   try {
-    let { startDate, endDate, paymentMethod, orderStatus } = req.query;
+    let { startDate, endDate, paymentMethod, orderStatus, page } = req.query;
     const filter = { status: { $in: ['Delivered', 'Returned'] } };
 
     if (startDate && endDate) {
@@ -36,26 +36,37 @@ const getSalesReport = async (req, res) => {
     if (paymentMethod && paymentMethod !== 'all') filter.paymentMethod = paymentMethod;
     if (orderStatus && orderStatus !== 'all') filter.status = orderStatus;
 
-    const orders = await Order.find(filter)
-      .populate('userId', 'name email')
-      .sort({ createdAt: -1 })
-      .lean();
+    const currentPage = Math.max(parseInt(page) || 1, 1);
+    const limit = 8;
+    const skip = (currentPage - 1) * limit;
 
-    const totalSales = orders.reduce((s, o) => s + o.totalPrice, 0);
-    const totalOrders = orders.length;
+    const allOrders = await Order.find(filter).lean();
+
+    const totalSales = allOrders.reduce((s, o) => s + o.totalPrice, 0);
+    const totalOrders = allOrders.length;
     const avgOrder = totalOrders > 0 ? totalSales / totalOrders : 0;
-    const returnedOrders = orders.filter(o => o.status === 'Returned').length;
+    const returnedOrders = allOrders.filter(o => o.status === 'Returned').length;
     const returnRate = totalOrders > 0 ? (returnedOrders / totalOrders) * 100 : 0;
 
-    const totalOfferDiscount = orders.reduce((s, o) => s + (o.offerDiscount || 0), 0);
-    const totalCouponDiscount = orders.reduce((s, o) => s + (o.couponDiscount || 0), 0);
-    const totalDiscount = orders.reduce((s, o) => s + (o.discount || 0), 0);
+    const totalOfferDiscount = allOrders.reduce((s, o) => s + (o.offerDiscount || 0), 0);
+    const totalCouponDiscount = allOrders.reduce((s, o) => s + (o.couponDiscount || 0), 0);
+    const totalDiscount = allOrders.reduce((s, o) => s + (o.discount || 0), 0);
 
+    const totalPages = Math.ceil(totalOrders / limit);
+
+    const orders = await Order.find(filter)
+      .populate('userId', 'name email')
+      .populate('orderItems.productId', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     res.render('admin/salesReport', {
       orders, totalSales, totalOrders, avgOrder, returnRate,
       totalOfferDiscount, totalCouponDiscount, totalDiscount,
-      filters: { startDate, endDate, paymentMethod, orderStatus }
+      filters: { startDate, endDate, paymentMethod, orderStatus },
+      currentPage, totalPages, limit
     });
   } catch (err) {
     console.error(err);

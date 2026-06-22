@@ -405,20 +405,20 @@
         <a href="/profile" class="active">
           <i class="fas fa-user"></i> Profile
         </a>
-        <a href="/my-orders">
+        <a href="/my-orders" class="<%= url === '/my-orders' ? 'active' : '' %>">
           <i class="fas fa-box"></i> Orders
         </a>
         <a href="/manage-address">
           <i class="fas fa-map-marker-alt"></i> Addresses
         </a>
-        <a href="/wallet">
+        <a href="/wallet" class="<%= url === '/wallet' ? 'active' : '' %>">
           <i class="fas fa-wallet"></i> Wallet
         </a>
-        <a href="/wishlist">
+        <a href="/wishlist" class="<%= url === '/wishlist' ? 'active' : '' %>">
           <i class="fas fa-heart"></i> Wishlist
         </a>
-        <a href="/add-account">
-          <i class="fas fa-plus-circle"></i> Add Account
+        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
+          <i class="fas fa-sign-in-alt"></i> Add Account
         </a>
       </nav>
 
@@ -453,7 +453,7 @@
 
         <!-- Referral card -->
         <%
-          let referralCode = user.referralId;
+          let referralCode = user.referralCode;
           if (!referralCode) {
             let letters = (user.name ? user.name.substring(0, 3) : "USR").toUpperCase();
             let numbers = Math.floor(1000 + Math.random() * 9000);

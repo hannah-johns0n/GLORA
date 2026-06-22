@@ -12,6 +12,7 @@ const Address = require('../../models/addressModel');
 const Order = require('../../models/orderModel');
 const Coupon = require('../../models/coupensModel');
 const STATUS_CODES = require('../../constants/statusCodes');
+const Wallet = require('../../models/walletModel');
 const fs = require('fs');
 
 dotenv.config();
@@ -91,7 +92,7 @@ if (password.length < 8) {
 
     const otp = generateOTP();
     const hashedPassword = await bcrypt.hash(password, 10);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
     await TempUser.deleteOne({ email });
 
@@ -109,7 +110,7 @@ if (password.length < 8) {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Verify Your Email",
-      html: `<h2>Your OTP is <strong>${otp}</strong></h2><p>Expires in 5 minutes.</p>`
+      html: `<h2>Your OTP is <strong>${otp}</strong></h2><p>Expires in 3 minutes.</p>`
     });
 
     res.redirect(`/verify-otp?email=${email}`);
@@ -137,6 +138,23 @@ const getVerifyOtp = async (req, res) => {
     purpose: "verify"
   };
   res.render("user/otp", viewData);
+};
+
+const creditWallet = async (userId, amount, description) => {
+  let wallet = await Wallet.findOne({ user: userId });
+
+  if (!wallet) {
+    wallet = new Wallet({ user: userId, balance: 0, transactions: [] });
+  }
+
+  wallet.balance += amount;
+  wallet.transactions.push({
+    type: "credit",
+    amount: amount,
+    description: description
+  });
+
+  await wallet.save();
 };
 
 const postVerifyOtp = async (req, res) => {
@@ -188,20 +206,17 @@ const postVerifyOtp = async (req, res) => {
       referrer.redeemedUser.push(newUser._id);
       await referrer.save();
 
-      const couponCode = "REF-" + referrer.referralCode + "-" + Math.floor(1000 + Math.random() * 9000);
+      await creditWallet(
+        referrer._id,
+        200,
+        `Referral reward for referring ${newUser.name}`
+      );
 
-      await Coupon.create({
-        couponCode: couponCode,
-        description: "Referral reward coupon",
-        discountType: "Percentage",
-        discountValue: 10,
-        minimumPurchaseAmount: 500,
-        perUserLimit: 1,
-        maxUses: 1,
-        expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        isActive: true,
-        usedBy: []
-      });
+      await creditWallet(
+        newUser._id,
+        80,
+        "Welcome bonus for signing up via referral"
+      );
     }
   }
 
@@ -517,7 +532,6 @@ const getProductDetails = async (req, res) => {
     if (!product || product.isBlocked) {
       return res.status(404).send('Product not found');
     }
-
     let userName = null;
     let user = null;
     let cartCount = 0;
@@ -1031,16 +1045,16 @@ const sendChangeEmailOtp = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
+    const expiresAt = Date.now() + 3 * 60 * 1000;
     otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
 
-    const remainingSeconds = 300;
+    const remainingSeconds = 180;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Change Email OTP',
-      text: `Your OTP is ${otp}. It will expire in 5 minutes.`
+      text: `Your OTP is ${otp}. It will expire in 3 minutes.`
     });
 
     console.log(`OTP for ${email} is ${otp}`);
@@ -1153,8 +1167,7 @@ const resendForgotPasswordOtp = async (req, res) => {
 
     const otp = generateOTP();
     const otpExpires = Date.now() + 5 * 60 * 1000;
-    console.log("Generated OTP:", otp);
-
+    console.log(`Generated OTP for ${email}: ${otp}`);
     await PasswordReset.updateOne(
       { email },
       { $set: { otp, otpExpires } },
@@ -1194,16 +1207,16 @@ const resendChangeEmailOtp = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const expiresAt = Date.now() + 5 * 60 * 1000;
+    const expiresAt = Date.now() + 3 * 60 * 1000;
     otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
 
-    const remainingSeconds = 300;
+    const remainingSeconds = 180;
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: 'Change Email OTP',
-      text: `Your OTP is ${otp}. It will expire in 5 minutes.`
+      text: `Your OTP is ${otp}. It will expire in 3 minutes.`
     });
 
     console.log(`OTP for ${email} is ${otp}`);
