@@ -29,7 +29,15 @@ function isOfferProductMatch(offer, product) {
 }
 
 function isOfferCategoryMatch(offer, product) {
-  return offer.offerType === 'Category' && offer.category && product && product.category && offer.category.categoryName === product.category;
+  if (offer.offerType !== 'Category' || !offer.category || !product || !product.category) {
+    return false;
+  }
+
+  const productCategoryValue = product.category.toString();
+  const categoryIdMatch = offer.category._id && productCategoryValue === offer.category._id.toString();
+  const categoryNameMatch = offer.category.categoryName && productCategoryValue === offer.category.categoryName;
+
+  return Boolean(categoryIdMatch || categoryNameMatch);
 }
 
 function isOfferGlobal(offer) {
@@ -188,6 +196,10 @@ function calculateCouponDiscount(amount, coupon) {
   let discount = 0;
   if (coupon.discountType === 'Percentage') {
     discount = (normalizedAmount * coupon.discountValue) / 100;
+
+    if (coupon.maxDiscountAmount && coupon.maxDiscountAmount > 0) {
+      discount = Math.min(discount, coupon.maxDiscountAmount);
+    }
   } else {
     discount = coupon.discountValue;
   }

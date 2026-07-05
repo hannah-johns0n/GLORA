@@ -1,44 +1,49 @@
 <%- include('../partials/user/header', { userName: userName, url: url }) %>
 
-  <style>
+    <style>
     /* ── CART PAGE ──────────────────────────────────────── */
     .glora-cart {
       min-height: calc(100vh - 72px);
       background: var(--glora-cream);
-      padding: 60px 0 100px;
+      padding: 40px 0 100px;
     }
 
     .glora-cart__container {
-      max-width: 1280px;
+      max-width: 1500px;
       margin: 0 auto;
-      padding: 0 40px;
+      padding: 0 15px;
     }
 
-    /* ── PAGE HEADING ───────────────────────────────────── */
-    .glora-cart__heading {
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(26, 26, 26, 0.10);
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
+    /* ── PAGE BANNER (matches wishlist) ─────────────────── */
+    .glora-cart__banner {
+      background: #1A1A1A;
+      padding: 30px 0 25px;
+      text-align: center;
+      margin-top: 65px;
+      margin-bottom: 0;
     }
 
-    .glora-cart__eyebrow {
+    .glora-cart__banner-eyebrow {
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 4px;
       text-transform: uppercase;
-      color: var(--glora-gold);
+      color: #D4A96A;
+      margin-bottom: 10px;
     }
 
-    .glora-cart__title {
+    .glora-cart__banner-title {
       font-family: 'Cormorant Garant', serif;
-      font-size: 38px;
+      font-size: clamp(36px, 5vw, 56px);
       font-weight: 600;
-      color: var(--glora-dark);
+      color: #FAF7F4;
       letter-spacing: -0.5px;
-      line-height: 1;
+      line-height: 1.1;
+    }
+
+    .glora-cart__banner-title em {
+      font-style: italic;
+      font-weight: 400;
     }
 
     /* ── EMPTY STATE ────────────────────────────────────── */
@@ -101,7 +106,7 @@
     .glora-cart__layout {
       display: grid;
       grid-template-columns: 1fr 320px;
-      gap: 28px;
+      gap: 10px;
       align-items: start;
     }
 
@@ -111,22 +116,22 @@
       border: 1px solid rgba(26, 26, 26, 0.07);
     }
 
-    /* Table head */
+    /* ── TABLE HEAD (matches wishlist dark thead) ────────── */
     .glora-cart__table-head {
       display: grid;
       grid-template-columns: 3fr 1fr 1fr 1fr 1fr 36px;
-      padding: 13px 24px;
-      background: var(--glora-blush);
-      border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+      padding: 14px 24px;
+      background: #1A1A1A;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       gap: 12px;
     }
 
     .glora-cart__table-head span {
       font-size: 9px;
-      font-weight: 600;
+      font-weight: 500;
       letter-spacing: 3px;
       text-transform: uppercase;
-      color: var(--glora-muted);
+      color: #D4A96A;
     }
 
     .glora-cart__table-head span:not(:first-child) {
@@ -221,7 +226,6 @@
       padding-top: 2px;
     }
 
-    /* Product name — wraps, no truncation */
     .glora-cart__product-name {
       font-size: 13px;
       font-weight: 500;
@@ -229,11 +233,9 @@
       margin-bottom: 5px;
       line-height: 1.45;
       white-space: normal;
-      /* ← wraps */
       word-break: break-word;
     }
 
-    /* Variant row */
     .glora-cart__product-meta {
       display: flex;
       flex-direction: column;
@@ -258,7 +260,6 @@
       opacity: 0.8;
     }
 
-    /* ── VARIANT CHIP ───────────────────────────────────── */
     .glora-cart__variant-chip {
       display: inline-flex;
       align-items: center;
@@ -290,7 +291,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Offer badge */
     .glora-cart__offer-badge {
       display: inline-flex;
       align-items: center;
@@ -306,11 +306,8 @@
       width: fit-content;
     }
 
-    .glora-cart__offer-badge i {
-      font-size: 9px;
-    }
+    .glora-cart__offer-badge i { font-size: 9px; }
 
-    /* Out-of-stock badge */
     .glora-cart__oos-badge {
       display: inline-flex;
       align-items: center;
@@ -327,14 +324,10 @@
       margin-top: 2px;
     }
 
-    .glora-cart__oos-badge i {
-      font-size: 9px;
-    }
+    .glora-cart__oos-badge i { font-size: 9px; }
 
     /* ── PRICE / TOTAL CELLS ────────────────────────────── */
-    .glora-cart__cell {
-      text-align: center;
-    }
+    .glora-cart__cell { text-align: center; }
 
     .glora-cart__price {
       font-size: 13px;
@@ -397,7 +390,6 @@
       display: block;
     }
 
-    /* Qty cell wrapper for centering */
     .glora-cart__qty-wrap {
       display: flex;
       justify-content: center;
@@ -493,10 +485,7 @@
       color: var(--glora-dark);
     }
 
-    /* Shipping progress bar */
-    .glora-cart__shipping-bar-wrap {
-      margin: 16px 0 4px;
-    }
+    .glora-cart__shipping-bar-wrap { margin: 16px 0 4px; }
 
     .glora-cart__shipping-bar-label {
       font-size: 10px;
@@ -505,9 +494,7 @@
       letter-spacing: 0.3px;
     }
 
-    .glora-cart__shipping-bar-label strong {
-      color: var(--glora-dark);
-    }
+    .glora-cart__shipping-bar-label strong { color: var(--glora-dark); }
 
     .glora-cart__shipping-bar-track {
       width: 100%;
@@ -541,9 +528,7 @@
       margin-top: 22px;
     }
 
-    .glora-cart__checkout-btn:hover {
-      background: var(--glora-red);
-    }
+    .glora-cart__checkout-btn:hover { background: var(--glora-red); }
 
     .glora-cart__continue-link {
       display: block;
@@ -587,29 +572,17 @@
 
     /* ── RESPONSIVE ─────────────────────────────────────── */
     @media (max-width: 1024px) {
-      .glora-cart__layout {
-        grid-template-columns: 1fr 280px;
-      }
+      .glora-cart__layout { grid-template-columns: 1fr 280px; }
     }
 
     @media (max-width: 860px) {
-      .glora-cart__layout {
-        grid-template-columns: 1fr;
-      }
-
-      .glora-cart__summary {
-        position: static;
-      }
+      .glora-cart__layout { grid-template-columns: 1fr; }
+      .glora-cart__summary { position: static; }
     }
 
     @media (max-width: 640px) {
-      .glora-cart__container {
-        padding: 0 16px;
-      }
-
-      .glora-cart {
-        padding: 36px 0 80px;
-      }
+      .glora-cart__container { padding: 0 16px; }
+      .glora-cart { padding: 36px 0 80px; }
 
       .glora-cart__table-head {
         grid-template-columns: 1fr 80px 36px;
@@ -618,9 +591,7 @@
 
       .glora-cart__table-head .col-price-head,
       .glora-cart__table-head .col-total-head,
-      .glora-cart__table-head .col-variant-head {
-        display: none;
-      }
+      .glora-cart__table-head .col-variant-head { display: none; }
 
       .glora-cart__row {
         grid-template-columns: 1fr 80px 36px;
@@ -630,326 +601,279 @@
 
       .glora-cart__cell.col-price,
       .glora-cart__cell.col-total,
-      .glora-cart__cell.col-variant {
-        display: none;
-      }
+      .glora-cart__cell.col-variant { display: none; }
 
-      .glora-cart__img-wrap {
-        width: 60px;
-        height: 60px;
-      }
-
-      .glora-cart__product {
-        gap: 10px;
-      }
+      .glora-cart__img-wrap { width: 60px; height: 60px; }
+      .glora-cart__product { gap: 10px; }
     }
   </style>
+
+<!-- ── BANNER (matches wishlist) ──────────────────────── -->
+<section class="glora-cart__banner">
+  <p class="glora-cart__banner-eyebrow">Review your selection</p>
+  <h1 class="glora-cart__banner-title">Your <em>Bag</em></h1>
+</section>
 
 <div class="glora-cart">
   <div class="glora-cart__container">
 
-    <!-- Heading -->
-    <div class="glora-cart__heading">
-      <span class="glora-cart__eyebrow">Review your selection</span>
-      <h1 class="glora-cart__title">Your Bag</h1>
+    <% if (!cart || cart.length === 0) { %>
+
+    <!-- Empty state -->
+    <div class="glora-cart__empty">
+      <div class="glora-cart__empty-icon">
+        <i class="fas fa-shopping-bag"></i>
+      </div>
+      <h2 class="glora-cart__empty-title">Your bag is empty</h2>
+      <p class="glora-cart__empty-sub">Discover something you'll love in our collection</p>
+      <a href="/shop" class="glora-cart__empty-cta">Explore the Collection</a>
     </div>
 
-    <% if (!cart || cart.length===0) { %>
+    <% } else { %>
 
-      <!-- Empty state -->
-      <div class="glora-cart__empty">
-        <div class="glora-cart__empty-icon">
-          <i class="fas fa-shopping-bag"></i>
+    <% var subtotal = 0; cart.forEach(function(item) { subtotal += item.itemTotal; });
+       var shippingFree = subtotal >= 999;
+       var shippingProgress = Math.min((subtotal / 999) * 100, 100);
+       var remaining = Math.max(999 - subtotal, 0).toFixed(2); %>
+
+    <div class="glora-cart__layout">
+
+      <!-- ── ITEMS PANEL ──────────────────────────────── -->
+      <div class="glora-cart__items">
+
+        <!-- Table head — dark with gold labels -->
+        <div class="glora-cart__table-head">
+          <span>Product</span>
+          <span class="col-variant-head">Variant</span>
+          <span class="col-price-head">Price</span>
+          <span>Quantity</span>
+          <span class="col-total-head">Total</span>
+          <span></span>
         </div>
-        <h2 class="glora-cart__empty-title">Your bag is empty</h2>
-        <p class="glora-cart__empty-sub">Discover something you'll love in our collection</p>
-        <a href="/shop" class="glora-cart__empty-cta">Explore the Collection</a>
+
+        <!-- Rows -->
+        <% cart.forEach(function(item) { var unavailable = item.isUnavailable; %>
+        <div class="glora-cart__row <%= unavailable ? 'glora-cart__row--unavailable' : '' %>">
+
+          <!-- Product -->
+          <div class="glora-cart__product">
+            <a href="/product/<%= item.productId._id %>" class="glora-cart__img-wrap" style="text-decoration:none; display:block;">
+              <% if (item.productId.images && item.productId.images.length > 0) { %>
+                <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>">
+              <% } else { %>
+                <div class="glora-cart__img-placeholder"><i class="fas fa-image"></i></div>
+              <% } %>
+            </a>
+
+            <div class="glora-cart__product-info">
+              <a href="/product/<%= item.productId._id %>" style="text-decoration:none; color:inherit;">
+                <p class="glora-cart__product-name"><%= item.productId.productName %></p>
+              </a>
+
+              <div class="glora-cart__product-meta">
+                <% if (item.appliedOffer) { %>
+                  <span class="glora-cart__offer-badge">
+                    <i class="fas fa-bolt"></i> <%= item.appliedOffer.title %>
+                  </span>
+                <% } %>
+                <% if (unavailable) { %>
+                  <span class="glora-cart__oos-badge">
+                    <i class="fas fa-ban"></i> Out of Stock
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- Variant -->
+          <div class="glora-cart__cell col-variant">
+            <% if (item.unit) { %>
+              <span class="glora-cart__variant-val"><%= item.unit %></span>
+            <% } else { %>
+              <% var matchedVariant = item.productId.variants && item.variantIndex !== null && item.variantIndex !== undefined ? item.productId.variants[item.variantIndex] : null; %>
+              <% if (matchedVariant) { %>
+                <span class="glora-cart__variant-val"><%= matchedVariant.unit %></span>
+              <% } else { %>
+                <span class="glora-cart__variant-val">—</span>
+              <% } %>
+            <% } %>
+          </div>
+
+          <!-- Price -->
+          <div class="glora-cart__cell col-price">
+            <span class="glora-cart__price">₹<%= item.price.toFixed(2) %></span>
+          </div>
+
+          <!-- Quantity -->
+          <div class="glora-cart__cell">
+            <div class="glora-cart__qty-wrap">
+              <div class="glora-cart__qty">
+                <button class="glora-cart__qty-btn dec-btn" data-id="<%= item.productId._id %>" data-price="<%= item.price %>" <%= unavailable ? 'disabled' : '' %>>−</button>
+                <span class="glora-cart__qty-num"><%= item.quantity %></span>
+                <button class="glora-cart__qty-btn inc-btn" data-id="<%= item.productId._id %>" data-price="<%= item.price %>" <%= unavailable ? 'disabled' : '' %>>+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="glora-cart__cell col-total">
+            <span class="glora-cart__total">₹<span class="item-total"><%= item.itemTotal.toFixed(2) %></span></span>
+          </div>
+
+          <!-- Remove -->
+          <button class="glora-cart__remove remove-btn" data-id="<%= item.productId._id %>" title="Remove item">
+            <i class="fas fa-times"></i>
+          </button>
+
+        </div>
+        <% }); %>
+
       </div>
 
-      <% } else { %>
+      <!-- ── ORDER SUMMARY ───────────────────────────── -->
+      <div class="glora-cart__summary">
+        <h2 class="glora-cart__summary-title">Order Summary</h2>
 
-        <% var subtotal=0; cart.forEach(function(item) { subtotal +=item.itemTotal; }); var shippingFree=subtotal>=
-          999;
-          var shippingProgress = Math.min((subtotal / 999) * 100, 100);
-          var remaining = Math.max(999 - subtotal, 0).toFixed(2);
-          %>
+        <div class="glora-cart__summary-row">
+          <span class="glora-cart__summary-label">Subtotal</span>
+          <span class="glora-cart__summary-value">₹<span id="summary-subtotal"><%= subtotal.toFixed(2) %></span></span>
+        </div>
 
-          <div class="glora-cart__layout">
-
-            <!-- ── ITEMS PANEL ──────────────────────────────── -->
-            <div class="glora-cart__items">
-
-              <!-- Table head -->
-              <div class="glora-cart__table-head">
-                <span>Product</span>
-                <span class="col-variant-head">Variant</span>
-                <span class="col-price-head">Price</span>
-                <span>Quantity</span>
-                <span class="col-total-head">Total</span>
-                <span></span>
-              </div>
-
-              <!-- Rows -->
-              <% cart.forEach(function(item) { var unavailable=item.isUnavailable; %>
-                <div class="glora-cart__row <%= unavailable ? 'glora-cart__row--unavailable' : '' %>">
-
-                  <!-- Product -->
-                  <div class="glora-cart__product">
-                    <a href="/product/<%= item.productId._id %>" class="glora-cart__img-wrap"
-                      style="text-decoration:none; display:block;">
-                      <% if (item.productId.images && item.productId.images.length> 0) { %>
-                        <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.productName %>">
-                        <% } else { %>
-                          <div class="glora-cart__img-placeholder"><i class="fas fa-image"></i></div>
-                          <% } %>
-                    </a>
-
-                    <div class="glora-cart__product-info">
-                      <a href="/product/<%= item.productId._id %>" style="text-decoration:none; color:inherit;">
-                        <p class="glora-cart__product-name">
-                          <%= item.productId.productName %>
-                        </p>
-                      </a>
-
-                      <div class="glora-cart__product-meta">
-                        <% if (item.appliedOffer) { %>
-                          <span class="glora-cart__offer-badge">
-                            <i class="fas fa-bolt"></i>
-                            <%= item.appliedOffer.title %>
-                          </span>
-                          <% } %>
-
-                            <% if (unavailable) { %>
-                              <span class="glora-cart__oos-badge">
-                                <i class="fas fa-ban"></i>
-                                Out of Stock
-                              </span>
-                              <% } %>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Variant -->
-                  <div class="glora-cart__cell col-variant">
-                    <% if (item.unit) { %>
-                      <span class="glora-cart__variant-val">
-                        <%= item.unit %>
-                      </span>
-                      <% } else { %>
-                        <% var matchedVariant=item.productId.variants && item.variantIndex !==null &&
-                          item.variantIndex !==undefined ? item.productId.variants[item.variantIndex] : null; %>
-                          <% if (matchedVariant) { %>
-                            <span class="glora-cart__variant-val">
-                              <%= matchedVariant.unit %>
-                            </span>
-                            <% } else { %>
-                              <span class="glora-cart__variant-val">—</span>
-                              <% } %>
-                                <% } %>
-                  </div>
-
-                  <!-- Price -->
-                  <div class="glora-cart__cell col-price">
-                    <span class="glora-cart__price">₹<%= item.price.toFixed(2) %></span>
-                  </div>
-
-                  <!-- Quantity -->
-                  <div class="glora-cart__cell">
-                    <div class="glora-cart__qty-wrap">
-                      <div class="glora-cart__qty">
-                        <button class="glora-cart__qty-btn dec-btn" data-id="<%= item.productId._id %>"
-                          data-price="<%= item.price %>" <%=unavailable ? 'disabled' : '' %>>−</button>
-                        <span class="glora-cart__qty-num">
-                          <%= item.quantity %>
-                        </span>
-                        <button class="glora-cart__qty-btn inc-btn" data-id="<%= item.productId._id %>"
-                          data-price="<%= item.price %>" <%=unavailable ? 'disabled' : '' %>>+</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Total -->
-                  <div class="glora-cart__cell col-total">
-                    <span class="glora-cart__total">
-                      ₹<span class="item-total">
-                        <%= item.itemTotal.toFixed(2) %>
-                      </span>
-                    </span>
-                  </div>
-
-                  <!-- Remove -->
-                  <button class="glora-cart__remove remove-btn" data-id="<%= item.productId._id %>" title="Remove item">
-                    <i class="fas fa-times"></i>
-                  </button>
-
-                </div>
-                <% }); %>
-
-            </div>
-
-            <!-- ── ORDER SUMMARY ───────────────────────────── -->
-            <div class="glora-cart__summary">
-              <h2 class="glora-cart__summary-title">Order Summary</h2>
-
-              <div class="glora-cart__summary-row">
-                <span class="glora-cart__summary-label">Subtotal</span>
-                <span class="glora-cart__summary-value">₹<span id="summary-subtotal">
-                    <%= subtotal.toFixed(2) %>
-                  </span></span>
-              </div>
-
-              <div class="glora-cart__summary-row">
-                <span class="glora-cart__summary-label">Shipping</span>
-                <% if (shippingFree) { %>
-                  <span class="glora-cart__summary-free"><i class="fas fa-check-circle"></i> Free</span>
-                  <% } else { %>
-                    <span class="glora-cart__summary-value" style="font-size:11px; color:var(--glora-muted);">At
-                      checkout</span>
-                    <% } %>
-              </div>
-
-              <!-- Shipping progress bar -->
-              <% if (!shippingFree) { %>
-                <div class="glora-cart__shipping-bar-wrap">
-                  <p class="glora-cart__shipping-bar-label">
-                    Add <strong>₹<%= remaining %></strong> more for free shipping
-                  </p>
-                  <div class="glora-cart__shipping-bar-track">
-                    <div class="glora-cart__shipping-bar-fill" style="width:<%= shippingProgress %>%"></div>
-                  </div>
-                </div>
-                <% } %>
-
-                  <div class="glora-cart__summary-divider"></div>
-
-                  <div class="glora-cart__summary-row">
-                    <span class="glora-cart__summary-total-label">Total</span>
-                    <span class="glora-cart__summary-total-value">₹<span id="summary-total">
-                        <%= subtotal.toFixed(2) %>
-                      </span></span>
-                  </div>
-
-                  <button id="checkout-btn" class="glora-cart__checkout-btn">
-                    <i class="fas fa-lock" style="margin-right:8px; font-size:9px;"></i>Proceed to Checkout
-                  </button>
-
-                  <a href="/shop" class="glora-cart__continue-link">← Continue Shopping</a>
-
-                  <div class="glora-cart__summary-note">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Free shipping on orders above ₹999. Authentic products, easy returns.</span>
-                  </div>
-            </div>
-
-          </div>
+        <div class="glora-cart__summary-row">
+          <span class="glora-cart__summary-label">Shipping</span>
+          <% if (shippingFree) { %>
+            <span class="glora-cart__summary-free"><i class="fas fa-check-circle"></i> Free</span>
+          <% } else { %>
+            <span class="glora-cart__summary-value" style="font-size:11px; color:var(--glora-muted);">At checkout</span>
           <% } %>
+        </div>
+
+        <% if (!shippingFree) { %>
+        <div class="glora-cart__shipping-bar-wrap">
+          <p class="glora-cart__shipping-bar-label">Add <strong>₹<%= remaining %></strong> more for free shipping</p>
+          <div class="glora-cart__shipping-bar-track">
+            <div class="glora-cart__shipping-bar-fill" style="width:<%= shippingProgress %>%"></div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="glora-cart__summary-divider"></div>
+
+        <div class="glora-cart__summary-row">
+          <span class="glora-cart__summary-total-label">Total</span>
+          <span class="glora-cart__summary-total-value">₹<span id="summary-total"><%= subtotal.toFixed(2) %></span></span>
+        </div>
+
+        <button id="checkout-btn" class="glora-cart__checkout-btn">
+          <i class="fas fa-lock" style="margin-right:8px; font-size:9px;"></i>Proceed to Checkout
+        </button>
+
+        <a href="/shop" class="glora-cart__continue-link">← Continue Shopping</a>
+
+        <div class="glora-cart__summary-note">
+          <i class="fas fa-shield-alt"></i>
+          <span>Free shipping on orders above ₹999. Authentic products, easy returns.</span>
+        </div>
+      </div>
+
+    </div>
+    <% } %>
 
   </div>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-      /* ── helpers ──────────────────────────────────────── */
-      function recalcTotals() {
-        var subtotal = 0;
-        document.querySelectorAll('.glora-cart__row:not(.glora-cart__row--unavailable)').forEach(function (row) {
-          var price = parseFloat(row.querySelector('.inc-btn').dataset.price);
-          var qty = parseInt(row.querySelector('.glora-cart__qty-num').textContent);
-          var line = price * qty;
-          row.querySelector('.item-total').textContent = line.toFixed(2);
-          subtotal += line;
-        });
-        document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
-        document.getElementById('summary-total').textContent = subtotal.toFixed(2);
-      }
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  /* ── helpers ──────────────────────────────────────── */
+  function recalcTotals() {
+    var subtotal = 0;
+    document.querySelectorAll('.glora-cart__row:not(.glora-cart__row--unavailable)').forEach(function (row) {
+      var price = parseFloat(row.querySelector('.inc-btn').dataset.price);
+      var qty   = parseInt(row.querySelector('.glora-cart__qty-num').textContent);
+      var line  = price * qty;
+      row.querySelector('.item-total').textContent = line.toFixed(2);
+      subtotal += line;
+    });
+    document.getElementById('summary-subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('summary-total').textContent    = subtotal.toFixed(2);
+  }
 
-      function showErr(msg) {
-        Swal.fire({ icon: 'error', title: 'Oops', text: msg, confirmButtonColor: '#1A1A1A' });
-      }
+  function showErr(msg) {
+    Swal.fire({ icon: 'error', title: 'Oops', text: msg, confirmButtonColor: '#1A1A1A' });
+  }
 
-      /* ── events ───────────────────────────────────────── */
-      document.addEventListener('DOMContentLoaded', function () {
+  /* ── events ───────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
 
-        /* Increment */
-        document.querySelectorAll('.inc-btn').forEach(function (btn) {
-          btn.addEventListener('click', async function () {
-            try {
-              var res = await fetch('/cart/increment/' + this.dataset.id, { method: 'POST' });
-              var result = await res.json();
-              if (result.success) {
-                var numEl = this.previousElementSibling;
-                numEl.textContent = parseInt(numEl.textContent) + 1;
-                recalcTotals();
-              } else {
-                showErr(result.message || 'Failed to increase quantity');
-              }
-            } catch { showErr('Failed to update quantity.'); }
-          });
-        });
-
-        /* Decrement */
-        document.querySelectorAll('.dec-btn').forEach(function (btn) {
-          btn.addEventListener('click', async function () {
-            try {
-              var res = await fetch('/cart/decrement/' + this.dataset.id, { method: 'POST' });
-              var result = await res.json();
-              if (result.success) {
-                var numEl = this.nextElementSibling;
-                var current = parseInt(numEl.textContent);
-                if (current > 1) {
-                  numEl.textContent = current - 1;
-                  recalcTotals();
-                }
-              } else {
-                Swal.fire({
-                  toast: true, position: 'top-end', icon: 'warning',
-                  title: result.message, showConfirmButton: false,
-                  timer: 2500, timerProgressBar: true
-                });
-              }
-            } catch { showErr('Failed to update quantity.'); }
-          });
-        });
-
-        /* Remove */
-        document.querySelectorAll('.remove-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var id = this.dataset.id;
-            Swal.fire({
-              title: 'Remove item?',
-              text: 'This item will be removed from your bag.',
-              icon: 'warning',
-              showCancelButton: true,
-              confirmButtonColor: '#1A1A1A',
-              cancelButtonColor: '#aaa',
-              confirmButtonText: 'Remove',
-              cancelButtonText: 'Keep it'
-            }).then(function (result) {
-              if (result.isConfirmed) {
-                fetch('/cart/remove/' + id, { method: 'POST' })
-                  .then(function () { location.reload(); });
-              }
-            });
-          });
-        });
-
-        /* Checkout */
-        var checkoutBtn = document.getElementById('checkout-btn');
-        if (checkoutBtn) {
-          checkoutBtn.addEventListener('click', function () {
-            fetch('/cart/validate-checkout', { method: 'POST' })
-              .then(function (r) { return r.json(); })
-              .then(function (data) {
-                if (data.success) {
-                  window.location.href = '/checkout';
-                } else {
-                  showErr(data.message);
-                }
-              });
-          });
-        }
-
+    /* Increment */
+    document.querySelectorAll('.inc-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          var res    = await fetch('/cart/increment/' + this.dataset.id, { method: 'POST' });
+          var result = await res.json();
+          if (result.success) {
+            var numEl = this.previousElementSibling;
+            numEl.textContent = parseInt(numEl.textContent) + 1;
+            recalcTotals();
+          } else { showErr(result.message || 'Failed to increase quantity'); }
+        } catch { showErr('Failed to update quantity.'); }
       });
-    </script>
+    });
+
+    /* Decrement */
+    document.querySelectorAll('.dec-btn').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        try {
+          var res    = await fetch('/cart/decrement/' + this.dataset.id, { method: 'POST' });
+          var result = await res.json();
+          if (result.success) {
+            var numEl  = this.nextElementSibling;
+            var current = parseInt(numEl.textContent);
+            if (current > 1) { numEl.textContent = current - 1; recalcTotals(); }
+          } else {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'warning',
+              title: result.message, showConfirmButton: false, timer: 2500, timerProgressBar: true });
+          }
+        } catch { showErr('Failed to update quantity.'); }
+      });
+    });
+
+    /* Remove */
+    document.querySelectorAll('.remove-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var id = this.dataset.id;
+        Swal.fire({
+          title: 'Remove item?',
+          text: 'This item will be removed from your bag.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#1A1A1A',
+          cancelButtonColor: '#aaa',
+          confirmButtonText: 'Remove',
+          cancelButtonText: 'Keep it'
+        }).then(function (result) {
+          if (result.isConfirmed) {
+            fetch('/cart/remove/' + id, { method: 'POST' }).then(function () { location.reload(); });
+          }
+        });
+      });
+    });
+
+    /* Checkout */
+    var checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function () {
+        fetch('/cart/validate-checkout', { method: 'POST' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.success) { window.location.href = '/checkout'; }
+            else { showErr(data.message); }
+          });
+      });
+    }
+
+  });
+</script>
+
 
     <%- include('../partials/user/footer') %>

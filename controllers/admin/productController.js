@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
+const StatusCodes = require('../../constants/statusCodes');
 
 
 exports.productListPage = async (req, res) => {
@@ -49,19 +50,19 @@ exports.productListPage = async (req, res) => {
         });
     } catch (error) {
         console.error('Failed to load products:', error);
-        res.status(500).send('Failed to load products');
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Failed to load products');
     }
 };
 
 exports.editProductPage = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).send('Product not found');
+        if (!product) return res.status(StatusCodes.NOT_FOUND).send('Product not found');
         const categories = await Category.find({ isBlocked: false });
         res.render('admin/editProduct', { product, categories });
     } catch (error) {
         console.error('Failed to load edit product page:', error);
-        res.status(500).send('Failed to load edit product page.');
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Failed to load edit product page.');
     }
 };
 
@@ -73,7 +74,7 @@ exports.editProduct = async (req, res) => {
         console.log("TYPE:", typeof req.body.variants);
 
         if (!productName || !category || !description) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 success: false,
                 message: "All basic fields are required"
             });
@@ -84,7 +85,7 @@ exports.editProduct = async (req, res) => {
             try {
                 parsedVariants = JSON.parse(variants);
             } catch (err) {
-                return res.status(400).json({
+                return res.status(StatusCodes.BAD_REQUEST).json({
                     success: false,
                     message: "Invalid variant data"
                 });
@@ -93,38 +94,38 @@ exports.editProduct = async (req, res) => {
             parsedVariants = variants;
         }
         if (!parsedVariants.length) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 success: false,
                 message: "At least one variant is required"
             });
         }
         for (let v of parsedVariants) {
             const qty = Number(v.quantity);
-            if (!v.unit || !v.regularPrice || !v.salesPrice || !v.quantity) {
-                return res.status(400).json({
+            if (!v.unit || !v.regularPrice || !v.salesPrice || v.quantity === undefined || v.quantity === null || v.quantity === '' || isNaN(qty) || qty < 0) {
+                return res.status(StatusCodes.BAD_REQUEST).json({
                     success: false,
-                    message: "All variant fields are required"
+                    message: "All variant fields are required, and quantity cannot be negative"
                 });
             }
             const regular = Number(v.regularPrice);
             const sale = Number(v.salesPrice);
-            if (Number(v.regularPrice) <= Number(v.salesPrice)) {
-                return res.status(400).json({
+            if (regular < sale) {
+                return res.status(StatusCodes.BAD_REQUEST).json({
                     success: false,
-                    message: "Regular price must be greater than sales price"
+                    message: "Sales price cannot be greater than regular price"
                 });
             }
         }
         const nameRegex = /^[A-Za-z\s]+$/;
         if (!nameRegex.test(productName.trim())) {
-            return res.status(400).json({ success: false, message: 'Product name should contain only letters and spaces.' });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Product name should contain only letters and spaces.' });
         }
         const existingProduct = await Product.findOne({
             _id: { $ne: req.params.id },
             productName: { $regex: new RegExp(`^${productName}$`, 'i') }
         });
         if (existingProduct) {
-            return res.status(400).json({
+            return res.status(StatusCodes.BAD_REQUEST).json({
                 success: false,
                 message: 'A product with this name already exists. Please use a different name.'
             });
@@ -132,7 +133,7 @@ exports.editProduct = async (req, res) => {
 
         const product = await Product.findById(req.params.id);
         if (!product) {
-            return res.status(404).json({
+            return res.status(StatusCodes.NOT_FOUND).json({
                 success: false,
                 message: 'Product not found.'
             });
@@ -156,7 +157,7 @@ exports.editProduct = async (req, res) => {
         const updatedImages = existingImages.slice(0, 4);
 
         if (updatedImages.length < 3) {
-            return res.status(400).json({ success: false, message: 'At least 3 images required.' });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'At least 3 images required.' });
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(
@@ -175,7 +176,7 @@ exports.editProduct = async (req, res) => {
             throw new Error('Failed to update product');
         }
 
-        return res.json({
+        return res.status(StatusCodes.SUCCESS).json({
             success: true,
             message: 'Product updated successfully!',
             redirect: '/admin/products'
@@ -185,7 +186,7 @@ exports.editProduct = async (req, res) => {
         console.error('Failed to update product:', error);
 
         const message = error.message || 'Failed to update product. Please try again.';
-        return res.status(500).json({
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: message
         });
@@ -197,34 +198,57 @@ exports.addProduct = async (req, res) => {
         const { productName, category, description, variants, images } = req.body;
 
         if (!productName || !category || !description || !variants) {
-            return res.status(400).json({ success: false, message: "All fields are required" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "All fields are required" });
+        }
+
+        const nameRegex = /^[A-Za-z\s]+$/;
+        if (!nameRegex.test(productName.trim())) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'Product name should contain only letters and spaces.' });
+        }
+
+        const existingProduct = await Product.findOne({
+            productName: { $regex: new RegExp(`^${productName.trim()}$`, 'i') }
+        });
+        if (existingProduct) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: 'A product with this name already exists. Please use a different name.'
+            });
         }
 
         const imageArray = Array.isArray(images) ? images : [images].filter(Boolean);
 
         if (imageArray.length < 3) {
-            return res.status(400).json({ success: false, message: "Minimum 3 images required" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Minimum 3 images required" });
         }
 
         let parsedVariants;
         if (typeof variants === "string") {
-            parsedVariants = JSON.parse(variants);
+            try {
+                parsedVariants = JSON.parse(variants);
+            } catch (err) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Invalid variant data" });
+            }
         } else {
             parsedVariants = variants;
         }
 
         if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
-            return res.status(400).json({ success: false, message: "At least one variant is required" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "At least one variant is required" });
         }
 
-        parsedVariants.forEach(v => {
-            if (!v.unit || v.regularPrice <= 0 || v.salesPrice < 0 || v.quantity <= 0) {
-                throw new Error("Invalid variant data");
+        for (let v of parsedVariants) {
+            const regular = Number(v.regularPrice);
+            const sale = Number(v.salesPrice);
+            const qty = Number(v.quantity);
+
+            if (!v.unit || isNaN(regular) || regular <= 0 || isNaN(sale) || sale < 0 || isNaN(qty) || qty < 0) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "All variant fields are required, and values cannot be negative" });
             }
-            if (Number(v.regularPrice) <= Number(v.salesPrice)) {
-                throw new Error("Regular price must be greater than sales price");
+            if (regular < sale) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Sales price cannot be greater than regular price" });
             }
-        });
+        }
 
         const product = new Product({
             productName: productName.trim(),
@@ -237,11 +261,11 @@ exports.addProduct = async (req, res) => {
 
         await product.save();
 
-        res.json({ success: true, message: "Product added successfully", redirect: "/admin/products" });
+        res.status(StatusCodes.CREATED).json({ success: true, message: "Product added successfully", redirect: "/admin/products" });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
     }
 };
 
@@ -251,26 +275,26 @@ exports.addProductPage = async (req, res) => {
         res.render('admin/addProduct', { categories });
     } catch (error) {
         console.error('Failed to load add product page:', error);
-        res.status(500).send('Failed to load add product page');
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Failed to load add product page');
     }
 };
 
 exports.toggleProductBlock = async (req, res) => {
     try {
         const id = req.body.id || req.query.id;
-        if (!id) return res.status(400).json({ success: false, message: 'No product ID provided' });
+        if (!id) return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: 'No product ID provided' });
 
         const product = await Product.findById(id);
-        if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+        if (!product) return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: 'Product not found' });
 
         const updated = await Product.updateOne(
             { _id: id },
             { $set: { isBlocked: !product.isBlocked } }
         );
 
-        return res.json({ success: updated.modifiedCount > 0, message: product.isBlocked ? 'Product unblocked' : 'Product blocked', });
+        return res.status(StatusCodes.SUCCESS).json({ success: updated.modifiedCount > 0, message: product.isBlocked ? 'Product unblocked' : 'Product blocked', });
     } catch (error) {
         console.error('Toggle Block Error:', error);
-        return res.status(500).json({ success: false, message: 'Failed to toggle product status' });
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Failed to toggle product status' });
     }
 };

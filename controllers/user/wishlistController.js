@@ -1,5 +1,7 @@
 const Wishlist = require("../../models/wishlistModel");
 const Product = require("../../models/productModel");
+const STATUS_CODES = require("../../constants/statusCodes");
+const { setFlash, getFlash } = require("../../utils/flash");
 
 module.exports = {
 getWishlist: async (req, res) => {
@@ -8,30 +10,36 @@ getWishlist: async (req, res) => {
     const wishlistItems = await Wishlist.find({ userId: req.user._id })
       .populate("productId");
 
-    const wishlist = wishlistItems.map(item => {
+    const validItems = wishlistItems.filter(item => item.productId);
+
+    const wishlist = validItems.map(item => {
       const product = item.productId.toObject();
+      const variantIndex = item.variantIndex || 0;
+      const selectedVariant = product.variants && product.variants[variantIndex]? product.variants[variantIndex] : (product.variants && product.variants[0]);
 
       let stockStatus = "unavailable";
-      if (!product.isBlocked) {
-        const availableVariant = product.variants.find(
-          v => !v.isBlocked && v.quantity > 0
-        );
-        if (availableVariant) stockStatus = "instock";
-        else stockStatus = "outofstock";
+      if (!product.isBlocked && selectedVariant) {
+        if (!selectedVariant.isBlocked && selectedVariant.quantity > 0) {
+          stockStatus = "instock";
+        } else {
+          stockStatus = "outofstock";
+        }
       }
 
       return {
         ...product,
         inWishlist: true,
         wishlistId: item._id,
+        variantIndex,
+        selectedVariant,
         stockStatus   
       };
     });
 
-    res.render("user/wishlist", { wishlist, userName });
+    res.status(STATUS_CODES.SUCCESS).render("user/wishlist", { wishlist, userName });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server Error");
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server Error");
   }
 },
 
@@ -43,6 +51,7 @@ getWishlist: async (req, res) => {
 
     const { productId } = req.params;
     const userId = req.user._id;
+    const variantIndex = parseInt(req.body.variantIndex) || 0;
 
     const existingItem = await Wishlist.findOne({
       userId,
@@ -56,7 +65,8 @@ getWishlist: async (req, res) => {
     } else {
       await Wishlist.create({
         userId,
-        productId
+        productId,
+        variantIndex
       });
       action = 'added';
     }
@@ -67,7 +77,7 @@ getWishlist: async (req, res) => {
     console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
-},
+ },
 
  addToWishlist: async (req, res) => {
   if (!req.user) {
@@ -76,6 +86,7 @@ getWishlist: async (req, res) => {
 
   try {
     const productId = req.params.id;
+    const variantIndex = parseInt(req.body.variantIndex) || 0;
 
     const exists = await Wishlist.findOne({
       userId: req.user._id,
@@ -88,7 +99,8 @@ getWishlist: async (req, res) => {
 
     await Wishlist.create({
       userId: req.user._id,
-      productId
+      productId,
+      variantIndex
     });
 
     res.status(200).json({ success: true, message: 'Product added to wishlist' });

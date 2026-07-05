@@ -309,11 +309,8 @@
     <i class="fas fa-arrow-left"></i> Back to Orders
   </a>
 
-  <% if (success_msg && success_msg.length > 0) { %>
-    <div class="glora-alert glora-alert--success"><%= success_msg %></div>
-  <% } %>
-  <% if (error_msg && error_msg.length > 0) { %>
-    <div class="glora-alert glora-alert--danger"><%= error_msg %></div>
+  <% if (flash) { %>
+    <div class="glora-alert glora-alert--<%= flash.type === 'success' ? 'success' : 'danger' %>"><%= flash.message %></div>
   <% } %>
 
   <!-- ── ORDER HEADER ──────────────────────────────────── -->
@@ -340,7 +337,7 @@
         <%
           var canCancel = item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped';
           var canReturn = item.status === 'Delivered';
-          var statusClass = item.status.toLowerCase().replace(/\s+/g, '-').replace(/-requested/, '-requested');
+          var statusClass = item.status.toLowerCase().replace(/\s+/g, '-');
         %>
         <div class="glora-item">
           <div class="glora-item__img">

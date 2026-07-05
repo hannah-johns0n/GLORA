@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const { setFlash } = require("../utils/flash");
 
 const requireAuth = async (req, res, next) => {
   const token = req.cookies.jwt;
@@ -25,7 +26,8 @@ const requireAuth = async (req, res, next) => {
 
     if (user.isBlocked) {
       res.clearCookie("jwt");
-      return res.redirect("/login?blocked=1");
+      setFlash(res, "blocked", "Your account has been blocked. Please contact support.");
+      return res.redirect("/login");
     }
 
     req.user = user;

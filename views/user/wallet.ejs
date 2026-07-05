@@ -205,8 +205,6 @@
     flex-wrap: wrap;
   }
 
-  .wallet-balance__left {}
-
   .wallet-balance__eyebrow {
     font-size: 9px;
     font-weight: 500;
@@ -338,6 +336,44 @@
 
   .wallet-table tbody tr:hover { background: var(--glora-cream); }
 
+  .wallet-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.wallet-pagination__page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #D4A96A;
+  border-radius: 6px;
+  color: #1A1A1A;
+  background-color: #FAF7F4;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.wallet-pagination__page:hover {
+  background-color: #D4A96A;
+  color: #FAF7F4;
+}
+
+.wallet-pagination__page.active {
+  background-color: #1A1A1A;
+  border-color: #1A1A1A;
+  color: #D4A96A;
+  cursor: default;
+}     
+
   /* Type badge */
   .tx-badge {
     display: inline-flex;
@@ -465,7 +501,7 @@
         <a href="/wishlist" class="<%= url === '/wishlist' ? 'active' : '' %>">
           <i class="fas fa-heart"></i> Wishlist
         </a>
-        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
+        <a href="/add-account" class="<%= url === '/login' ? 'active' : '' %>">
           <i class="fas fa-sign-in-alt"></i> Add Account
         </a>
       </nav>
@@ -561,6 +597,18 @@
                 <% }); %>
               </tbody>
             </table>
+            <% if (totalPages > 1) { %>
+  <div class="wallet-pagination">
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a
+        href="/wallet?page=<%= i %>"
+        class="wallet-pagination__page <%= i === currentPage ? 'active' : '' %>"
+      >
+        <%= i %>
+      </a>
+    <% } %>
+  </div>
+<% } %>
           <% } %>
         </div>
 
@@ -571,12 +619,25 @@
 
 <%- include('../partials/user/footer') %>
 
+<% if (typeof flash !== 'undefined' && flash) { %>
+<script>
+  Swal.fire({
+    icon: '<%= flash.type === "success" ? "success" : "error" %>',
+    title: '<%= flash.message %>',
+    timer: 2500,
+    showConfirmButton: false
+  });
+</script>
+<% } %>
+
 <script>
 document.getElementById('addMoneyForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
   const amount = document.getElementById('amount').value;
-  if (!amount || amount <= 0) return alert('Please enter a valid amount');
+  if (!amount || amount <= 0) {
+    return Swal.fire({ icon: 'error', title: 'Please enter a valid amount' });
+  }
 
   const res  = await fetch('/wallet/create-order', {
     method:  'POST',
@@ -585,7 +646,9 @@ document.getElementById('addMoneyForm').addEventListener('submit', async functio
   });
 
   const data = await res.json();
-  if (!data.success) return alert('Failed to create payment. Try again.');
+  if (!data.success) {
+    return Swal.fire({ icon: 'error', title: data.message || 'Failed to create payment. Try again.' });
+  }
 
   const options = {
     key:         data.key_id,
@@ -601,8 +664,7 @@ document.getElementById('addMoneyForm').addEventListener('submit', async functio
         body:    JSON.stringify({
           razorpay_order_id:   response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature:  response.razorpay_signature,
-          amount
+          razorpay_signature:  response.razorpay_signature
         })
       });
       const result = await verifyRes.json();

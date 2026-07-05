@@ -417,7 +417,7 @@
         <a href="/wishlist" class="<%= url === '/wishlist' ? 'active' : '' %>">
           <i class="fas fa-heart"></i> Wishlist
         </a>
-        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
+        <a href="/add-account" class="<%= url === '/login' ? 'active' : '' %>">
           <i class="fas fa-sign-in-alt"></i> Add Account
         </a>
       </nav>
@@ -547,3 +547,14 @@
     });
   }
 </script>
+
+    <% if (typeof flash !== 'undefined' && flash) { %>
+    <script>
+      Swal.fire({
+        icon: '<%= flash.type === "error" ? "error" : "success" %>',
+        title: '<%= flash.type === "error" ? "Error" : "Success" %>',
+        text: '<%= flash.message %>',
+        confirmButtonColor: '#D4A96A'
+      });
+    </script>
+    <% } %>

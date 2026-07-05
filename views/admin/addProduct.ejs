@@ -295,8 +295,8 @@
       if (!String(v.unit).trim()) { showError(`Variant ${i+1}: Unit is required.`); return false; }
       if (v.regularPrice === '' || isNaN(v.regularPrice) || Number(v.regularPrice) <= 0) { showError(`Variant ${i+1}: Valid regular price is required.`); return false; }
       if (v.salesPrice === '' || isNaN(v.salesPrice) || Number(v.salesPrice) < 0) { showError(`Variant ${i+1}: Valid sales price is required.`); return false; }
-      if (v.quantity === '' || isNaN(v.quantity) || Number(v.quantity) <= 0) { showError(`Variant ${i+1}: Quantity must be positive.`); return false; }
-      if (Number(v.regularPrice) <= Number(v.salesPrice)) { showError(`Variant ${i+1}: Regular price must be greater than sales price.`); return false; }
+      if (v.quantity === '' || isNaN(v.quantity) || Number(v.quantity) < 0) { showError(`Variant ${i+1}: Quantity cannot be negative.`); return false; }
+      if (Number(v.regularPrice) < Number(v.salesPrice)) { showError(`Variant ${i+1}: Sales price cannot be greater than regular price.`); return false; }
     }
     return true;
   }

@@ -131,6 +131,20 @@
       letter-spacing: 0.3px;
     }
 
+    .password-rules {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0 0;
+      font-size: 12px;
+    }
+    .password-rules li {
+      color: #999;
+      margin-bottom: 2px;
+    }
+    .password-rules li.valid {
+      color: #2e7d32;
+    }
+
     /* ── RIGHT PANEL ────────────────────────────────────── */
     .signup-right {
       display: flex;
@@ -443,6 +457,13 @@
               <i class="fas fa-eye" id="pwd-icon"></i>
             </button>
           </div>
+          <ul class="password-rules" id="password-rules">
+            <li id="rule-length">At least 8 characters</li>
+            <li id="rule-upper">One uppercase letter</li>
+            <li id="rule-lower">One lowercase letter</li>
+            <li id="rule-digit">One number</li>
+            <li id="rule-special">One special character</li>
+          </ul>
         </div>
 
         <!-- Confirm Password -->
@@ -517,47 +538,91 @@
         icon.classList.replace('fa-eye-slash', 'fa-eye');
       }
     }
-
+  
+    function isAllSameDigit(phone) {
+      return /^(\d)\1{9}$/.test(phone);
+    }
+  
+    function isSequentialPhone(phone) {
+      let ascending = true;
+      let descending = true;
+      for (let i = 0; i < phone.length - 1; i++) {
+        const current = parseInt(phone[i]);
+        const next = parseInt(phone[i + 1]);
+        if (next - current !== 1) ascending = false;
+        if (current - next !== 1) descending = false;
+      }
+      return ascending || descending;
+    }
+  
+    function checkPasswordRules(password) {
+      const rules = {
+        length: password.length >= 8,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        digit: /[0-9]/.test(password),
+        special: /[^A-Za-z0-9]/.test(password)
+      };
+    
+      document.getElementById('rule-length').classList.toggle('valid', rules.length);
+      document.getElementById('rule-upper').classList.toggle('valid', rules.upper);
+      document.getElementById('rule-lower').classList.toggle('valid', rules.lower);
+      document.getElementById('rule-digit').classList.toggle('valid', rules.digit);
+      document.getElementById('rule-special').classList.toggle('valid', rules.special);
+    
+      return rules.length && rules.upper && rules.lower && rules.digit && rules.special;
+    }
+  
+    document.getElementById('password').addEventListener('input', function () {
+      checkPasswordRules(this.value);
+    });
+  
     document.querySelector('form').addEventListener('submit', function (e) {
       const name            = document.getElementById('name').value.trim();
       const email           = document.getElementById('email').value.trim();
       const phone           = document.getElementById('phoneNumber').value.trim();
       const password        = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-
+    
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const nameRegex  = /^[A-Za-z ]+$/;
-
+    
       if (!name || !email || !phone || !password || !confirmPassword) {
         e.preventDefault();
         Swal.fire({ icon: 'warning', title: 'All fields are required', confirmButtonColor: '#8B1A1A' });
         return;
       }
-
+    
       if (!emailRegex.test(email)) {
         e.preventDefault();
         Swal.fire({ icon: 'error', title: 'Invalid email format', confirmButtonColor: '#8B1A1A' });
         return;
       }
-
+    
       if (!nameRegex.test(name) || name.startsWith(' ')) {
         e.preventDefault();
         Swal.fire({ icon: 'error', title: 'Invalid name', text: 'Name cannot have special characters or start with a space.', confirmButtonColor: '#8B1A1A' });
         return;
       }
-
+    
       if (!/^\d{10}$/.test(phone)) {
         e.preventDefault();
         Swal.fire({ icon: 'warning', title: 'Phone number must be 10 digits', confirmButtonColor: '#8B1A1A' });
         return;
       }
-
-      if (password.length < 8) {
+    
+      if (isAllSameDigit(phone) || isSequentialPhone(phone)) {
         e.preventDefault();
-        Swal.fire({ icon: 'warning', title: 'Password too short', text: 'Password must be at least 8 characters.', confirmButtonColor: '#8B1A1A' });
+        Swal.fire({ icon: 'warning', title: 'Invalid phone number', text: 'Phone number cannot be all same digits or a sequence.', confirmButtonColor: '#8B1A1A' });
         return;
       }
-
+    
+      if (!checkPasswordRules(password)) {
+        e.preventDefault();
+        Swal.fire({ icon: 'warning', title: 'Weak password', text: 'Please follow all the password rules shown below the field.', confirmButtonColor: '#8B1A1A' });
+        return;
+      }
+    
       if (password !== confirmPassword) {
         e.preventDefault();
         Swal.fire({ icon: 'error', title: 'Passwords do not match', confirmButtonColor: '#8B1A1A' });

@@ -430,8 +430,8 @@
         <a href="/wishlist" class="<%= url === '/wishlist' ? 'active' : '' %>">
           <i class="fas fa-heart"></i> Wishlist
         </a>
-        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
-          <i class="fas fa-plus-circle"></i> Add Account
+        <a href="/add-account" class="<%= url === '/login' ? 'active' : '' %>">
+          <i class="fas fa-sign-in-alt"></i> Add Account
         </a>
       </nav>
 
@@ -533,11 +533,11 @@
 <%- include('../partials/user/footer') %>
 
 <script>
-  <% if (typeof success !== 'undefined' && success) { %>
+  <% if (typeof flash !== 'undefined' && flash) { %>
     Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: '<%= success %>',
+      icon: '<%= flash.type === "error" ? "error" : "success" %>',
+      title: '<%= flash.type === "error" ? "Error" : "Success" %>',
+      text: '<%= flash.message %>',
       timer: 2000,
       timerProgressBar: true,
       showConfirmButton: false,

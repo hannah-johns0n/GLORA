@@ -32,11 +32,11 @@
       }
 
       /* ── BREADCRUMB ──────────────────────────────────── */
-     
 
-    
 
-    
+
+
+
       /* ── PRODUCT SECTION ─────────────────────────────── */
       .glora-product {
         display: grid;
@@ -761,75 +761,75 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-      <script>
-        
-const isLoggedIn = <%= (typeof userName !== 'undefined' && userName) ? 'true' : 'false' %>;
+    <script>
 
-function requireLogin() {
-  if (!isLoggedIn) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Sign in required',
-      text: 'Please log in to continue.',
-      confirmButtonText: 'Sign In',
-      confirmButtonColor: '#8B1A1A',
-      showCancelButton: true,
-      cancelButtonText: 'Cancel'
-    }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
-    return false;
-  }
-  return true;
-}
-        
-        const variants = <%- JSON.stringify(product.variants || []) %>;
-        const variantSelect = document.getElementById('variantSelect');
-        const quantityInput = document.getElementById('quantityInput');
+      const isLoggedIn = <%= (typeof userName !== 'undefined' && userName) ? 'true' : 'false' %>;
 
-        // ── PRICE UPDATE ─────────────────────────────────────
-        function updatePrice(index) {
-    const v = variants[index];
+      function requireLogin() {
+        if (!isLoggedIn) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Sign in required',
+            text: 'Please log in to continue.',
+            confirmButtonText: 'Sign In',
+            confirmButtonColor: '#8B1A1A',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel'
+          }).then(r => { if (r.isConfirmed) window.location.href = '/login'; });
+          return false;
+        }
+        return true;
+      }
+
+      const variants = <%- JSON.stringify(product.variants || []) %>;
+      const variantSelect = document.getElementById('variantSelect');
+      const quantityInput = document.getElementById('quantityInput');
+
+      // ── PRICE UPDATE ─────────────────────────────────────
+      function updatePrice(index) {
+        const v = variants[index];
         if (!v) return;
-    const sale = v.salesPrice > 0 ? v.salesPrice : v.regularPrice;
+        const sale = v.salesPrice > 0 ? v.salesPrice : v.regularPrice;
         document.getElementById('priceDisplay').textContent = '₹' + sale;
 
         const origEl = document.getElementById('originalPriceDisplay');
         const saveEl = document.getElementById('saveDisplay');
 
-    if (v.salesPrice > 0 && v.regularPrice > v.salesPrice) {
+        if (v.salesPrice > 0 && v.regularPrice > v.salesPrice) {
           origEl.textContent = '₹' + v.regularPrice;
-        const saving = v.regularPrice - v.salesPrice;
-        const pct = Math.round((saving / v.regularPrice) * 100);
-        saveEl.textContent = pct + '% off';
-    } else {
+          const saving = v.regularPrice - v.salesPrice;
+          const pct = Math.round((saving / v.regularPrice) * 100);
+          saveEl.textContent = pct + '% off';
+        } else {
           origEl.textContent = '';
-        saveEl.textContent = '';
-    }
-  }
+          saveEl.textContent = '';
+        }
+      }
 
-        function selectVariant(index) {
-          variantSelect.value = index;
-    document.querySelectorAll('.glora-variant-btn').forEach(b => b.classList.remove('active'));
+      function selectVariant(index) {
+        variantSelect.value = index;
+        document.querySelectorAll('.glora-variant-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`[data-variant-index="${index}"]`).classList.add('active');
         updatePrice(index);
-  }
+      }
 
-  if (variants.length > 0) updatePrice(0);
+      if (variants.length > 0) updatePrice(0);
 
-        // ── THUMBNAILS — handled inside initZoom() above ────
+      // ── THUMBNAILS — handled inside initZoom() above ────
 
-        // ── QUANTITY ─────────────────────────────────────────
-        document.getElementById('decreaseQty').addEventListener('click', function () {
-    const val = parseInt(quantityInput.value) || 1;
-    if (val > 1) quantityInput.value = val - 1;
-  });
+      // ── QUANTITY ─────────────────────────────────────────
+      document.getElementById('decreaseQty').addEventListener('click', function () {
+        const val = parseInt(quantityInput.value) || 1;
+        if (val > 1) quantityInput.value = val - 1;
+      });
 
-        document.getElementById('increaseQty').addEventListener('click', function () {
-          quantityInput.value = (parseInt(quantityInput.value) || 1) + 1;
-  });
+      document.getElementById('increaseQty').addEventListener('click', function () {
+        quantityInput.value = (parseInt(quantityInput.value) || 1) + 1;
+      });
 
-        // ── ADD TO CART ──────────────────────────────────────
-        document.getElementById('addToCartBtn').addEventListener('click', async function () {
-    if (!requireLogin()) return;
+      // ── ADD TO CART ──────────────────────────────────────
+      document.getElementById('addToCartBtn').addEventListener('click', async function () {
+        if (!requireLogin()) return;
         const productId = this.getAttribute('data-id');
         const variantIdx = Number(variantSelect.value);
         const qty = parseInt(quantityInput.value) || 1;
@@ -838,186 +838,188 @@ function requireLogin() {
         this.innerHTML = '<span style="opacity:.7">Adding...</span>';
 
         try {
-      const res = await fetch('/cart/add/' + productId, {
-          method: 'POST',
-        headers: {'Content-Type': 'application/json' },
-        body: JSON.stringify({variantIndex: variantIdx, quantity: qty })
-      });
-        const result = await res.json();
+          const res = await fetch('/cart/add/' + productId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
+          });
+          const result = await res.json();
 
-        if (res.ok) {
-          Swal.fire({ icon: 'success', title: 'Added to cart', showConfirmButton: false, timer: 1400 });
-        const cartCountEl = document.querySelector('.cart-count');
-        if (cartCountEl && result.cartCount != null) cartCountEl.textContent = result.cartCount;
-      } else {
-        throw new Error(result.message || 'Failed to add to cart');
-      }
-    } catch (err) {
+          if (res.ok) {
+            Swal.fire({ icon: 'success', title: 'Added to cart', showConfirmButton: false, timer: 1400 });
+            const cartCountEl = document.querySelector('.cart-count');
+            if (cartCountEl && result.cartCount != null) cartCountEl.textContent = result.cartCount;
+          } else {
+            throw new Error(result.message || 'Failed to add to cart');
+          }
+        } catch (err) {
           Swal.fire({ icon: 'error', title: 'Oops', text: err.message });
-    } finally {
+        } finally {
           this.disabled = false;
-        this.innerHTML = '<i class="fas fa-shopping-bag"></i> Add to Cart';
-    }
-  });
+          this.innerHTML = '<i class="fas fa-shopping-bag"></i> Add to Cart';
+        }
+      });
 
-        // ── BUY NOW ──────────────────────────────────────────
-        document.getElementById('buyNowBtn').addEventListener('click', async function () {
-    if (!requireLogin()) return;
+      // ── BUY NOW ──────────────────────────────────────────
+      document.getElementById('buyNowBtn').addEventListener('click', async function () {
+        if (!requireLogin()) return;
         const productId = this.getAttribute('data-id');
         const variantIdx = Number(variantSelect.value);
         const qty = parseInt(quantityInput.value) || 1;
 
         try {
-      const res = await fetch('/cart/add/' + productId, {
-          method: 'POST',
-        headers: {'Content-Type': 'application/json' },
-        body: JSON.stringify({variantIndex: variantIdx, quantity: qty })
-      });
-        if (res.ok) {
-          window.location.href = '/checkout';
-      } else {
-        const result = await res.json();
-        throw new Error(result.message || 'Failed');
-      }
-    } catch (err) {
+          const res = await fetch('/cart/add/' + productId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ variantIndex: variantIdx, quantity: qty })
+          });
+          if (res.ok) {
+            window.location.href = '/checkout';
+          } else {
+            const result = await res.json();
+            throw new Error(result.message || 'Failed');
+          }
+        } catch (err) {
           Swal.fire({ icon: 'error', title: 'Oops', text: err.message });
-    }
-  });
-
-        // ── WISHLIST (main product) ───────────────────────────
-        document.getElementById('wishlistBtn').addEventListener('click', async function () {
-          await toggleWishlist(this, this.dataset.productId, true);
-  });
-
-        async function toggleWishlist(btn, productId, updateLabel = false) {
-    if (!requireLogin()) return;
-        try {
-      const res = await fetch(`/wishlist/toggle/${productId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        const added = data.action === 'added';
-        btn.classList.toggle('active', added);
-        btn.querySelector('i').className = (added ? 'fas' : 'far') + ' fa-heart';
-        if (updateLabel) {
-          const span = btn.querySelector('span');
-          if (span) span.textContent = added ? 'Wishlisted' : 'Wishlist';
         }
-        btn.title = added ? 'Remove from Wishlist' : 'Add to Wishlist';
-        Swal.fire({
-    icon: added ? 'success' : 'info',
-    title: added ? 'Wishlisted!' : 'Removed',
-    text: added ? 'Added to your wishlist' : 'Removed from wishlist',
-    timer: 1500,
-    showConfirmButton: false
-  });
-      } else if (data.redirect) {
-        Swal.fire({
-          icon: 'info',
-          title: 'Login Required',
-          text: 'Please log in to save items to your wishlist.',
-          confirmButtonText: 'Login',
-          confirmButtonColor: '#8B1A1A',
-          showCancelButton: true,
-          cancelButtonText: 'Continue'
-        }).then(r => { if (r.isConfirmed) window.location.href = data.redirect; });
-      }
-    } catch (err) {
-      console.error('Wishlist error:', err);
-    }
-  }
-
-  // ── IMAGE ZOOM ───────────────────────────────────────
-  (function initZoom() {
-    const container  = document.getElementById('zoomContainer');
-    const mainImg    = document.getElementById('mainImage');
-    const lens       = document.getElementById('zoomLens');
-    const result     = document.getElementById('zoomResult');
-    const resultImg  = document.getElementById('zoomResultImg');
-
-    const ZOOM      = 0.5;     // magnification level
-    const LENS_SIZE = 100;   // lens square size in px
-
-    lens.style.width  = LENS_SIZE + 'px';
-    lens.style.height = LENS_SIZE + 'px';
-
-    function moveLens(e) {
-      e.preventDefault();
-      const rect = container.getBoundingClientRect();
-
-      // cursor relative to container
-      let cx = e.clientX - rect.left;
-      let cy = e.clientY - rect.top;
-
-      // clamp so lens stays inside container
-      const half = LENS_SIZE / 2;
-      cx = Math.max(half, Math.min(cx, rect.width  - half));
-      cy = Math.max(half, Math.min(cy, rect.height - half));
-
-      // move lens
-      lens.style.left = (cx - half) + 'px';
-      lens.style.top  = (cy - half) + 'px';
-
-      // position result panel to the right of the container using fixed coords
-      const RW = 380;
-      const RH = 380;
-      let rx = rect.right + 16;
-      let ry = rect.top + (rect.height / 2) - (RH / 2);
-
-      // keep result panel inside viewport
-      if (rx + RW > window.innerWidth) rx = rect.left - RW - 16;
-      ry = Math.max(10, Math.min(ry, window.innerHeight - RH - 10));
-
-      result.style.left   = rx + 'px';
-      result.style.top    = ry + 'px';
-      result.style.width  = RW + 'px';
-      result.style.height = RH + 'px';
-
-      // scale zoomed image
-      const scaleX = (RW / LENS_SIZE) * ZOOM;
-      const scaleY = (RH / LENS_SIZE) * ZOOM;
-      const imgW = rect.width  * scaleX;
-      const imgH = rect.height * scaleY;
-
-      resultImg.style.width  = imgW + 'px';
-      resultImg.style.height = imgH + 'px';
-
-      // shift so the hovered region is centred in result panel
-      const px = -((cx / rect.width)  * imgW - RW / 2);
-      const py = -((cy / rect.height) * imgH - RH / 2);
-      resultImg.style.left = px + 'px';
-      resultImg.style.top  = py + 'px';
-    }
-
-    function showZoom() {
-      if (window.matchMedia('(hover: none)').matches) return;
-      lens.style.display   = 'block';
-      result.style.display = 'block';
-    }
-
-    function hideZoom() {
-      lens.style.display   = 'none';
-      result.style.display = 'none';
-    }
-
-    container.addEventListener('mouseenter', showZoom);
-    container.addEventListener('mouseleave', hideZoom);
-    container.addEventListener('mousemove',  moveLens);
-
-    // sync zoom image when thumbnail clicked
-    document.querySelectorAll('.glora-thumb').forEach(function(thumb) {
-      thumb.addEventListener('click', function() {
-        const src      = this.dataset.src;
-        mainImg.src    = src;
-        resultImg.src  = src;
-        document.querySelectorAll('.glora-thumb').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
       });
-    });
-  })();
+
+      // ── WISHLIST ───────────────────────────
+      document.getElementById('wishlistBtn').addEventListener('click', async function () {
+        const variantIdx = variantSelect ? Number(variantSelect.value) : 0;
+        await toggleWishlist(this, this.dataset.productId, true, variantIdx);
+      });
+
+      async function toggleWishlist(btn, productId, updateLabel = false, variantIndex = 0) {
+        if (!requireLogin()) return;
+        try {
+          const res = await fetch(`/wishlist/toggle/${productId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ variantIndex })
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            const added = data.action === 'added';
+            btn.classList.toggle('active', added);
+            btn.querySelector('i').className = (added ? 'fas' : 'far') + ' fa-heart';
+            if (updateLabel) {
+              const span = btn.querySelector('span');
+              if (span) span.textContent = added ? 'Wishlisted' : 'Wishlist';
+            }
+            btn.title = added ? 'Remove from Wishlist' : 'Add to Wishlist';
+            Swal.fire({
+              icon: added ? 'success' : 'info',
+              title: added ? 'Wishlisted!' : 'Removed',
+              text: added ? 'Added to your wishlist' : 'Removed from wishlist',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          } else if (data.redirect) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Login Required',
+              text: 'Please log in to save items to your wishlist.',
+              confirmButtonText: 'Login',
+              confirmButtonColor: '#8B1A1A',
+              showCancelButton: true,
+              cancelButtonText: 'Continue'
+            }).then(r => { if (r.isConfirmed) window.location.href = data.redirect; });
+          }
+        } catch (err) {
+          console.error('Wishlist error:', err);
+        }
+      }
+
+      // ── IMAGE ZOOM ───────────────────────────────────────
+      (function initZoom() {
+        const container = document.getElementById('zoomContainer');
+        const mainImg = document.getElementById('mainImage');
+        const lens = document.getElementById('zoomLens');
+        const result = document.getElementById('zoomResult');
+        const resultImg = document.getElementById('zoomResultImg');
+
+        const ZOOM = 0.5;     // magnification level
+        const LENS_SIZE = 100;   // lens square size in px
+
+        lens.style.width = LENS_SIZE + 'px';
+        lens.style.height = LENS_SIZE + 'px';
+
+        function moveLens(e) {
+          e.preventDefault();
+          const rect = container.getBoundingClientRect();
+
+          // cursor relative to container
+          let cx = e.clientX - rect.left;
+          let cy = e.clientY - rect.top;
+
+          // clamp so lens stays inside container
+          const half = LENS_SIZE / 2;
+          cx = Math.max(half, Math.min(cx, rect.width - half));
+          cy = Math.max(half, Math.min(cy, rect.height - half));
+
+          // move lens
+          lens.style.left = (cx - half) + 'px';
+          lens.style.top = (cy - half) + 'px';
+
+          // position result panel to the right of the container using fixed coords
+          const RW = 380;
+          const RH = 380;
+          let rx = rect.right + 16;
+          let ry = rect.top + (rect.height / 2) - (RH / 2);
+
+          // keep result panel inside viewport
+          if (rx + RW > window.innerWidth) rx = rect.left - RW - 16;
+          ry = Math.max(10, Math.min(ry, window.innerHeight - RH - 10));
+
+          result.style.left = rx + 'px';
+          result.style.top = ry + 'px';
+          result.style.width = RW + 'px';
+          result.style.height = RH + 'px';
+
+          // scale zoomed image
+          const scaleX = (RW / LENS_SIZE) * ZOOM;
+          const scaleY = (RH / LENS_SIZE) * ZOOM;
+          const imgW = rect.width * scaleX;
+          const imgH = rect.height * scaleY;
+
+          resultImg.style.width = imgW + 'px';
+          resultImg.style.height = imgH + 'px';
+
+          // shift so the hovered region is centred in result panel
+          const px = -((cx / rect.width) * imgW - RW / 2);
+          const py = -((cy / rect.height) * imgH - RH / 2);
+          resultImg.style.left = px + 'px';
+          resultImg.style.top = py + 'px';
+        }
+
+        function showZoom() {
+          if (window.matchMedia('(hover: none)').matches) return;
+          lens.style.display = 'block';
+          result.style.display = 'block';
+        }
+
+        function hideZoom() {
+          lens.style.display = 'none';
+          result.style.display = 'none';
+        }
+
+        container.addEventListener('mouseenter', showZoom);
+        container.addEventListener('mouseleave', hideZoom);
+        container.addEventListener('mousemove', moveLens);
+
+        // sync zoom image when thumbnail clicked
+        document.querySelectorAll('.glora-thumb').forEach(function (thumb) {
+          thumb.addEventListener('click', function () {
+            const src = this.dataset.src;
+            mainImg.src = src;
+            resultImg.src = src;
+            document.querySelectorAll('.glora-thumb').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+          });
+        });
+      })();
     </script>
 
 </body>

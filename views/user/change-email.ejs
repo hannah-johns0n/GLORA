@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <title>Change Email — GLORA</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -356,7 +357,7 @@
         </div>
       <% } %>
 
-      <form action="/send-change-email-otp" method="POST" class="glora-form">
+      <form action="/send-change-email-otp" method="POST" class="glora-form" novalidate>
 
         <div class="glora-field">
           <label class="glora-label" for="email">New Email Address</label>
@@ -393,4 +394,24 @@
   </div>
 
 </body>
+<script>
+  const emailForm = document.querySelector('.glora-form');
+  const emailInput = document.getElementById('email');
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  emailForm.addEventListener('submit', function (e) {
+    const value = emailInput.value.trim();
+
+    if (!emailRegex.test(value)) {
+      e.preventDefault();
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Email',
+        text: 'Please enter a valid email address (e.g. name@example.com)',
+        confirmButtonColor: '#D4A96A'
+      });
+      emailInput.focus();
+    }
+  });
+</script>
 </html>

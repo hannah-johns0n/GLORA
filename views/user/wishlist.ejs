@@ -362,15 +362,16 @@
             <table class="table wishlist-table">
               <thead>
                 <tr>
-                  <th style="width:48%;">Product</th>
-                  <th style="width:16%;">Price</th>
-                  <th style="width:16%;">Status</th>
+                  <th style="width:35%;">Product</th>
+                  <th style="width:15%;">Variant</th>
+                  <th style="width:15%;">Price</th>
+                  <th style="width:15%;">Status</th>
                   <th style="width:20%;">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% wishlist.forEach(function(product) { %>
-                  <% var activeVariant=product.variants && product.variants.find(function(v) { return !v.isBlocked; });
+                  <% var activeVariant = product.selectedVariant;
                     var displaySale=activeVariant ? activeVariant.salesPrice : null; var displayRegular=activeVariant ?
                     activeVariant.regularPrice : null; %>
                     <tr>
@@ -392,6 +393,13 @@
                             </div>
                           </div>
                         </div>
+                      </td>
+                      <td>
+                        <% if (activeVariant && activeVariant.unit) { %>
+                          <div class="product-variant" style="font-size:12px;color:#777;margin-top:2px;">
+                            <%= activeVariant.unit %>
+                          </div>
+                        <% } %>
                       </td>
                       <td>
                         <div class="product-price">
@@ -416,7 +424,7 @@
                       </td>
                       <td>
                         <div class="d-flex align-items-center" style="gap:10px;">
-                          <button class="btn-add-to-cart" data-product-id="<%= product._id %>">
+                          <button class="btn-add-to-cart" data-product-id="<%= product._id %>" data-variant-index="<%= product.variantIndex %>">
                             <i class="fas fa-shopping-bag"></i> Add to Cart
                           </button>
                           <button class="btn-remove-wishlist" data-product-id="<%= product._id %>" title="Remove">
@@ -456,10 +464,13 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
+            const variantIndex = event.currentTarget.dataset.variantIndex || 0;
+
             try {
               const response = await fetch('/cart/add/' + productId, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ variantIndex })
               });
 
               const data = await response.json();

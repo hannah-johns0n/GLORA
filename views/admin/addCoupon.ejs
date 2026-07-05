@@ -102,8 +102,7 @@
     }
   </style>
 
-  <!-- Page Header -->
-  <div class="ga-page-head">
+ <div class="ga-page-head">
     <p class="ga-page-head__eyebrow">Manage</p>
     <h1 class="ga-page-head__title">Create Coupon</h1>
   </div>
@@ -111,32 +110,21 @@
   <div class="ga-section">
     <div class="ga-form-card">
 
-      <!-- Card top bar -->
       <div class="ga-form-card__bar">
         <i class="bi bi-ticket-perforated ga-form-card__bar-icon"></i>
         <span class="ga-form-card__bar-title">New Coupon</span>
       </div>
 
       <div class="ga-form-body">
-        <!--
-          FORM ACTION & METHOD are exactly the same.
-          Only the visual wrapping changed.
-        -->
         <form action="/admin/coupons/add" method="POST" id="addCouponForm">
 
           <div class="ga-form-grid">
 
-            <!-- ── LEFT COLUMN ── -->
             <div>
 
-              <!-- Coupon Code -->
               <div class="ga-field">
                 <label for="couponCode" class="ga-label">Coupon Code</label>
                 <div class="ga-input-with-btn">
-                  <!--
-                    name="couponCode", id="couponCode", required,
-                    style="text-transform:uppercase" — all unchanged
-                  -->
                   <input
                     type="text"
                     name="couponCode"
@@ -146,15 +134,12 @@
                     required
                     style="text-transform:uppercase"
                   >
-                  <!-- id="generateCodeBtn" used by JS below — unchanged -->
                   <button type="button" class="ga-generate-btn" id="generateCodeBtn">Generate</button>
                 </div>
               </div>
 
-              <!-- Description -->
               <div class="ga-field">
                 <label for="description" class="ga-label">Description</label>
-                <!-- name="description", id="description", required — unchanged -->
                 <textarea
                   name="description"
                   id="description"
@@ -164,23 +149,18 @@
                 ></textarea>
               </div>
 
-              <!-- Discount Type -->
               <div class="ga-field">
                 <label for="discountType" class="ga-label">Discount Type</label>
-                <!-- name="discountType", id="discountType", required — unchanged -->
                 <select name="discountType" id="discountType" class="ga-select" required>
                   <option value="Percentage">Percentage (%)</option>
                   <option value="Fixed Amount">Fixed Amount (₹)</option>
                 </select>
               </div>
 
-              <!-- Discount Value -->
               <div class="ga-field">
                 <label for="discountValue" class="ga-label">Discount Value</label>
                 <div class="ga-input-wrap">
-                  <!-- id="discount-symbol" used by JS below — unchanged -->
                   <span class="ga-input-prefix" id="discount-symbol">%</span>
-                  <!-- name="discountValue", id="discountValue", required — unchanged -->
                   <input
                     type="number"
                     name="discountValue"
@@ -189,21 +169,35 @@
                     placeholder="e.g., 15 or 500"
                     required
                     step="0.01"
+                    min="0.01"
                   >
                 </div>
               </div>
 
-            </div><!-- end left column -->
+              <div class="ga-field" id="maxDiscountField">
+                <label for="maxDiscountAmount" class="ga-label">Max Discount Amount</label>
+                <div class="ga-input-wrap">
+                  <span class="ga-input-prefix">₹</span>
+                  <input
+                    type="number"
+                    name="maxDiscountAmount"
+                    id="maxDiscountAmount"
+                    class="ga-input"
+                    placeholder="e.g., 500"
+                    step="0.01"
+                    min="0.01"
+                  >
+                </div>
+              </div>
 
-            <!-- ── RIGHT COLUMN ── -->
+            </div>
+
             <div>
 
-              <!-- Minimum Purchase -->
               <div class="ga-field">
                 <label for="minimumPurchaseAmount" class="ga-label">Minimum Purchase</label>
                 <div class="ga-input-wrap">
                   <span class="ga-input-prefix">₹</span>
-                  <!-- name="minimumPurchaseAmount", required — unchanged -->
                   <input
                     type="number"
                     name="minimumPurchaseAmount"
@@ -211,23 +205,20 @@
                     class="ga-input"
                     placeholder="e.g., 1000"
                     required
+                    min="0"
                   >
                 </div>
               </div>
 
-              <!-- Expiry Date -->
               <div class="ga-field">
                 <label for="expiryDate" class="ga-label">Expiry Date</label>
-                <!-- name="expiryDate", id="expiryDate", required — unchanged -->
                 <input type="date" name="expiryDate" id="expiryDate" class="ga-input" required>
               </div>
 
-              <!-- Limit Per User + Total Uses (side by side) -->
               <div class="ga-field">
                 <div class="ga-mini-row">
                   <div>
                     <label for="perUserLimit" class="ga-label">Per User Limit</label>
-                    <!-- name="perUserLimit", required — unchanged -->
                     <input
                       type="number"
                       name="perUserLimit"
@@ -235,11 +226,11 @@
                       class="ga-input"
                       value="1"
                       required
+                      min="1"
                     >
                   </div>
                   <div>
                     <label for="maxUses" class="ga-label">Total Uses</label>
-                    <!-- name="maxUses", required — unchanged -->
                     <input
                       type="number"
                       name="maxUses"
@@ -247,36 +238,29 @@
                       class="ga-input"
                       placeholder="e.g., 100"
                       required
+                      min="1"
                     >
                   </div>
                 </div>
               </div>
 
-              <!-- Status Toggle -->
               <div class="ga-field">
                 <label class="ga-label">Status</label>
                 <div class="ga-toggle-wrap">
                   <label class="ga-toggle">
-                    <!--
-                      id="isActive", name="isActive", checked — all unchanged.
-                      JS reads this same id to update the label.
-                    -->
                     <input type="checkbox" id="isActive" name="isActive" checked>
                     <span class="ga-toggle-slider"></span>
                   </label>
-                  <!-- id="statusLabel" used by JS — unchanged -->
                   <span id="statusLabel" class="text-success">Active</span>
                 </div>
               </div>
 
-            </div><!-- end right column -->
-          </div><!-- end ga-form-grid -->
+            </div>
+          </div>
 
           <hr class="ga-divider">
 
-          <!-- Footer buttons -->
           <div class="ga-form-footer">
-            <!-- Cancel href — unchanged -->
             <a href="/admin/coupons" class="ga-btn ga-btn--ghost">
               <i class="bi bi-x-lg"></i> Cancel
             </a>
@@ -286,24 +270,15 @@
           </div>
 
         </form>
-      </div><!-- end ga-form-body -->
-    </div><!-- end ga-form-card -->
-  </div><!-- end ga-section -->
+      </div>
+    </div>
+  </div>
 
 </main>
 
-<!--
-  ═══════════════════════════════════════════════
-  JAVASCRIPT — 100% UNCHANGED from your original.
-  Only the toggle uses the new CSS classes above
-  instead of Bootstrap's text-success/text-danger,
-  but those class names are identical so it still works.
-  ═══════════════════════════════════════════════
--->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
 
-    // Generate Random Coupon Code
     const generateCodeBtn = document.getElementById('generateCodeBtn');
     const couponCodeInput = document.getElementById('couponCode');
 
@@ -312,20 +287,80 @@
       couponCodeInput.value = randomCode;
     });
 
-    // Update Discount Symbol when type changes
     const discountTypeSelect = document.getElementById('discountType');
     const discountSymbol = document.getElementById('discount-symbol');
+
+    const maxDiscountField = document.getElementById('maxDiscountField');
+    const maxDiscountInput = document.getElementById('maxDiscountAmount');
+
+    const toggleMaxDiscountField = () => {
+      if (discountTypeSelect.value === 'Percentage') {
+        maxDiscountField.style.display = 'block';
+        maxDiscountInput.setAttribute('required', 'required');
+      } else {
+        maxDiscountField.style.display = 'none';
+        maxDiscountInput.removeAttribute('required');
+        maxDiscountInput.value = '';
+      }
+    };
+
+    discountTypeSelect.addEventListener('change', toggleMaxDiscountField);
+    toggleMaxDiscountField();
+
+    document.getElementById('addCouponForm').addEventListener('submit', function (e) {
+      const discountType = discountTypeSelect.value;
+      const discountValue = parseFloat(document.getElementById('discountValue').value);
+      const minimumPurchase = parseFloat(document.getElementById('minimumPurchaseAmount').value);
+      const maxDiscount = parseFloat(maxDiscountInput.value);
+      const perUserLimit = parseFloat(document.getElementById('perUserLimit').value);
+      const maxUses = parseFloat(document.getElementById('maxUses').value);
+
+      if (isNaN(discountValue) || discountValue <= 0) {
+        e.preventDefault();
+        alert('Discount value must be greater than 0');
+        return;
+      }
+
+      if (discountType === 'Percentage') {
+        if (discountValue > 100) {
+          e.preventDefault();
+          alert('Percentage discount cannot be more than 100');
+          return;
+        }
+        if (!maxDiscount || maxDiscount <= 0) {
+          e.preventDefault();
+          alert('Please enter a valid max discount amount');
+          return;
+        }
+      }
+
+      if (discountType === 'Fixed Amount' && discountValue >= minimumPurchase) {
+        e.preventDefault();
+        alert('Fixed discount amount must be less than minimum purchase amount');
+        return;
+      }
+
+      if (isNaN(perUserLimit) || perUserLimit < 1) {
+        e.preventDefault();
+        alert('Per user limit must be at least 1');
+        return;
+      }
+
+      if (isNaN(maxUses) || maxUses < 1) {
+        e.preventDefault();
+        alert('Total uses must be at least 1');
+        return;
+      }
+    });
 
     discountTypeSelect.addEventListener('change', (e) => {
       discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
     });
 
-    // Set minimum date for expiry to today
     const expiryDateInput = document.getElementById('expiryDate');
     const today = new Date().toISOString().split('T')[0];
     expiryDateInput.setAttribute('min', today);
 
-    // Toggle switch label (Active / Inactive)
     const isActiveSwitch = document.getElementById('isActive');
     const statusLabel = document.getElementById('statusLabel');
 
@@ -342,8 +377,6 @@
     };
 
     isActiveSwitch.addEventListener('change', updateStatusLabel);
-
-    // Run once on page load to set correct colour
     updateStatusLabel();
 
   });

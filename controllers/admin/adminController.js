@@ -37,14 +37,17 @@ exports.getHome = async (req, res) => {
 
 exports.getDashboard = async (req, res) => {
   try {
-    const filter = req.query.filter || 'monthly';
+    const allowedFilters = ['daily', 'weekly', 'monthly', 'yearly'];
+    const filter = allowedFilters.includes(req.query.filter) ? req.query.filter : 'monthly';
+
+    const revenueStatuses = ['Delivered', 'Return-Requested', 'Return-Rejected'];
 
     const totalCustomers = await User.countDocuments({ role: 'user' });
     const totalOrders = await Order.countDocuments({ status: { $ne: 'Cancelled' } });
     const totalProducts = await Product.countDocuments();
 
     const totalSales = await Order.aggregate([
-      { $match: { status: { $ne: 'Cancelled' } } },
+      { $match: { status: { $in: revenueStatuses } } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } }
     ]);
 
@@ -59,7 +62,7 @@ exports.getDashboard = async (req, res) => {
 
     if (filter === 'daily') {
       revenueTrendData = await Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
+        { $match: { status: { $in: revenueStatuses } } },
         {
           $group: {
             _id: {
@@ -75,7 +78,7 @@ exports.getDashboard = async (req, res) => {
       dateFormat = 'daily';
     } else if (filter === 'weekly') {
       revenueTrendData = await Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
+        { $match: { status: { $in: revenueStatuses } } },
         {
           $group: {
             _id: {
@@ -89,51 +92,77 @@ exports.getDashboard = async (req, res) => {
       ]);
       dateFormat = 'weekly';
     } else if (filter === 'monthly') {
-      revenueTrendData = await Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
-        {
-          $group: {
-            _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" }
-            },
-            total: { $sum: "$totalPrice" }
-          }
-        },
-        { $sort: { "_id.year": 1, "_id.month": 1 } }
-      ]);
-      dateFormat = 'monthly';
-    } else {
-      revenueTrendData = await Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
-        {
-          $group: {
-            _id: { $year: "$createdAt" },
-            total: { $sum: "$totalPrice" }
-          }
-        },
-        { $sort: { "_id": 1 } }
-      ]);
-      dateFormat = 'yearly';
-    }
-
-    const chartLabels = revenueTrendData.map(item => {
-      if (dateFormat === 'daily') {
-        return `${item._id.day}/${item._id.month}/${item._id.year}`;
-      } else if (dateFormat === 'weekly') {
-        return `Week ${item._id.week}/${item._id.year}`;
-      } else if (dateFormat === 'monthly') {
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        return `${monthNames[item._id.month - 1]} ${item._id.year}`;
-      } else {
-        return `${item._id}`;
+  const monthlyData = await Order.aggregate([
+    { $match: { status: { $in: revenueStatuses } } },
+    {
+      $group: {
+        _id: { month: { $month: "$createdAt" } },
+        total: { $sum: "$totalPrice" }
       }
-    });
+    }
+  ]);
 
-    const chartData = revenueTrendData.map(item => item.total);
+  const monthTotals = {};
+  monthlyData.forEach(item => {
+    monthTotals[item._id.month] = item.total;
+  });
+
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const currentYear = new Date().getFullYear();
+
+  revenueTrendData = monthNames.map((name, index) => ({
+    label: `${name} ${currentYear}`,
+    total: monthTotals[index + 1] || 0
+  }));
+
+  dateFormat = 'monthly';
+} else {
+  const yearlyData = await Order.aggregate([
+    { $match: { status: { $in: revenueStatuses } } },
+    {
+      $group: {
+        _id: { $year: "$createdAt" },
+        total: { $sum: "$totalPrice" }
+      }
+    }
+  ]);
+
+  const yearTotals = {};
+  yearlyData.forEach(item => {
+    yearTotals[item._id] = item.total;
+  });
+
+  const currentYear = new Date().getFullYear();
+  const years = Object.keys(yearTotals).map(Number);
+  const earliestYear = years.length > 0 ? Math.min(...years) : currentYear;
+
+  revenueTrendData = [];
+  for (let year = earliestYear; year <= currentYear; year++) {
+    revenueTrendData.push({
+      label: `${year}`,
+      total: yearTotals[year] || 0
+    });
+  }
+
+  dateFormat = 'yearly';
+}
+
+    
+    let chartLabels, chartData;
+
+if (dateFormat === 'monthly' || dateFormat === 'yearly') {
+  chartLabels = revenueTrendData.map(item => item.label);
+  chartData = revenueTrendData.map(item => item.total);
+} else if (dateFormat === 'daily') {
+  chartLabels = revenueTrendData.map(item => `${item._id.day}/${item._id.month}/${item._id.year}`);
+  chartData = revenueTrendData.map(item => item.total);
+} else {
+  chartLabels = revenueTrendData.map(item => `Week ${item._id.week}/${item._id.year}`);
+  chartData = revenueTrendData.map(item => item.total);
+}
 
     const bestSellingProducts = await Order.aggregate([
-      { $match: { status: { $ne: 'Cancelled' } } },
+      { $match: { status: { $in: revenueStatuses } } },
       { $unwind: "$orderItems" },
       {
         $group: {
@@ -172,8 +201,7 @@ exports.getDashboard = async (req, res) => {
     ]);
 
     const bestSellingCategories = await Order.aggregate([
-      { $match: { status: { $ne: 'Cancelled' } } },
-
+      { $match: { status: { $in: revenueStatuses } } },
       { $unwind: "$orderItems" },
       {
         $lookup: {
@@ -183,7 +211,6 @@ exports.getDashboard = async (req, res) => {
           as: "productInfo"
         }
       },
-
       { $unwind: "$productInfo" },
       {
         $group: {
@@ -194,11 +221,8 @@ exports.getDashboard = async (req, res) => {
           }
         }
       },
-
       { $sort: { totalQuantity: -1 } },
-
       { $limit: 3 },
-
       {
         $project: {
           _id: 0,
@@ -329,34 +353,33 @@ exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log(req.body);
-
-
     if (!email || !password) {
-      return res.render('admin/login', { error: 'Email and password are required' });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: 'Email and password are required' });
     }
 
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      return res.render('admin/login', { error: 'Invalid email format' });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: 'Invalid email format' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      return res.render('admin/login', { error: 'Invalid Credentials' });
-    };
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: 'Invalid credentials' });
+    }
 
     if (user.role !== 'admin') {
-      return res.render('admin/login', { error: 'Admin access required' });
+      return res.status(STATUS_CODES.FORBIDDEN).json({ success: false, message: 'Admin access required' });
     }
 
     if (user.isBlocked) {
-      return res.render('admin/login', { error: 'Your account has been blocked' });
+      return res.status(STATUS_CODES.FORBIDDEN).json({ success: false, message: 'Your account has been blocked' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.render('admin/login', { error: 'Invalid Credentials' });
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({ success: false, message: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ userId: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -366,18 +389,16 @@ exports.adminLogin = async (req, res) => {
       maxAge: 3600000
     });
 
-    res.status(200).json({ message: 'successfully logined', success: true })
+    res.status(STATUS_CODES.SUCCESS).json({ success: true, message: 'Logged in successfully' });
 
-  }
-  catch (error) {
+  } catch (error) {
     console.log(error);
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render('admin/login', { error: 'There was an internal error. Please try again later.' });
-
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: 'There was an internal error. Please try again later.' });
   }
 };
 
 exports.adminLogout = (req, res) => {
   res.clearCookie("adminJwt");
-  res.render('admin/login');
+  res.redirect('/admin/login');
 };
 

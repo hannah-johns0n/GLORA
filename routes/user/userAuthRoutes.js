@@ -70,6 +70,7 @@ router.get('/auth/google/callback',
 
 
 router.post('/logout', userController.logout);
+router.get('/add-account', userController.addAccount);
 
 router.get('/shop', userController.getShopPage);
 
@@ -105,10 +106,9 @@ router.post('/delete-address/:id',requireAuth, userController.deleteAddress);
 
 router.get('/change-email', requireAuth, userController.getChangeEmailPage);
 router.get('/verify-change-email-otp', requireAuth, userController.getVerifyEmailOtpPage);
-router.post('/send-change-email-otp', userController.sendChangeEmailOtp);
-router.post('/verify-change-email-otp', userController.verifyChangeEmailOtp);
+router.post('/send-change-email-otp', requireAuth, userController.sendChangeEmailOtp);
+router.post('/verify-change-email-otp', requireAuth, userController.verifyChangeEmailOtp);
 router.get('/resend-change-email-otp', requireAuth, userController.resendChangeEmailOtp);
-router.post('/save-new-email', requireAuth, userController.saveNewEmail);
 
 router.get('/cart', requireAuth, cartController.getCart);
 router.post('/cart/add/:id', requireAuth, cartController.addToCart);
@@ -141,7 +141,6 @@ router.post("/update-payment-status", requireAuth, orderController.updatePayment
 router.post("/wishlist/toggle/:productId", requireAuth, wishlistController.toggleWishlist);
 router.get("/wishlist/add/:id", requireAuth, wishlistController.addToWishlist);
 router.get("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
-router.post("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
 router.get("/wishlist", requireAuth, wishlistController.getWishlist);
 router.post("/cart/add/:productId", requireAuth, cartController.addToCart);
 

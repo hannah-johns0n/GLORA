@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const path = require('path');
 const nocache = require('nocache')
+const { getFlash } = require('./utils/flash');
 
 const userRouter = require('./routes/user/userAuthRoutes');
 const adminRouter = require('./routes/admin/adminAuthRoutes');
@@ -26,6 +27,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+
+app.use((req, res, next) => {
+  res.locals.flash = getFlash(req, res);
+  next();
+});
+
 
 app.use((req, res, next) => {
   res.locals.url = req.path;

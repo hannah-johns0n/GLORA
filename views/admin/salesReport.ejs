@@ -159,14 +159,12 @@
             <a href="/admin/sales-report" class="ga-btn ga-btn--ghost">
               <i class="bi bi-x"></i> Clear
             </a>
-            <a href="/admin/sales-report/pdf?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
-               class="ga-btn ga-btn--pdf">
+            <button type="submit" formaction="/admin/sales-report/pdf" formmethod="GET" class="ga-btn ga-btn--pdf">
               <i class="bi bi-file-earmark-pdf"></i> PDF
-            </a>
-            <a href="/admin/sales-report/excel?startDate=<%= filters.startDate || '' %>&endDate=<%= filters.endDate || '' %>&paymentMethod=<%= filters.paymentMethod || '' %>&orderStatus=<%= filters.orderStatus || '' %>"
-               class="ga-btn ga-btn--excel">
+            </button>
+            <button type="submit" formaction="/admin/sales-report/excel" formmethod="GET" class="ga-btn ga-btn--excel">
               <i class="bi bi-file-earmark-spreadsheet"></i> Excel
-            </a>
+            </button>
           </div>
         </form>
       </div>

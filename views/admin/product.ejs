@@ -65,6 +65,21 @@
       color: rgba(255,255,255,0.55);
       white-space: nowrap;
     }
+
+    .ga-product-thumb {
+      width: 65px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 3px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .ga-action-btn--icon {
+      padding: 0px 0px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
     .ga-table tbody td {
       padding: 14px 16px;
       font-size: 13px;
@@ -198,13 +213,13 @@
         <table class="ga-table">
           <thead>
             <tr>
+              <th>Image</th>
               <th>Product</th>
               <th>Category</th>
               <th>Regular Price</th>
               <th>Sale Price</th>
               <th>Qty</th>
               <th>Created</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -221,6 +236,12 @@
             <% } else { %>
             <% products.forEach(product => { %>
             <tr>
+              <td>
+                <img
+                  src="<%= (product.images && product.images.length > 0) ? product.images[0] : '/images/no-image.png' %>"
+                  alt="<%= product.productName %>"
+                  class="ga-product-thumb">
+              </td>
               <td class="ga-product-name"><%= product.productName %></td>
               <td><span class="ga-category-tag"><%= product.category || 'N/A' %></span></td>
               <td>
@@ -248,11 +269,6 @@
               </td>
               <td class="ga-date"><%= new Date(product.createdAt).toLocaleDateString('en-IN') %></td>
               <td>
-                <span class="ga-badge <%= product.isBlocked ? 'ga-badge--blocked' : 'ga-badge--active' %>">
-                  <%= product.isBlocked ? 'Blocked' : 'Active' %>
-                </span>
-              </td>
-              <td>
                 <div class="ga-actions-cell">
                   <button
                     onclick="handleBlockAction(this, '<%= product._id %>', <%= !!product.isBlocked %>)"
@@ -260,8 +276,8 @@
                     <i class="bi bi-<%= product.isBlocked ? 'unlock' : 'slash-circle' %>"></i>
                     <%= product.isBlocked ? 'Unblock' : 'Block' %>
                   </button>
-                  <a href="/admin/products/edit/<%= product._id %>" class="ga-action-btn ga-action-btn--edit">
-                    <i class="bi bi-pencil"></i> Edit
+                  <a href="/admin/products/edit/<%= product._id %>" class="ga-action-btn ga-action-btn--icon" title="Edit">
+                    <i class="bi bi-pencil"></i>
                   </a>
                 </div>
               </td>

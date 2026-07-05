@@ -69,14 +69,12 @@
     }
   </style>
 
-  <!-- Page Header -->
   <div class="ga-page-head">
     <div class="ga-page-head__row">
       <div>
         <p class="ga-page-head__eyebrow">Manage</p>
         <h1 class="ga-page-head__title">Coupons</h1>
       </div>
-      <!-- "Add Coupon" button — href unchanged -->
       <a href="/admin/coupons/add" class="ga-btn ga-btn--dark">
         <i class="bi bi-plus-lg"></i> Add Coupon
       </a>
@@ -85,12 +83,10 @@
 
   <div class="ga-section">
 
-    <!-- Stat Cards -->
     <div class="ga-stats">
       <div class="ga-stat ga-stat--total">
         <div>
           <p class="ga-stat__label">Total Coupons</p>
-          <!-- EJS: total count — unchanged -->
           <p class="ga-stat__value"><%= coupons ? coupons.length : 0 %></p>
         </div>
         <div class="ga-stat__icon">🎟️</div>
@@ -98,7 +94,6 @@
       <div class="ga-stat ga-stat--active">
         <div>
           <p class="ga-stat__label">Active</p>
-          <!-- EJS: active count — unchanged -->
           <p class="ga-stat__value"><%= coupons ? coupons.filter(c => c.isActive).length : 0 %></p>
         </div>
         <div class="ga-stat__icon">✅</div>
@@ -106,14 +101,12 @@
       <div class="ga-stat ga-stat--inactive">
         <div>
           <p class="ga-stat__label">Inactive</p>
-          <!-- EJS: inactive count — unchanged -->
           <p class="ga-stat__value"><%= coupons ? coupons.filter(c => !c.isActive).length : 0 %></p>
         </div>
         <div class="ga-stat__icon">🚫</div>
       </div>
     </div>
 
-    <!-- Table or Empty State -->
     <% if (coupons && coupons.length > 0) { %>
     <div class="ga-card">
       <div class="ga-table-wrap">
@@ -131,7 +124,6 @@
             </tr>
           </thead>
           <tbody>
-            <!-- EJS loop — logic completely unchanged -->
             <% coupons.forEach((coupon, index) => { %>
             <tr>
               <td><%= index + 1 %></td>
@@ -140,7 +132,7 @@
               </td>
               <td>
                 <span class="ga-discount">
-                  <%= coupon.discountValue %><%= coupon.type === 'percentage' ? '%' : '₹' %>
+                  <%= coupon.discountValue %><%= coupon.discountType === 'Percentage' ? '%' : '₹' %>
                 </span>
               </td>
               <td>
@@ -151,7 +143,6 @@
               </td>
               <td><%= coupon.maxUses %></td>
               <td>
-                <!-- EJS condition — unchanged -->
                 <% if(coupon.isActive) { %>
                   <span class="ga-badge ga-badge--active">Active</span>
                 <% } else { %>
@@ -160,11 +151,9 @@
               </td>
               <td>
                 <div class="ga-action-group">
-                  <!-- Edit href — unchanged -->
                   <a href="/admin/coupons/edit/<%= coupon._id %>" class="ga-btn ga-btn--edit">
                     <i class="bi bi-pencil"></i> Edit
                   </a>
-                  <!-- Delete onclick — unchanged -->
                   <a href="javascript:void(0)" class="ga-btn ga-btn--delete" onclick="confirmDelete('<%= coupon._id %>')">
                     <i class="bi bi-trash"></i> Delete
                   </a>
@@ -178,7 +167,6 @@
     </div>
 
     <% } else { %>
-    <!-- Empty state -->
     <div class="ga-card">
       <div class="ga-empty">
         <i class="bi bi-ticket-perforated"></i>
@@ -193,11 +181,8 @@
   </div>
 </main>
 
-<!-- SweetAlert2 — same CDN as before, untouched -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  /* ── All JS logic below is 100% unchanged ── */
-
   function confirmDelete(couponId) {
     Swal.fire({
       title: 'Are you sure?',
@@ -214,29 +199,12 @@
     });
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
-
-  if (urlParams.get('success')) {
+  var FLASH = <%- flash ? JSON.stringify(flash) : 'null' %>;
+  if (FLASH) {
     Swal.fire({
-      icon: 'success',
-      title: 'Coupon Added',
-      text: 'The coupon was added successfully!'
-    });
-  }
-
-  if (urlParams.get('error')) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Oops...',
-      text: 'Something went wrong while processing the coupon.'
-    });
-  }
-
-  if (urlParams.get('deleted')) {
-    Swal.fire({
-      icon: 'success',
-      title: 'Deleted!',
-      text: 'The coupon was deleted successfully.'
+      icon: FLASH.type === 'error' ? 'error' : 'success',
+      title: FLASH.type === 'error' ? 'Oops...' : 'Success',
+      text: FLASH.message
     });
   }
 </script>

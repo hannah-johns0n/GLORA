@@ -384,8 +384,8 @@
       </div>
 
       <!-- Blocked banner -->
-      <div id="blocked-message" class="login-blocked">
-        Your account has been blocked. Please contact support.
+      <div id="blocked-message" class="login-blocked" <% if (!(typeof flash !== 'undefined' && flash && flash.type === 'blocked')) { %>style="display:none;"<% } %>>
+        <%= (typeof flash !== 'undefined' && flash && flash.type === 'blocked') ? flash.message : 'Your account has been blocked. Please contact support.' %>
       </div>
 
       <form action="/login" method="POST" class="login-form">
@@ -464,14 +464,6 @@
       }
     }
 
-    // Blocked param check
-    (function () {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('blocked') === '1') {
-        document.getElementById('blocked-message').style.display = 'block';
-      }
-    })();
-
     // Error alert
     <% if (typeof error !== 'undefined' && error) { %>
       Swal.fire({
@@ -483,7 +475,7 @@
     <% } %>
 
     // Login success
-    <% if (typeof loginSuccess !== 'undefined' && loginSuccess) { %>
+    <% if (typeof flash !== 'undefined' && flash && flash.type === 'loginSuccess') { %>
       Swal.fire({
         icon: 'success',
         title: 'Welcome back!',
@@ -493,23 +485,23 @@
       });
     <% } %>
 
-    // General success (e.g. after signup redirect)
-    <% if (typeof success !== 'undefined' && success) { %>
+    // General success (e.g. after email change, redirected here from elsewhere)
+    <% if (typeof flash !== 'undefined' && flash && flash.type === 'success') { %>
       Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: "<%= success %>",
+        text: "<%= flash.message %>",
         confirmButtonText: 'OK',
         confirmButtonColor: '#8B1A1A'
       });
     <% } %>
 
     // Signup success
-    <% if (typeof signupSuccess !== 'undefined' && signupSuccess) { %>
+    <% if (typeof flash !== 'undefined' && flash && flash.type === 'signupSuccess') { %>
       Swal.fire({
         icon: 'success',
         title: 'Account Created!',
-        text: 'Your account has been created. Please log in.',
+        text: "<%= flash.message %>",
         confirmButtonText: 'OK',
         confirmButtonColor: '#8B1A1A'
       });
@@ -517,4 +509,5 @@
   </script>
 
 </body>
+
 </html>

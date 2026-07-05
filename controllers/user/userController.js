@@ -13,8 +13,11 @@ const Order = require('../../models/orderModel');
 const Coupon = require('../../models/coupensModel');
 const STATUS_CODES = require('../../constants/statusCodes');
 const Wallet = require('../../models/walletModel');
+const ChangeEmailOtp = require("../../models/changeEmailOtpModel");
+const { issueOtpSession, readOtpSession, clearOtpSession } = require('../../utils/otpSession');
+const { setFlash } = require('../../utils/flash');
+const { getFlash } = require("../../utils/flash");
 const fs = require('fs');
-
 dotenv.config();
 const PasswordReset = require('../../models/passwordResetModel');
 
@@ -28,65 +31,99 @@ const transporter = nodemailer.createTransport({
 
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
+const SIGNUP_OTP_COOKIE = "signupOtpToken";
+const RESET_OTP_COOKIE = "resetToken";
+
 const sendOTP = async (email, otp) => {
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
     to: email,
     subject: "Password Reset OTP",
-    html: `<h2>Your OTP is <strong>${otp}</strong></h2><p>Expires in 5 minutes.</p>`
+    html: `<h2>Your OTP is <strong>${otp}</strong></h2><p>Expires in 3 minutes.</p>`
   });
 };
 
 const getSignup = (req, res) => {
   try {
-    res.render("user/signup", { error: null });
+    res.status(STATUS_CODES.SUCCESS).render("user/signup", { error: null });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
   }
 };
+
+function isAllSameDigit(phone) {
+  return /^(\d)\1{9}$/.test(phone);
+}
+
+function isSequentialPhone(phone) {
+  let ascending = true;
+  let descending = true;
+  for (let i = 0; i < phone.length - 1; i++) {
+    const current = parseInt(phone[i]);
+    const next = parseInt(phone[i + 1]);
+    if (next - current !== 1) ascending = false;
+    if (current - next !== 1) descending = false;
+  }
+  return ascending || descending;
+}
+
+function isPasswordValid(password) {
+  const hasLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasDigit = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  return hasLength && hasUpper && hasLower && hasDigit && hasSpecial;
+}
 
 const signup = async (req, res) => {
   const { name, email, password, confirmPassword, phoneNumber, referralCode } = req.body;
 
   try {
     if (!email || !password || !confirmPassword || !name || !phoneNumber) {
-      return res.render("user/signup", { error: "All fields are required" });
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "All fields are required" });
     }
 
     if (password !== confirmPassword) {
-      return res.render("user/signup", { error: "Passwords do not match" });
-    }
-
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.render("user/signup", { error: "Email already registered" });
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Passwords do not match" });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const nameRegex  = /^[A-Za-z ]+$/;
+    const nameRegex = /^[A-Za-z ]+$/;
 
-if (!nameRegex.test(name) || name.trim().startsWith(' ')) {
-  return res.render("user/signup", { error: "Invalid name. No special characters allowed." });
-}
+    if (!nameRegex.test(name) || name.trim().startsWith(' ')) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Invalid name. No special characters allowed." });
+    }
 
-if (!emailRegex.test(email)) {
-  return res.render("user/signup", { error: "Invalid email format." });
-}
+    if (!emailRegex.test(email)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Invalid email format." });
+    }
 
-if (!/^\d{10}$/.test(phoneNumber)) {
-  return res.render("user/signup", { error: "Phone number must be exactly 10 digits." });
-}
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Phone number must be exactly 10 digits." });
+    }
 
-if (password.length < 8) {
-  return res.render("user/signup", { error: "Password must be at least 8 characters." });
-}
+    if (isAllSameDigit(phoneNumber) || isSequentialPhone(phoneNumber)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Phone number cannot be all same digits or a sequence." });
+    }
+
+    if (!isPasswordValid(password)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/signup", { error: "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character." });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const userExists = await User.findOne({ email: normalizedEmail });
+    if (userExists) {
+      return res.status(STATUS_CODES.CONFLICT).render("user/signup", { error: "Email already registered" });
+    }
 
     let validReferralCode = null;
 
     if (referralCode && referralCode.trim() !== "") {
       const referrer = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
       if (referrer) {
-        validReferralCode = referralCode.trim().toUpperCase(); 
+        validReferralCode = referralCode.trim().toUpperCase();
       }
     }
 
@@ -94,50 +131,203 @@ if (password.length < 8) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
-    await TempUser.deleteOne({ email });
+    await TempUser.deleteOne({ email: normalizedEmail });
 
     await TempUser.create({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       phoneNumber,
       otp,
       otpExpires: expiresAt,
-      referredBy: validReferralCode  
+      referredBy: validReferralCode
     });
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: email,
+      to: normalizedEmail,
       subject: "Verify Your Email",
       html: `<h2>Your OTP is <strong>${otp}</strong></h2><p>Expires in 3 minutes.</p>`
     });
 
-    res.redirect(`/verify-otp?email=${email}`);
+    issueOtpSession(res, SIGNUP_OTP_COOKIE, { email: normalizedEmail, purpose: "signup" });
+
+    res.redirect("/verify-otp");
 
   } catch (error) {
     console.log("Signup error:", error);
-    res.render("user/signup", { error: "Internal server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render("user/signup", { error: "Internal server error" });
   }
 };
 
 const getVerifyOtp = async (req, res) => {
-  const { email } = req.query;
-  const tempUser = await TempUser.findOne({ email });
-  console.log(`OTP for ${email}: ${tempUser.otp}`);
+  try {
+    const session = readOtpSession(req, SIGNUP_OTP_COOKIE);
 
-  const now = Date.now();
-  const expiryTime = new Date(tempUser.otpExpires).getTime();
-  const remainingMs = Math.max(0, expiryTime - now);
-  const remainingSeconds = Math.floor(remainingMs / 1000);
+    if (!session) {
+      setFlash(res, "error", "Your verification session has expired. Please sign up again.");
+      return res.redirect("/signup");
+    }
 
-  const viewData = {
-    email,
-    error: null,
-    expiresIn: remainingSeconds,
-    purpose: "verify"
-  };
-  res.render("user/otp", viewData);
+    const { email } = session;
+    const tempUser = await TempUser.findOne({ email });
+
+    if (!tempUser) {
+      setFlash(res, "error", "Your verification session has expired. Please sign up again.");
+      return res.redirect("/signup");
+    }
+
+    console.log(`OTP for ${email}: ${tempUser.otp}`);
+
+    const now = Date.now();
+    const expiryTime = new Date(tempUser.otpExpires).getTime();
+    const remainingMs = Math.max(0, expiryTime - now);
+    const remainingSeconds = Math.floor(remainingMs / 1000);
+
+    const viewData = {
+      email,
+      error: null,
+      expiresIn: remainingSeconds,
+      purpose: "verify"
+    };
+    res.status(STATUS_CODES.SUCCESS).render("user/otp", viewData);
+
+  } catch (error) {
+    console.log("Get verify OTP error:", error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
+  }
+};
+
+const postVerifyOtp = async (req, res) => {
+  try {
+    const { otp } = req.body;
+
+    const session = readOtpSession(req, SIGNUP_OTP_COOKIE);
+    if (!session) {
+      setFlash(res, "error", "Your verification session has expired. Please sign up again.");
+      return res.redirect("/signup");
+    }
+
+    const { email } = session;
+    const tempUser = await TempUser.findOne({ email });
+
+    if (!tempUser) {
+      return res.status(STATUS_CODES.NOT_FOUND).render("user/otp", {
+        email,
+        error: "No OTP found for this email",
+        expiresIn: 0,
+        purpose: "verify"
+      });
+    }
+
+    if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
+      const now = Date.now();
+      const expiryTime = new Date(tempUser.otpExpires).getTime();
+      const remainingMs = Math.max(0, expiryTime - now);
+      const remainingSeconds = Math.floor(remainingMs / 1000);
+
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/otp", {
+        email,
+        error: "Invalid or expired OTP",
+        expiresIn: remainingSeconds,
+        purpose: "verify"
+      });
+    }
+
+    const generateReferralCode = (name) => {
+      const cleanName = name.replace(/\s+/g, '').toUpperCase().slice(0, 5);
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      return cleanName + randomNum;
+    };
+
+    const newUser = await User.create({
+      name: tempUser.name,
+      email: tempUser.email,
+      password: tempUser.password,
+      phoneNumber: tempUser.phoneNumber,
+      referralCode: generateReferralCode(tempUser.name)
+    });
+
+    if (tempUser.referredBy) {
+      const referrer = await User.findOne({ referralCode: tempUser.referredBy });
+
+      if (referrer) {
+        referrer.redeemedUser.push(newUser._id);
+        await referrer.save();
+
+        await creditWallet(
+          referrer._id,
+          200,
+          `Referral reward for referring ${newUser.name}`
+        );
+
+        await creditWallet(
+          newUser._id,
+          80,
+          "Welcome bonus for signing up via referral"
+        );
+      }
+    }
+
+    await TempUser.deleteOne({ email });
+
+    clearOtpSession(res, SIGNUP_OTP_COOKIE);
+
+    setFlash(res, "signupSuccess", "Your account has been created. Please log in.");
+    res.redirect("/login");
+
+  } catch (error) {
+    console.log("Verify OTP error:", error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
+  }
+};
+
+const resendOtp = async (req, res) => {
+  try {
+    const session = readOtpSession(req, SIGNUP_OTP_COOKIE);
+    if (!session) {
+      setFlash(res, "error", "Your verification session has expired. Please sign up again.");
+      return res.redirect("/signup");
+    }
+
+    const { email } = session;
+    const tempUser = await TempUser.findOne({ email });
+    if (!tempUser) {
+      setFlash(res, "error", "Your verification session has expired. Please sign up again.");
+      return res.redirect('/signup');
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 3 * 60 * 1000);
+    console.log(`OTP for ${email}: ${otp}`);
+
+    tempUser.otp = otp;
+    tempUser.otpExpires = otpExpires;
+    await tempUser.save();
+
+    issueOtpSession(res, SIGNUP_OTP_COOKIE, { email, purpose: "signup" });
+
+    const remainingSeconds = 180;
+
+    const viewData = {
+      email,
+      error: null,
+      expiresIn: remainingSeconds,
+      purpose: "verify"
+    };
+
+    await transporter.sendMail({
+      to: email,
+      subject: 'Resend OTP - Email Verification',
+      html: `<h2>Your new OTP is: ${otp}</h2><p>Expires in 3 minutes</p>`,
+    });
+
+    res.status(STATUS_CODES.SUCCESS).render("user/otp", viewData);
+
+  } catch (error) {
+    console.log("Resend OTP error:", error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
+  }
 };
 
 const creditWallet = async (userId, amount, description) => {
@@ -157,112 +347,10 @@ const creditWallet = async (userId, amount, description) => {
   await wallet.save();
 };
 
-const postVerifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
-
-  const tempUser = await TempUser.findOne({ email });
-
-  if (!tempUser) {
-    return res.render("user/otp", {
-      email,
-      error: "No OTP found for this email",
-      expiresIn: 0,
-      purpose: "verify"
-    });
-  }
-
-  if (tempUser.otp !== otp || tempUser.otpExpires < new Date()) {
-    const now = Date.now();
-    const expiryTime = new Date(tempUser.otpExpires).getTime();
-    const remainingMs = Math.max(0, expiryTime - now);
-    const remainingSeconds = Math.floor(remainingMs / 1000);
-
-    return res.render("user/otp", {
-      email,
-      error: "Invalid or expired OTP",
-      expiresIn: remainingSeconds,
-      purpose: "verify"
-    });
-  }
-
-  const generateReferralCode = (name) => {
-    const cleanName = name.replace(/\s+/g, '').toUpperCase().slice(0, 5);
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    return cleanName + randomNum;
-  };
-
-  const newUser = await User.create({
-    name: tempUser.name,
-    email: tempUser.email,
-    password: tempUser.password,
-    phoneNumber: tempUser.phoneNumber,
-    referralCode: generateReferralCode(tempUser.name)
-  });
-
-  if (tempUser.referredBy) {
-    const referrer = await User.findOne({ referralCode: tempUser.referredBy });
-
-    if (referrer) {
-      referrer.redeemedUser.push(newUser._id);
-      await referrer.save();
-
-      await creditWallet(
-        referrer._id,
-        200,
-        `Referral reward for referring ${newUser.name}`
-      );
-
-      await creditWallet(
-        newUser._id,
-        80,
-        "Welcome bonus for signing up via referral"
-      );
-    }
-  }
-
-  await TempUser.deleteOne({ email });
-
-  res.redirect("/login?signupSuccess=1");
-};
-
-const resendOtp = async (req, res) => {
-  const { email } = req.query;
-
-  const tempUser = await TempUser.findOne({ email });
-  if (!tempUser) return res.redirect('/signup');
-
-  const otp = generateOTP();
-  const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-  console.log(`OTP for ${email}: ${otp}`);
-
-  tempUser.otp = otp;
-  tempUser.otpExpires = otpExpires;
-  await tempUser.save();
-
-  // Calculate remaining time (5 minutes = 300 seconds)
-  const remainingSeconds = 300;
-
-  const viewData = {
-    email,
-    error: null,
-    expiresIn: remainingSeconds,
-    purpose: "verify"
-  };
-
-  await transporter.sendMail({
-    to: email,
-    subject: 'Resend OTP - Email Verification',
-    html: `<h2>Your new OTP is: ${otp}</h2><p>Expires in 5 minutes</p>`,
-  });
-
-  res.render("user/otp", viewData);
-
-};
-
 const getLogin = (req, res) => {
   try {
-    const signupSuccess = req.query.signupSuccess === "1";
-    res.render("user/login", { signupSuccess });
+    const flash = getFlash(req, res);
+    res.status(STATUS_CODES.SUCCESS).render("user/login", { flash });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Internal Server Error");
   }
@@ -274,43 +362,53 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.render("user/login", { error: "Enter all credentials" });
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/login", { error: "Enter all credentials" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.render("user/login", { error: "Invalid credentials" });
+      return res.status(STATUS_CODES.UNAUTHORIZED).render("user/login", { error: "Invalid credentials" });
+    }
+
+    if (user.isBlocked) {
+      return res.status(STATUS_CODES.FORBIDDEN).render("user/login", { error: "Your account has been blocked. Please contact support." });
     }
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.render("user/login", { error: "Invalid credentials" });
+      return res.status(STATUS_CODES.UNAUTHORIZED).render("user/login", { error: "Invalid credentials" });
     }
 
     if (user.role === 'admin') {
-      return res.render("user/login", { error: "Admins cannot log in from the user side." });
+      return res.status(STATUS_CODES.FORBIDDEN).render("user/login", { error: "Admins cannot log in from the user side." });
     }
 
     const token = jwt.sign({ id: user._id, role: 'user', name: user.name }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.cookie("jwt", token, {
       httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 1000
     });
-    res.redirect('/');
 
-    const categories = await Category.find({ isBlocked: false });
-    const products = await Product.find({}).sort({ createdAt: -1 }).limit(8);
+    setFlash(res, 'loginSuccess', 'You have logged in successfully.');
+    return res.redirect('/');
 
   }
   catch (error) {
-    return res.render("user/login", { error: "Something went wrong so please try again later" });
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render("user/login", { error: "Something went wrong so please try again later" });
   }
 };
 
 const logout = (req, res) => {
   res.clearCookie("jwt")
   res.redirect('/')
+};
+
+const addAccount = (req, res) => {
+  res.clearCookie("jwt");
+  res.redirect("/login");
 };
 
 const loadHomePage = async (req, res) => {
@@ -333,43 +431,43 @@ const loadHomePage = async (req, res) => {
     const categories = await Category.find({ isBlocked: false });
 
 
-let bestSellers = [];
+    let bestSellers = [];
 
-const bestSellerAgg = await Order.aggregate([
-  
-  { $match: { status: { $ne: 'Cancelled' } } },
-  { $unwind: '$orderItems' },
-  
-  { $match: { 'orderItems.status': { $nin: ['Cancelled', 'Returned', 'Return-Rejected'] } } },
-  {
-    $group: {
-      _id: '$orderItems.productId',
-      totalSold: { $sum: '$orderItems.quantity' }
+    const bestSellerAgg = await Order.aggregate([
+
+      { $match: { status: { $ne: 'Cancelled' } } },
+      { $unwind: '$orderItems' },
+
+      { $match: { 'orderItems.status': { $nin: ['Cancelled', 'Returned', 'Return-Rejected'] } } },
+      {
+        $group: {
+          _id: '$orderItems.productId',
+          totalSold: { $sum: '$orderItems.quantity' }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 8 }
+    ]);
+
+    if (bestSellerAgg.length > 0) {
+
+      const bestSellerIds = bestSellerAgg.map(item => item._id);
+
+      const bestSellersFromDb = await Product.find({
+        _id: { $in: bestSellerIds },
+        isBlocked: false
+      });
+
+      bestSellers = bestSellerIds
+        .map(id => bestSellersFromDb.find(p => p._id.toString() === id.toString()))
+        .filter(Boolean);
     }
-  },
-  { $sort: { totalSold: -1 } },
-  { $limit: 8 }
-]);
 
-if (bestSellerAgg.length > 0) {
-
-  const bestSellerIds = bestSellerAgg.map(item => item._id);
-
-  const bestSellersFromDb = await Product.find({
-    _id: { $in: bestSellerIds },
-    isBlocked: false
-  });
-
-  bestSellers = bestSellerIds
-    .map(id => bestSellersFromDb.find(p => p._id.toString() === id.toString()))
-    .filter(Boolean);
-}
-
-if (bestSellers.length === 0) {
-  bestSellers = await Product.find({ isBlocked: false })
-    .sort({ createdAt: -1 })
-    .limit(8);
-}
+    if (bestSellers.length === 0) {
+      bestSellers = await Product.find({ isBlocked: false })
+        .sort({ createdAt: -1 })
+        .limit(8);
+    }
 
     const newLaunches = await Product.find({ isBlocked: false })
       .sort({ createdAt: -1 })
@@ -599,7 +697,7 @@ const getProductDetails = async (req, res) => {
 
 const getForgotPassword = (req, res) => {
   try {
-    res.render('user/forgotPassword', { error: null });
+    res.status(STATUS_CODES.SUCCESS).render('user/forgotPassword', { error: null });
   }
   catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
@@ -609,26 +707,30 @@ const getForgotPassword = (req, res) => {
 const postForgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email }) || await TempUser.findOne({ email });
+
+    if (!email) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/forgotPassword', { error: 'Email is required' });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      return res.render('user/forgotPassword', { error: 'Email not found' });
+      return res.status(STATUS_CODES.NOT_FOUND).render('user/forgotPassword', { error: 'Email not found' });
     }
 
     const otp = generateOTP();
     console.log("Generated OTP:", otp);
-    const otpExpires = Date.now() + 5 * 60 * 1000;
+    const otpExpires = Date.now() + 3 * 60 * 1000;
 
     await PasswordReset.updateOne(
-      { email },
+      { email: normalizedEmail },
       { $set: { otp, otpExpires } },
       { upsert: true }
     )
-    await sendOTP(email, otp);
+    await sendOTP(normalizedEmail, otp);
 
-    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "5m" });
-
-    res.cookie("resetToken", resetToken, { httpOnly: true, maxAge: 5 * 60 * 1000 });
+    issueOtpSession(res, RESET_OTP_COOKIE, { email: normalizedEmail }, 3 * 60 * 1000);
 
     res.redirect('/forgot-password/verify');
   }
@@ -636,34 +738,45 @@ const postForgotPassword = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
   }
 };
-
-const verifyPasswordOtp = (req, res) => {
+ 
+const verifyPasswordOtp = async (req, res) => {
   try {
-    const token = req.cookies.resetToken;
-    if (!token) return res.redirect("/forgot-password");
+    const session = readOtpSession(req, RESET_OTP_COOKIE);
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
+    if (!session) {
+      return res.redirect("/forgot-password");
+    }
 
-    const remainingSeconds = 300;
+    const { email } = session;
+    const record = await PasswordReset.findOne({ email });
 
-    res.render("user/otp", {
+    let remainingSeconds = 0;
+    if (record && record.otpExpires) {
+      const remainingMs = Math.max(0, record.otpExpires - Date.now());
+      remainingSeconds = Math.floor(remainingMs / 1000);
+    }
+
+    res.status(STATUS_CODES.SUCCESS).render("user/otp", {
       email,
       error: null,
       expiresIn: remainingSeconds,
       purpose: "reset"
     });
-
-  }
-  catch (error) {
-    res.clearCookie("resetToken");
-    res.redirect("/forgot-password");
+  } catch (error) {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
   }
 };
 
 const postVerifyPasswordOtp = async (req, res) => {
   try {
-    const { otp, email } = req.body;
+    const { otp } = req.body;
+
+    const session = readOtpSession(req, RESET_OTP_COOKIE);
+    if (!session) {
+      return res.redirect("/forgot-password");
+    }
+
+    const { email } = session;
     const record = await PasswordReset.findOne({ email });
 
     if (!record || record.otp !== otp || record.otpExpires < Date.now()) {
@@ -674,7 +787,7 @@ const postVerifyPasswordOtp = async (req, res) => {
         remainingSeconds = Math.floor(remainingMs / 1000);
       }
 
-      return res.render("user/otp", {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/otp", {
         email,
         error: "Invalid or expired OTP",
         expiresIn: remainingSeconds,
@@ -684,7 +797,15 @@ const postVerifyPasswordOtp = async (req, res) => {
 
     await PasswordReset.deleteOne({ email });
 
-    res.render("user/resetPassword", { error: null, email });
+    const resetToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "5m" });
+    res.cookie("allowResetToken", resetToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 5 * 60 * 1000
+    });
+
+    res.redirect("/reset-password");
 
   } catch (error) {
     console.error(error);
@@ -694,13 +815,54 @@ const postVerifyPasswordOtp = async (req, res) => {
   }
 };
 
+const resendForgotPasswordOtp = async (req, res) => {
+  try {
+    const session = readOtpSession(req, RESET_OTP_COOKIE);
+    if (!session) {
+      return res.redirect('/forgot-password');
+    }
+ 
+    const { email } = session;
+ 
+    const user = await User.findOne({ email }) || await TempUser.findOne({ email });
+    if (!user) {
+      return res.redirect('/forgot-password');
+    }
+ 
+    const otp = generateOTP();
+    const otpExpires = Date.now() + 3 * 60 * 1000;
+    console.log(`Generated OTP for ${email}: ${otp}`);
+    await PasswordReset.updateOne(
+      { email },
+      { $set: { otp, otpExpires } },
+      { upsert: true }
+    );
+ 
+    await sendOTP(email, otp);
+ 
+    issueOtpSession(res, RESET_OTP_COOKIE, { email }, 3 * 60 * 1000);
+ 
+    const remainingSeconds = 300;
+ 
+    res.render("user/otp", {
+      email,
+      error: null,
+      expiresIn: remainingSeconds,
+      purpose: "reset"
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
+  }
+};
+
 const getResetPassword = (req, res) => {
   try {
     const token = req.cookies.allowResetToken;
     if (!token) return res.redirect("/forgot-password");
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.render("user/resetPassword", { error: null });
+    res.status(STATUS_CODES.SUCCESS).render("user/resetPassword", { error: null, email: decoded.email });
   }
   catch (error) {
     res.clearCookie("allowResetToken");
@@ -710,55 +872,72 @@ const getResetPassword = (req, res) => {
 
 const postResetPassword = async (req, res) => {
   try {
-    const { email, password, confirmPassword } = req.body;
-
-    const user = await User.findOne({ email });
-    if (user && user.googleId && !user.password) {
-      return res.render("user/resetPassword", {
-        error: "Password reset is not available for Google-authenticated accounts.",
-        email: ""
-      });
-    }
-
-    if (!email) {
-      return res.render("user/resetPassword", {
+    const token = req.cookies.allowResetToken;
+    if (!token) {
+      return res.status(STATUS_CODES.UNAUTHORIZED).render("user/resetPassword", {
         error: "Time expired. Please restart the reset flow.",
         email: ""
       });
     }
 
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      res.clearCookie("allowResetToken");
+      return res.status(STATUS_CODES.UNAUTHORIZED).render("user/resetPassword", {
+        error: "Time expired. Please restart the reset flow.",
+        email: ""
+      });
+    }
+
+    const email = decoded.email;
+    const { password, confirmPassword } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(STATUS_CODES.NOT_FOUND).render("user/resetPassword", {
+        error: "Account not found for this email.",
+        email: ""
+      });
+    }
+
+    if (user.googleId && !user.password) {
+      return res.status(STATUS_CODES.FORBIDDEN).render("user/resetPassword", {
+        error: "Password reset is not available for Google-authenticated accounts.",
+        email
+      });
+    }
+
     if (!password || !confirmPassword) {
-      return res.render("user/resetPassword", {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/resetPassword", {
         error: "Both fields are required.",
         email
       });
     }
 
     if (password !== confirmPassword) {
-      return res.render("user/resetPassword", {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/resetPassword", {
         error: "Passwords do not match.",
         email
       });
     }
 
-    const hash = await bcrypt.hash(password, 10);
-
-    let updated = await User.updateOne({ email }, { $set: { password: hash } });
-    if (!updated.matchedCount) {
-      updated = await TempUser.updateOne({ email }, { $set: { password: hash } });
-      if (!updated.matchedCount) {
-        return res.render("user/resetPassword", {
-          error: "Account not found for this email.",
-          email
-        });
-      }
+    if (!isPasswordValid(password)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render("user/resetPassword", {
+        error: "Password must have at least 8 characters, one uppercase, one lowercase, one number, and one special character.",
+        email
+      });
     }
+
+    const hash = await bcrypt.hash(password, 10);
+    await User.updateOne({ email }, { $set: { password: hash } });
 
     await PasswordReset.deleteOne({ email }).catch(() => { });
     res.clearCookie("allowResetToken");
-    res.clearCookie("resetToken");
 
-    return res.render("user/resetPassword", {
+    return res.status(STATUS_CODES.SUCCESS).render("user/resetPassword", {
       error: null,
       email: "",
       success: true
@@ -766,9 +945,9 @@ const postResetPassword = async (req, res) => {
   }
   catch (error) {
     console.error("postResetPassword error:", error);
-    return res.render("user/resetPassword", {
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render("user/resetPassword", {
       error: "Something went wrong. Please try again.",
-      email: req.body.email || ""
+      email: ""
     });
   }
 };
@@ -776,14 +955,20 @@ const postResetPassword = async (req, res) => {
 const getProfilePage = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const success = req.query.success || null;
+    const flash = getFlash(req, res);
 
     res.render('user/profile', {
       user,
-      userName: user?.name || 'User'
+      userName: user?.name || 'User',
+      flash
     });
   } catch (err) {
-    res.redirect('user/profile');
+    console.log('Error in getProfilePage:', err);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render('user/profile', {
+      user: null,
+      userName: 'User',
+      flash: { type: 'error', message: 'Something went wrong loading your profile' }
+    });
   }
 };
 
@@ -809,19 +994,28 @@ const updateProfile = async (req, res) => {
     const { name, phoneNumber } = req.body;
 
     if (!name || !phoneNumber) {
-      return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Name and phone are required!" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Name and phone are required!" });
     }
 
-    if (phoneNumber.length !== 10 || isNaN(phoneNumber)) {
-      return res.status(STATUS_CODES.BAD_REQUEST).send({ success: false, message: "Phone must be a valid 10-digit number!" });
+    const nameRegex = /^[A-Za-z ]+$/;
+    if (!nameRegex.test(name) || name.trim().startsWith(' ') || name.trim().length < 2) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Invalid name. Only letters and spaces allowed, minimum 2 characters." });
     }
 
-    let user = await User.findById(userId);
-    user.name = name;
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Phone must be a valid 10-digit number!" });
+    }
+
+    if (isAllSameDigit(phoneNumber) || isSequentialPhone(phoneNumber)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: "Phone number cannot be all same digits or a sequence." });
+    }
+
+    const user = await User.findById(userId);
+    user.name = name.trim();
     user.phoneNumber = phoneNumber;
     await user.save();
 
-    return res.json({ success: true, message: "Profile updated successfully!" });
+    return res.status(STATUS_CODES.SUCCESS).json({ success: true, message: "Profile updated successfully!" });
   } catch (error) {
     return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
   }
@@ -831,17 +1025,17 @@ const getManageAddressPage = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const addresses = await Address.find({ userId: req.user._id });
-
-    const success = req.query.deleted ? 'Address deleted successfully!' : null;
+    const flash = getFlash(req, res);
 
     res.render('user/manage-address', {
       user,
       userName: user.name,
       addresses,
-      success
+      flash
     });
   }
   catch (error) {
+    console.error('Error in getManageAddressPage:', error);
     res.redirect('/profile');
   }
 };
@@ -860,15 +1054,15 @@ const postAddAddress = async (req, res) => {
 
     const fromCheckout = req.body.fromCheckout === "true";
 
-    const addressType  = req.body.addressType?.trim();
-    const city         = req.body.city?.trim();
-    const landmark     = req.body.landmark?.trim();
-    const state        = req.body.state?.trim();
-    const pincodeStr   = String(req.body.pincode || '').trim();
-    const phoneStr     = String(req.body.phoneNumber || '').trim();
+    const addressType = req.body.addressType?.trim();
+    const city = req.body.city?.trim();
+    const landmark = req.body.landmark?.trim();
+    const state = req.body.state?.trim();
+    const pincodeStr = String(req.body.pincode || '').trim();
+    const phoneStr = String(req.body.phoneNumber || '').trim();
 
     const renderError = (error) =>
-      res.render('user/add-address', {
+      res.status(STATUS_CODES.BAD_REQUEST).render('user/add-address', {
         userName: req.user.name,
         fromCheckout: fromCheckout ? 'true' : 'false',
         formData: { addressType, city, landmark, state, pincode: pincodeStr, phoneNumber: phoneStr },
@@ -914,19 +1108,12 @@ const postAddAddress = async (req, res) => {
 
     if (fromCheckout) return res.redirect('/checkout');
 
-    const user      = await User.findById(req.user._id);
-    const addresses = await Address.find({ userId: req.user._id });
-
-    return res.render('user/manage-address', {
-      user,
-      userName: user.name,
-      addresses,
-      success: 'Address added successfully!'
-    });
+    setFlash(res, 'success', 'Address added successfully!');
+    return res.redirect('/manage-address');
 
   } catch (err) {
     console.error(err);
-    res.status(500).render('user/add-address', {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).render('user/add-address', {
       userName: req.user.name,
       fromCheckout: req.body.fromCheckout || 'false',
       error: 'Server error. Please try again.'
@@ -946,17 +1133,17 @@ const getEditAddressPage = async (req, res) => {
 
 const postEditAddress = async (req, res) => {
   try {
-    if (!req.user._id) return res.status(401).send("Unauthorized");
+    if (!req.user._id) return res.status(STATUS_CODES.UNAUTHORIZED).send("Unauthorized");
 
-    const addressType  = req.body.addressType?.trim();
-    const city         = req.body.city?.trim();
-    const landmark     = req.body.landmark?.trim();
-    const state        = req.body.state?.trim();
-    const pincodeStr   = String(req.body.pincode || '').trim();
-    const phoneStr     = String(req.body.phoneNumber || '').trim();
+    const addressType = req.body.addressType?.trim();
+    const city = req.body.city?.trim();
+    const landmark = req.body.landmark?.trim();
+    const state = req.body.state?.trim();
+    const pincodeStr = String(req.body.pincode || '').trim();
+    const phoneStr = String(req.body.phoneNumber || '').trim();
 
     const renderError = (error) =>
-      res.render('user/edit-address', {
+      res.status(STATUS_CODES.BAD_REQUEST).render('user/edit-address', {
         address: { ...req.body, _id: req.params.id },
         error,
         userName: req.user.name
@@ -989,33 +1176,45 @@ const postEditAddress = async (req, res) => {
       return renderError('Phone number must be 10 digits and start with 6, 7, 8, or 9.');
     }
 
-    await Address.updateOne(
+    const result = await Address.updateOne(
       { _id: req.params.id, userId: req.user._id },
       { addressType, city, landmark, state, pincode: Number(pincodeStr), phoneNumber: Number(phoneStr) }
     );
 
-    return res.render('user/edit-address', {
-      address: { ...req.body, _id: req.params.id },
-      success: 'Address updated successfully!',
-      userName: req.user.name
-    });
+    if (result.matchedCount === 0) {
+      return res.status(STATUS_CODES.NOT_FOUND).render('user/edit-address', {
+        address: { ...req.body, _id: req.params.id },
+        error: 'Address not found or you do not have permission to edit it.',
+        userName: req.user.name
+      });
+    }
+
+    setFlash(res, 'success', 'Address updated successfully!');
+    return res.redirect('/manage-address');
 
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server error");
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
   }
 };
 
 const deleteAddress = async (req, res) => {
   try {
-    await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
-    res.redirect('/manage-address?deleted=true');
+    const result = await Address.deleteOne({ _id: req.params.id, userId: req.user._id });
+
+    if (result.deletedCount === 0) {
+      setFlash(res, 'error', 'Address not found or already deleted.');
+      return res.redirect('/manage-address');
+    }
+
+    setFlash(res, 'success', 'Address deleted successfully!');
+    res.redirect('/manage-address');
   }
   catch (err) {
     console.error(err);
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send("Server error");
   }
-};
+}
 
 const getChangeEmailPage = (req, res) => {
   if (req.user && req.user.googleId && !req.user.password) {
@@ -1029,41 +1228,62 @@ const getChangeEmailPage = (req, res) => {
 const getVerifyEmailOtpPage = (req, res) => {
   res.render('user/otp', { error: null });
 };
-
+ 
 let otpStore = {};
-
+ 
 const sendChangeEmailOtp = async (req, res) => {
   try {
     const { email } = req.body;
     const userId = req.user?._id || req.user?.id;
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email.trim())) {
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/change-email', {
+        error: 'Please enter a valid email address.'
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
-      return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/change-email', {
         error: 'Email change is not available for Google-authenticated accounts.'
       });
     }
 
-    const otp = generateOTP();
-    const expiresAt = Date.now() + 3 * 60 * 1000;
-    otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
+    const emailTaken = await User.findOne({ email: normalizedEmail });
+    if (emailTaken) {
+      return res.status(STATUS_CODES.CONFLICT).render('user/change-email', {
+        error: 'That email is already registered to another account.'
+      });
+    }
 
-    const remainingSeconds = 180;
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
+
+    await ChangeEmailOtp.deleteOne({ userId });
+    await ChangeEmailOtp.create({
+      userId,
+      newEmail: normalizedEmail,
+      otp,
+      otpExpires: expiresAt
+    });
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: email,
+      to: normalizedEmail,
       subject: 'Change Email OTP',
       text: `Your OTP is ${otp}. It will expire in 3 minutes.`
     });
 
-    console.log(`OTP for ${email} is ${otp}`);
+    console.log(`OTP for ${normalizedEmail} is ${otp}`);
 
     res.render('user/otp', {
       error: null,
       purpose: 'changeEmail',
-      email,
-      expiresIn: remainingSeconds
+      email: normalizedEmail,
+      expiresIn: 180
     });
   }
   catch (error) {
@@ -1071,37 +1291,35 @@ const sendChangeEmailOtp = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error sending OTP');
   }
 };
-
+ 
 const verifyChangeEmailOtp = async (req, res) => {
   try {
-    const { otp, email } = req.body;
+    const { otp } = req.body;
     const userId = req.user?._id || req.user?.id;
 
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
-      return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/change-email', {
         error: 'Email change is not available for Google-authenticated accounts.'
       });
     }
 
-    const stored = otpStore[userId];
-    console.log(req.body)
+    const stored = await ChangeEmailOtp.findOne({ userId });
 
     if (!stored) {
-      return res.render('user/otp', {
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/otp', {
         error: 'OTP expired. Try again.',
         purpose: 'changeEmail',
-        email,
+        email: req.body.email,
         expiresIn: 0
       });
     }
 
-    if (stored.otp !== otp || Date.now() > stored.expires) {
-      const now = Date.now();
-      const remainingMs = Math.max(0, stored.expires - now);
+    if (stored.otp !== otp || Date.now() > stored.otpExpires.getTime()) {
+      const remainingMs = Math.max(0, stored.otpExpires.getTime() - Date.now());
       const remainingSeconds = Math.floor(remainingMs / 1000);
 
-      return res.render('user/otp', {
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/otp', {
         error: 'Invalid or expired OTP',
         purpose: 'changeEmail',
         email: stored.newEmail,
@@ -1110,11 +1328,10 @@ const verifyChangeEmailOtp = async (req, res) => {
     }
 
     await User.findByIdAndUpdate(userId, { email: stored.newEmail });
+    await ChangeEmailOtp.deleteOne({ userId });
 
-    delete otpStore[userId];
-
-    return res.render("user/new-email", { error: null, userId });
-
+    setFlash(res, "success", "Email changed successfully!");
+    return res.redirect("/profile");
   }
   catch (err) {
     console.error("Error verifying OTP:", err);
@@ -1122,95 +1339,34 @@ const verifyChangeEmailOtp = async (req, res) => {
   }
 };
 
-const saveNewEmail = async (req, res) => {
-  try {
-    const { newEmail, confirmEmail } = req.body;
-    const userId = req.user._id;
-
-    if (!newEmail || !confirmEmail) {
-      return res.render("user/new-email", {
-        error: "Both fields are required!",
-        newEmail
-      });
-    }
-
-    if (newEmail !== confirmEmail) {
-      return res.render("user/new-email", {
-        error: "Emails do not match!",
-        newEmail
-      });
-    }
-
-    await User.findByIdAndUpdate(userId, { email: newEmail });
-
-    delete otpStore[userId];
-
-    return res.redirect("/profile?success=Email changed successfully!");
-
-  } catch (err) {
-    console.error("Error saving new email:", err);
-    return res.render("user/new-email", {
-      error: "Something went wrong. Try again.",
-      newEmail: req.body.newEmail
-    });
-  }
-};
-
-const resendForgotPasswordOtp = async (req, res) => {
-  try {
-    const { email } = req.query;
-
-    const user = await User.findOne({ email }) || await TempUser.findOne({ email });
-    if (!user) {
-      return res.redirect('/forgot-password');
-    }
-
-    const otp = generateOTP();
-    const otpExpires = Date.now() + 5 * 60 * 1000;
-    console.log(`Generated OTP for ${email}: ${otp}`);
-    await PasswordReset.updateOne(
-      { email },
-      { $set: { otp, otpExpires } },
-      { upsert: true }
-    );
-
-    await sendOTP(email, otp);
-
-    const remainingSeconds = 300;
-
-    res.render("user/otp", {
-      email,
-      error: null,
-      expiresIn: remainingSeconds,
-      purpose: "reset"
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('There is some internal error, so please try again later');
-  }
-};
-
 const resendChangeEmailOtp = async (req, res) => {
   try {
-    const { email } = req.query;
     const userId = req.user?._id || req.user?.id;
 
     if (!userId) {
       return res.redirect('/profile');
     }
 
+    const stored = await ChangeEmailOtp.findOne({ userId });
+    if (!stored) {
+      return res.redirect('/profile');
+    }
+
+    const email = stored.newEmail;
+
     const user = await User.findById(userId);
     if (user && user.googleId && !user.password) {
-      return res.render('user/change-email', {
+      return res.status(STATUS_CODES.BAD_REQUEST).render('user/change-email', {
         error: 'Email change is not available for Google-authenticated accounts.'
       });
     }
 
     const otp = generateOTP();
-    const expiresAt = Date.now() + 3 * 60 * 1000;
-    otpStore[userId] = { otp, newEmail: email, expires: expiresAt };
+    const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
 
-    const remainingSeconds = 180;
+    stored.otp = otp;
+    stored.otpExpires = expiresAt;
+    await stored.save();
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
@@ -1225,7 +1381,7 @@ const resendChangeEmailOtp = async (req, res) => {
       error: null,
       purpose: 'changeEmail',
       email,
-      expiresIn: remainingSeconds
+      expiresIn: 180
     });
   } catch (error) {
     console.error('Error resending OTP:', error);
@@ -1243,6 +1399,7 @@ module.exports = {
   resendChangeEmailOtp,
   login,
   logout,
+  addAccount,
   loadHomePage,
   getAbout,
   getContact,
@@ -1258,7 +1415,6 @@ module.exports = {
   postResetPassword,
   getProfilePage,
   getEditProfilePage,
-  updateProfile,
   getManageAddressPage,
   getAddAddressPage,
   postAddAddress,
@@ -1270,8 +1426,4 @@ module.exports = {
   sendChangeEmailOtp,
   getChangeEmailPage,
   getVerifyEmailOtpPage,
-  saveNewEmail
 };
-
-
-

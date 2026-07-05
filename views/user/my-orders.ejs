@@ -385,6 +385,8 @@
   .status-badge.returned   { background: #FFF0F0; color: var(--glora-red); }
   .status-badge.cancelled::before,
   .status-badge.returned::before { background: var(--glora-red); }
+  .status-badge.return-requested { background: #FFF4E5; color: #B25E00; }
+  .status-badge.return-rejected { background: #FDEAEA; color: #B02A2A; }
 
   .order-card__updated {
     font-size: 10px;
@@ -587,7 +589,7 @@
         <a href="/wishlist"  class="<%= url === '/wishlist' ? 'active' : '' %>">
           <i class="fas fa-heart"></i> Wishlist
         </a>
-        <a href="/login" class="<%= url === '/login' ? 'active' : '' %>">
+        <a href="/add-account" class="<%= url === '/login' ? 'active' : '' %>">
           <i class="fas fa-sign-in-alt"></i> Add Account
         </a>
       </nav>
@@ -640,8 +642,8 @@
               case 'Cancelled':       statusClass = 'cancelled';  statusText = 'Cancelled';  break;
               case 'Returned':        statusClass = 'returned';   statusText = 'Returned';   break;
               case 'Return-Requested':
-              case 'Return-Request':
-              case 'Return-Rejected': statusClass = 'delivered';  statusText = 'Delivered';  break;
+              case 'Return-Request':  statusClass = 'return-requested'; statusText = 'Return Requested'; break;
+              case 'Return-Rejected':  statusClass = 'return-rejected';  statusText = 'Return Rejected';  break;
             }
           %>
 

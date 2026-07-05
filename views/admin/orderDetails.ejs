@@ -127,21 +127,6 @@
 
   <div class="ga-section">
 
-    <!-- ── FLASH ALERTS ───────────────────────────────── -->
-    <% if (req.query.action === 'accepted') { %>
-    <div class="ga-alert ga-alert--success" id="ga-flash">
-      <i class="bi bi-check-circle-fill"></i>
-      <div class="ga-alert__body">Return request accepted and refund processed successfully.</div>
-      <button class="ga-alert__close" onclick="this.closest('.ga-alert').remove()">×</button>
-    </div>
-    <% } else if (req.query.action === 'rejected') { %>
-    <div class="ga-alert ga-alert--warning" id="ga-flash">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <div class="ga-alert__body">Return request has been rejected.</div>
-      <button class="ga-alert__close" onclick="this.closest('.ga-alert').remove()">×</button>
-    </div>
-    <% } %>
-
     <!-- ── RETURN REQUEST ALERT ───────────────────────── -->
     <% if (order.status === 'Return-Requested') { %>
     <div class="ga-alert ga-alert--warning">
@@ -277,9 +262,9 @@
       var finalStatuses = ['Cancelled', 'Returned', 'Return-Rejected'];
       var isFinal = finalStatuses.indexOf(order.status) !== -1;
       var nextOptions = [];
-      if (order.status === 'Pending')               nextOptions = ['Pending', 'Processing', 'Shipped', 'Delivered'];
-      else if (order.status === 'Processing')       nextOptions = ['Processing', 'Shipped', 'Delivered'];
-      else if (order.status === 'Shipped')          nextOptions = ['Shipped', 'Delivered'];
+      if (order.status === 'Pending')               nextOptions = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+      else if (order.status === 'Processing')       nextOptions = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
+      else if (order.status === 'Shipped')          nextOptions = ['Shipped', 'Delivered', 'Cancelled'];
       else if (order.status === 'Delivered')        nextOptions = ['Delivered', 'Return-Requested', 'Returned'];
       else if (order.status === 'Return-Requested') nextOptions = ['Return-Requested', 'Returned', 'Return-Rejected'];
     %>

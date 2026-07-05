@@ -7,7 +7,7 @@ const couponSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        uppercase: true // Converts coupon code to uppercase automatically
+        uppercase: true 
     },
     description: {
         type: String,
@@ -15,23 +15,29 @@ const couponSchema = new mongoose.Schema({
     },
     discountType: {
         type: String,
-        enum: ['Percentage', 'Fixed Amount'], // Type of discount
+        enum: ['Percentage', 'Fixed Amount'], 
         required: true,
     },
-    discountValue: { // Replaces 'offerPrice' for clarity
+    discountValue: { 
         type: Number,
         required: true,
+    },
+    maxDiscountAmount: {
+        type: Number,
+        required: function () {
+            return this.discountType === 'Percentage';
+        }
     },
     minimumPurchaseAmount: {
         type: Number,
         required: true,
     },
-    perUserLimit: { // Max times a single user can use this coupon
+    perUserLimit: { 
         type: Number,
         required: true,
         default: 1
     },
-    maxUses: { // Max times the coupon can be used in total by all users
+    maxUses: { 
         type: Number,
         required: true,
     },
@@ -43,7 +49,6 @@ const couponSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
-    // To track who has used the coupon and how many times
     usedBy: [{
         userId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -56,4 +61,4 @@ const couponSchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-module.exports = mongoose.model("Coupon", couponSchema); // Renamed for convention
+module.exports = mongoose.model("Coupon", couponSchema); 

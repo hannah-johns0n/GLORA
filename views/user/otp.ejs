@@ -304,7 +304,6 @@
 </head>
 <body>
 
-  <!-- ── LEFT PANEL ──────────────────────────────────────── -->
   <div class="otp-left">
     <div class="otp-left__content">
       <a href="/" class="otp-left__logo">GLORA</a>
@@ -322,7 +321,6 @@
     </div>
   </div>
 
-  <!-- ── RIGHT PANEL ─────────────────────────────────────── -->
   <div class="otp-right">
     <div class="otp-form-wrap">
 
@@ -377,7 +375,6 @@
           >
         </div>
 
-        <!-- Timer + Resend -->
         <div class="otp-timer-wrap">
           <div class="otp-timer">
             <i class="fas fa-clock"></i>
@@ -386,9 +383,9 @@
           <a
             id="resendLink"
             href="<%
-              if (purpose === 'reset') { %>/resend-forgot-password-otp?email=<%= email %><%
-              } else if (purpose === 'changeEmail') { %>/resend-change-email-otp?email=<%= email %><%
-              } else { %>/resend-otp?email=<%= email %><% } %>"
+              if (purpose === 'reset') { %>/resend-forgot-password-otp<%
+              } else if (purpose === 'changeEmail') { %>/resend-change-email-otp<%
+              } else { %>/resend-otp<% } %>"
             class="otp-resend disabled"
           >Resend OTP</a>
         </div>
@@ -434,4 +431,5 @@
   </script>
 
 </body>
+
 </html>

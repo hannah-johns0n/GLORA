@@ -131,7 +131,7 @@
               <td><span class="ga-date"><%= order.createdAt ? order.createdAt.toDateString() : 'N/A' %></span></td>
               <td><%= (order.userId && order.userId.name) ? order.userId.name : 'Unknown' %></td>
               <td><span class="ga-badge <%= badgeClass %>"><%= order.status || 'N/A' %></span></td>
-              <td><span class="ga-amount">₹<%= order.totalPrice || 'N/A' %></span></td>
+              <td><span class="ga-amount">₹<%= order.totalPrice != null ? order.totalPrice.toFixed(2) : 'N/A' %></span></td>
               <td>
                 <a href="/admin/order-list/<%= order._id %>" class="ga-btn ga-btn--view">
                   <i class="bi bi-eye"></i> View

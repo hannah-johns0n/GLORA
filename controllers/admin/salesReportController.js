@@ -1,14 +1,21 @@
+const STATUS_CODES = require('../../constants/statusCodes');
 const Order = require('../../models/orderModel');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 
+function getEndOfDay(dateStr) {
+  const d = new Date(dateStr);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
 async function fetchOrders(query = {}) {
   const { startDate, endDate, paymentMethod, orderStatus } = query;
 
-  const filter = { status: { $in: ['Delivered', 'Returned'] } };
+  const filter = {};
 
   if (startDate && endDate) {
-    filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    filter.createdAt = { $gte: new Date(startDate), $lte: getEndOfDay(endDate) };
   }
 
   if (paymentMethod && paymentMethod !== 'all') {
@@ -17,6 +24,8 @@ async function fetchOrders(query = {}) {
 
   if (orderStatus && orderStatus !== 'all') {
     filter.status = orderStatus;
+  } else {
+    filter.status = { $in: ['Delivered', 'Returned'] };
   }
 
   return Order.find(filter)
@@ -28,33 +37,50 @@ async function fetchOrders(query = {}) {
 const getSalesReport = async (req, res) => {
   try {
     let { startDate, endDate, paymentMethod, orderStatus, page } = req.query;
-    const filter = { status: { $in: ['Delivered', 'Returned'] } };
 
+    const dateFilter = {};
     if (startDate && endDate) {
-      filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+      dateFilter.createdAt = { $gte: new Date(startDate), $lte: getEndOfDay(endDate) };
     }
-    if (paymentMethod && paymentMethod !== 'all') filter.paymentMethod = paymentMethod;
-    if (orderStatus && orderStatus !== 'all') filter.status = orderStatus;
+
+    const paymentFilter = {};
+    if (paymentMethod && paymentMethod !== 'all') {
+      paymentFilter.paymentMethod = paymentMethod;
+    }
+
+    const statsFilter = {
+      ...dateFilter,
+      ...paymentFilter,
+      status: { $in: ['Delivered', 'Returned'] }
+    };
+
+    const listFilter = { ...dateFilter, ...paymentFilter };
+    if (orderStatus && orderStatus !== 'all') {
+      listFilter.status = orderStatus;
+    } else {
+      listFilter.status = { $in: ['Delivered', 'Returned'] };
+    }
 
     const currentPage = Math.max(parseInt(page) || 1, 1);
     const limit = 8;
     const skip = (currentPage - 1) * limit;
 
-    const allOrders = await Order.find(filter).lean();
+    const statsOrders = await Order.find(statsFilter).lean();
 
-    const totalSales = allOrders.reduce((s, o) => s + o.totalPrice, 0);
-    const totalOrders = allOrders.length;
+    const totalSales = statsOrders.reduce((s, o) => s + o.totalPrice, 0);
+    const totalOrders = statsOrders.length;
     const avgOrder = totalOrders > 0 ? totalSales / totalOrders : 0;
-    const returnedOrders = allOrders.filter(o => o.status === 'Returned').length;
+    const returnedOrders = statsOrders.filter(o => o.status === 'Returned').length;
     const returnRate = totalOrders > 0 ? (returnedOrders / totalOrders) * 100 : 0;
 
-    const totalOfferDiscount = allOrders.reduce((s, o) => s + (o.offerDiscount || 0), 0);
-    const totalCouponDiscount = allOrders.reduce((s, o) => s + (o.couponDiscount || 0), 0);
-    const totalDiscount = allOrders.reduce((s, o) => s + (o.discount || 0), 0);
+    const totalOfferDiscount = statsOrders.reduce((s, o) => s + (o.offerDiscount || 0), 0);
+    const totalCouponDiscount = statsOrders.reduce((s, o) => s + (o.couponDiscount || 0), 0);
+    const totalDiscount = statsOrders.reduce((s, o) => s + (o.discount || 0), 0);
 
-    const totalPages = Math.ceil(totalOrders / limit);
+    const totalListOrders = await Order.countDocuments(listFilter);
+    const totalPages = Math.ceil(totalListOrders / limit);
 
-    const orders = await Order.find(filter)
+    const orders = await Order.find(listFilter)
       .populate('userId', 'name email')
       .populate('orderItems.productId', 'name')
       .sort({ createdAt: -1 })
@@ -70,7 +96,7 @@ const getSalesReport = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error generating sales report');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error generating sales report');
   }
 };
 
@@ -119,7 +145,7 @@ const downloadExcel = async (req, res) => {
     const headers = [
       'Customer Name', 'Product Name', 'Variant', 'Quantity',
       'Unit Price (Rs.)', 'Offer Disc. (Rs.)', 'Coupon Code', 'Coupon Disc. (Rs.)',
-      'Total Amount (Rs.)', 'Payment Method', 'Order Status', 'Order Date'
+      'Total Amount (Rs.)', 'Payment Method', 'Item Status', 'Order Date'
     ];
 
     const headerRow = ws.addRow(headers);
@@ -234,7 +260,7 @@ const downloadExcel = async (req, res) => {
       };
     });
     // Format the total revenue cell as a number too
-    const totalRevenueCell = totalRow.getCell(6);
+    const totalRevenueCell = totalRow.getCell(9);
     totalRevenueCell.numFmt = '#,##0.00';
 
     res.setHeader(
@@ -247,50 +273,10 @@ const downloadExcel = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error downloading Excel');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error downloading Excel');
   }
 };
 
-function addDataRow(ws, rowIndex, data) {
-  const isEven = rowIndex % 2 === 0;
-  const bgColor = isEven ? 'FFFAFAFA' : 'FFFFFFFF';
-
-  const row = ws.addRow([
-    data.customerName,
-    data.productName,
-    data.variant,
-    data.quantity,
-    data.unitPrice !== '' ? Number(data.unitPrice).toFixed(2) : '',
-    data.totalAmount !== '' ? Number(data.totalAmount).toFixed(2) : '',
-    data.paymentMethod,
-    data.orderStatus,
-    data.orderDate
-  ]);
-
-  row.height = 22;
-  row.eachCell((cell, colNum) => {
-    cell.font = { name: 'Arial', size: 10 };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + bgColor.slice(2) } };
-    cell.alignment = {
-      horizontal: [4, 5, 6].includes(colNum) ? 'right' : 'left',
-      vertical: 'middle',
-      wrapText: true
-    };
-    cell.border = {
-      top: { style: 'hair', color: { argb: 'FFDDDDDD' } },
-      bottom: { style: 'hair', color: { argb: 'FFDDDDDD' } },
-      left: { style: 'hair', color: { argb: 'FFDDDDDD' } },
-      right: { style: 'hair', color: { argb: 'FFDDDDDD' } }
-    };
-  });
-
-  const statusCell = row.getCell(8);
-  if (data.orderStatus === 'Delivered') {
-    statusCell.font = { color: { argb: 'FF1A7A1A' }, bold: true, size: 10 };
-  } else if (data.orderStatus === 'Returned') {
-    statusCell.font = { color: { argb: 'FFCC6600' }, bold: true, size: 10 };
-  }
-}
 
 const downloadPDF = async (req, res) => {
   try {
@@ -320,7 +306,7 @@ const downloadPDF = async (req, res) => {
       { label: 'Unit Price', width: 75 },
       { label: 'Total (Rs.)', width: 80 },
       { label: 'Payment', width: 70 },
-      { label: 'Status', width: 75 },
+      { label: 'Item Status', width: 75 },
       { label: 'Date', width: 106 },  
     ];
    
@@ -453,7 +439,7 @@ const downloadPDF = async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error downloading PDF');
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).send('Error downloading PDF');
   }
 };
 

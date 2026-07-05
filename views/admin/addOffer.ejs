@@ -91,7 +91,6 @@
     }
   </style>
 
-  <!-- Page Header -->
   <div class="ga-page-head">
     <p class="ga-page-head__eyebrow">Manage</p>
     <h1 class="ga-page-head__title">Create Offer</h1>
@@ -100,7 +99,6 @@
   <div class="ga-section">
     <div class="ga-form-card">
 
-      <!-- Card top bar -->
       <div class="ga-form-card__bar">
         <i class="bi bi-tag ga-form-card__bar-icon"></i>
         <span class="ga-form-card__bar-title">New Offer</span>
@@ -111,22 +109,18 @@
 
           <div class="ga-form-grid">
 
-            <!-- ── LEFT COLUMN ── -->
             <div>
 
-              <!-- Offer Title -->
               <div class="ga-field">
                 <label for="title" class="ga-label">Offer Title</label>
                 <input type="text" name="title" id="title" class="ga-input" placeholder="e.g., Monsoon Glow Sale" required>
               </div>
 
-              <!-- Description -->
               <div class="ga-field">
                 <label for="description" class="ga-label">Description</label>
                 <textarea name="description" id="description" class="ga-textarea" placeholder="e.g., Special discount on skincare essentials" required></textarea>
               </div>
 
-              <!-- Discount Type -->
               <div class="ga-field">
                 <label for="discountType" class="ga-label">Discount Type</label>
                 <select name="discountType" id="discountType" class="ga-select" required>
@@ -135,42 +129,36 @@
                 </select>
               </div>
 
-              <!-- Discount Value -->
               <div class="ga-field">
                 <label for="discountValue" class="ga-label">Discount Value</label>
                 <div class="ga-input-wrap">
                   <span class="ga-input-prefix" id="discount-symbol">%</span>
-                  <input type="number" name="discountValue" id="discountValue" class="ga-input" placeholder="e.g., 15 or 500" required step="0.01">
+                  <input type="number" name="discountValue" id="discountValue" class="ga-input" placeholder="e.g., 15 or 500" required step="0.01" min="0.01">
                 </div>
               </div>
 
-            </div><!-- end left column -->
+            </div>
 
-            <!-- ── RIGHT COLUMN ── -->
             <div>
 
-              <!-- Minimum Purchase -->
               <div class="ga-field">
                 <label for="minPurchase" class="ga-label">Minimum Purchase</label>
                 <div class="ga-input-wrap">
                   <span class="ga-input-prefix">₹</span>
-                  <input type="number" name="minPurchase" id="minPurchase" class="ga-input" placeholder="e.g., 1000" required>
+                  <input type="number" name="minPurchase" id="minPurchase" class="ga-input" placeholder="e.g., 1000" required min="0">
                 </div>
               </div>
 
-              <!-- Expiry Date -->
               <div class="ga-field">
                 <label for="endDate" class="ga-label">Expiry Date</label>
                 <input type="date" name="endDate" id="endDate" class="ga-input" required>
               </div>
 
-              <!-- Total Uses -->
               <div class="ga-field">
                 <label for="totalUses" class="ga-label">Total Uses</label>
-                <input type="number" name="totalUses" id="totalUses" class="ga-input" placeholder="e.g., 100" required>
+                <input type="number" name="totalUses" id="totalUses" class="ga-input" placeholder="e.g., 100" required min="1">
               </div>
 
-              <!-- Offer Type -->
               <div class="ga-field">
                 <label for="offerType" class="ga-label">Offer Type</label>
                 <select name="offerType" id="offerType" class="ga-select" required>
@@ -181,10 +169,8 @@
                 </select>
               </div>
 
-              <!-- Target Selection (populated dynamically by JS below) -->
               <div class="ga-field" id="targetSelection"></div>
 
-              <!-- Status Toggle -->
               <div class="ga-field">
                 <label class="ga-label">Status</label>
                 <div class="ga-toggle-wrap">
@@ -196,12 +182,11 @@
                 </div>
               </div>
 
-            </div><!-- end right column -->
-          </div><!-- end ga-form-grid -->
+            </div>
+          </div>
 
           <hr class="ga-divider">
 
-          <!-- Footer buttons -->
           <div class="ga-form-footer">
             <a href="/admin/offers" class="ga-btn ga-btn--ghost">
               <i class="bi bi-x-lg"></i> Cancel
@@ -212,30 +197,26 @@
           </div>
 
         </form>
-      </div><!-- end ga-form-body -->
-    </div><!-- end ga-form-card -->
-  </div><!-- end ga-section -->
+      </div>
+    </div>
+  </div>
 
 </main>
 
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
 
-    // Set minimum date for expiry
     const endDate = document.getElementById('endDate');
     endDate.min = new Date().toISOString().split('T')[0];
 
-    // Update Discount Symbol
     const discountType = document.getElementById('discountType');
     const discountSymbol = document.getElementById('discount-symbol');
     discountType.addEventListener('change', (e) => {
       discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
     });
 
-    // Offer Type dynamic selection
     document.getElementById('offerType').addEventListener('change', function () {
       const targetSelection = document.getElementById('targetSelection');
       if (this.value === 'Product') {
@@ -261,7 +242,6 @@
       }
     });
 
-    // Status toggle label
     const isActiveSwitch = document.getElementById('isActive');
     const statusLabel = document.getElementById('statusLabel');
     isActiveSwitch.addEventListener('change', () => {
@@ -276,17 +256,17 @@
       }
     });
 
-    // SweetAlert validation before submit
     document.getElementById('offerForm').addEventListener('submit', function (e) {
       const title = this.querySelector('[name="title"]').value.trim();
       const description = this.querySelector('[name="description"]').value.trim();
-      const discountValue = this.querySelector('[name="discountValue"]').value.trim();
-      const minPurchase = this.querySelector('[name="minPurchase"]').value.trim();
+      const discountValue = parseFloat(this.querySelector('[name="discountValue"]').value);
+      const minPurchase = parseFloat(this.querySelector('[name="minPurchase"]').value);
       const endDateValue = this.querySelector('[name="endDate"]').value.trim();
-      const totalUses = this.querySelector('[name="totalUses"]').value.trim();
+      const totalUses = parseFloat(this.querySelector('[name="totalUses"]').value);
       const offerType = this.querySelector('[name="offerType"]').value.trim();
+      const discountTypeValue = this.querySelector('[name="discountType"]').value;
 
-      if (!title || !description || !discountValue || !minPurchase || !endDateValue || !totalUses || !offerType) {
+      if (!title || !description || isNaN(discountValue) || isNaN(minPurchase) || !endDateValue || isNaN(totalUses) || !offerType) {
         e.preventDefault();
         Swal.fire({
           title: 'Missing Fields',
@@ -294,6 +274,51 @@
           icon: 'error',
           confirmButtonColor: '#1A1A1A'
         });
+        return;
+      }
+
+      if (discountValue <= 0) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'Invalid Discount',
+          text: 'Discount value must be greater than 0.',
+          icon: 'error',
+          confirmButtonColor: '#1A1A1A'
+        });
+        return;
+      }
+
+      if (discountTypeValue === 'Percentage' && discountValue > 100) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'Invalid Discount',
+          text: 'Percentage discount cannot exceed 100.',
+          icon: 'error',
+          confirmButtonColor: '#1A1A1A'
+        });
+        return;
+      }
+
+      if (minPurchase < 0) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'Invalid Amount',
+          text: 'Minimum purchase amount cannot be negative.',
+          icon: 'error',
+          confirmButtonColor: '#1A1A1A'
+        });
+        return;
+      }
+
+      if (totalUses < 1) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'Invalid Value',
+          text: 'Total uses must be at least 1.',
+          icon: 'error',
+          confirmButtonColor: '#1A1A1A'
+        });
+        return;
       }
     });
   });

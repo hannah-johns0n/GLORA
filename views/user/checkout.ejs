@@ -690,6 +690,7 @@
                       data-discounttype="<%= coupon.discountType %>"
                       data-discountvalue="<%= coupon.discountValue %>"
                       data-minimum="<%= coupon.minimumPurchaseAmount %>"
+                      data-maxdiscount="<%= coupon.maxDiscountAmount || 0 %>"
                       id="coupon_<%= index %>" class="form-check-input"
                       style="margin-top:0;cursor:pointer;">
                     <label for="coupon_<%= index %>"
@@ -697,7 +698,10 @@
                       <strong><%= coupon.couponCode %></strong><br>
                       <span class="text-muted"><%= coupon.description %></span><br>
                       <span class="text-success">
-                        Save <%= coupon.discountType === 'percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %>
+                        Save <%= coupon.discountType === 'Percentage' ? coupon.discountValue + '%' : '₹' + coupon.discountValue %>
+                        <% if (coupon.discountType === 'Percentage' && coupon.maxDiscountAmount) { %>
+                          (up to ₹<%= coupon.maxDiscountAmount %>)
+                        <% } %>
                       </span>
                     </label>
                   </li>
@@ -799,6 +803,7 @@
     var discountType = selected.dataset.discounttype;
     var discountValue = parseFloat(selected.dataset.discountvalue);
     var minimumPurchase = parseFloat(selected.dataset.minimum);
+    var maxDiscount = parseFloat(selected.dataset.maxdiscount) || 0;
 
     if (PRICE_AFTER_OFFERS < minimumPurchase) {
       Swal.fire({ icon: 'warning', title: 'Coupon Not Applicable', text: 'This coupon requires a minimum purchase of ₹' + minimumPurchase });
@@ -808,6 +813,10 @@
     var discountAmount = discountType === 'Percentage'
       ? (PRICE_AFTER_OFFERS * discountValue) / 100
       : discountValue;
+    
+    if (discountType === 'Percentage' && maxDiscount > 0) {
+      discountAmount = Math.min(discountAmount, maxDiscount);
+    }
 
     var priceAfterCoupon = PRICE_AFTER_OFFERS - discountAmount;
     var newShipping = priceAfterCoupon >= 999 ? 0 : 100;
