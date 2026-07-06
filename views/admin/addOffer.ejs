@@ -288,11 +288,11 @@
         return;
       }
 
-      if (discountTypeValue === 'Percentage' && discountValue > 100) {
+      if (discountTypeValue === 'Percentage' && discountValue >= 100) {
         e.preventDefault();
         Swal.fire({
           title: 'Invalid Discount',
-          text: 'Percentage discount cannot exceed 100.',
+          text: 'Percentage discount must be less than 100%.',
           icon: 'error',
           confirmButtonColor: '#1A1A1A'
         });

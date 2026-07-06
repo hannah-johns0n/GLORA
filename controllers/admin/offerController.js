@@ -21,7 +21,7 @@ function validateOfferInput(body) {
   const totalUsesNum = Number(totalUses);
 
   if (isNaN(discountValueNum) || discountValueNum <= 0) return 'Discount value must be greater than 0';
-  if (discountType === 'Percentage' && discountValueNum > 100) return 'Percentage discount cannot exceed 100';
+  if (discountType === 'Percentage' && discountValueNum >= 100) return 'Percentage discount cannot be 100% or more';
   if (isNaN(minPurchaseNum) || minPurchaseNum < 0) return 'Minimum purchase amount is invalid';
   if (isNaN(totalUsesNum) || totalUsesNum < 1) return 'Total uses must be at least 1';
 

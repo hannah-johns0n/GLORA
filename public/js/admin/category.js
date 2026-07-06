@@ -18,7 +18,16 @@ document.addEventListener('DOMContentLoaded', function () {
       `https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`,
       { method: 'POST', body: formData }
     );
-    const uploadData = await uploadRes.json();
+    const rawText = await uploadRes.text();
+console.log('RAW CLOUDINARY RESPONSE:', rawText);
+console.log('STATUS:', uploadRes.status);
+let uploadData;
+try {
+  uploadData = JSON.parse(rawText);
+} catch (e) {
+  console.log('FAILED TO PARSE AS JSON');
+  throw new Error('Cloudinary returned something unexpected — check console');
+}
 
     if (uploadData.secure_url) return uploadData.secure_url;
     throw new Error('Cloudinary upload failed: ' + (uploadData.error?.message || 'unknown error'));
@@ -56,16 +65,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── HELPERS ──────────────────────────────────────────
   function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
-    if (!btn) return;
-    if (isLoading) {
+  if (!btn) return;
+  if (isLoading) {
+    if (!btn.dataset.originalText) {
       btn.dataset.originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = btn.dataset.originalText || 'Submit';
     }
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.originalText || 'Submit';
   }
+}
 
   function validateCategoryName(name) {
     const trimmed = name.trim();

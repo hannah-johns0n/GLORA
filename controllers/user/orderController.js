@@ -13,6 +13,18 @@ function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function calculateItemsRefund(order, items) {
+  const itemsTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (itemsTotal <= 0) return 0;
+
+  const totalAfterOffer = order.subtotal - (order.offerDiscount || 0);
+  const couponShare = totalAfterOffer > 0
+    ? (itemsTotal / totalAfterOffer) * (order.couponDiscount || 0)
+    : 0;
+
+  return Number((itemsTotal - couponShare).toFixed(2));
+}
+
 const getMyOrders = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -81,9 +93,7 @@ const cancelOrder = async (req, res) => {
 
     if ((order.paymentMethod === 'Online' || order.paymentMethod === 'Wallet') && order.paymentStatus === 'Paid') {
 
-      const totalDiscount = (order.discount || 0) + (order.couponDiscount || 0);
-      const discountShare = order.subtotal > 0? Number(((activeItemsTotal / order.subtotal) * totalDiscount).toFixed(2)): 0;
-      const refundAmount = Number((activeItemsTotal - discountShare + (order.shipping || 0)).toFixed(2));
+      const refundAmount = Number((calculateItemsRefund(order, activeItems) + (order.shipping || 0)).toFixed(2));
 
       if (refundAmount > 0) {
         let wallet = await Wallet.findOne({ user: userId });
@@ -154,18 +164,7 @@ const cancelProduct = async (req, res) => {
       && order.paymentStatus === 'Paid';
 
     if (shouldRefund) {
-      const itemRefund = Number((item.price * item.quantity).toFixed(2));
-
-      const paidTotal = order.orderItems
-        .filter(i => i.status !== 'Cancelled')
-        .reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-      const totalDiscount = (order.discount || 0) + (order.couponDiscount || 0);
-      const discountShare = paidTotal > 0
-        ? Number(((item.price * item.quantity / paidTotal) * totalDiscount).toFixed(2))
-        : 0;
-
-      const refundAmount = Number((itemRefund - discountShare).toFixed(2));
+      const refundAmount = calculateItemsRefund(order, [item]);
 
       if (refundAmount > 0) {
         let wallet = await Wallet.findOne({ user: req.user.id });

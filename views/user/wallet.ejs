@@ -573,7 +573,7 @@
                 </tr>
               </thead>
               <tbody>
-                <% wallet.transactions.slice().reverse().forEach(function(t) { %>
+                <% wallet.transactions.slice().forEach(function(t) { %>
                 <tr>
                   <td class="tx-date">
                     <%= t.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>

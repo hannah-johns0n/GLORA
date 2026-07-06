@@ -8,6 +8,18 @@ function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function calculateItemsRefund(order, items) {
+  const itemsTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (itemsTotal <= 0) return 0;
+
+  const totalAfterOffer = order.subtotal - (order.offerDiscount || 0);
+  const couponShare = totalAfterOffer > 0
+    ? (itemsTotal / totalAfterOffer) * (order.couponDiscount || 0)
+    : 0;
+
+  return Number((itemsTotal - couponShare).toFixed(2));
+}
+
 const getAllOrders = async (req, res) => {
   try {
     let { search, status, sort, page } = req.query;
@@ -113,11 +125,8 @@ const updateOrderStatus = async (req, res) => {
       const shouldRefund = ['Online', 'Wallet'].includes(order.paymentMethod) && order.paymentStatus === 'Paid';
 
       if (shouldRefund) {
-        const totalDiscount = (order.discount || 0) + (order.couponDiscount || 0);
-        const discountShare = order.subtotal > 0
-          ? Number(((activeItemsTotal / order.subtotal) * totalDiscount).toFixed(2))
-          : 0;
-        const refundAmount = Number((activeItemsTotal - discountShare + (order.shipping || 0)).toFixed(2));
+        
+        const refundAmount = Number((calculateItemsRefund(order, activeItems) + (order.shipping || 0)).toFixed(2));
 
         if (refundAmount > 0) {
           let wallet = await Wallet.findOne({ user: order.userId._id });
@@ -189,11 +198,8 @@ const verifyReturnRequest = async (req, res) => {
         || order.paymentMethod === 'COD';
 
       if (shouldRefund && returnableTotal > 0) {
-        const totalDiscount = (order.discount || 0) + (order.couponDiscount || 0);
-        const discountShare = order.subtotal > 0
-          ? Number(((returnableTotal / order.subtotal) * totalDiscount).toFixed(2))
-          : 0;
-        const refundAmount = Number((returnableTotal - discountShare + (order.shipping || 0)).toFixed(2));
+        
+        const refundAmount = Number((calculateItemsRefund(order, returnableItems) + (order.shipping || 0)).toFixed(2));
 
         let wallet = await Wallet.findOne({ user: order.userId._id });
         if (!wallet) {
@@ -265,7 +271,7 @@ const verifyItemReturn = async (req, res) => {
     }
 
     if (action === 'accept') {
-      const refundAmount = item.price * item.quantity;
+      const refundAmount = calculateItemsRefund(order, [item]);
 
       if ((['Online', 'Wallet'].includes(order.paymentMethod) && order.paymentStatus === 'Paid') || order.paymentMethod === 'COD') {
         let wallet = await Wallet.findOne({ user: order.userId._id });

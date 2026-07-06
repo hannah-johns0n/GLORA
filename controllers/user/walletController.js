@@ -28,7 +28,7 @@ const getWallet = async (req, res) => {
       await wallet.save();
     }
 
-    const allTransactions = [...wallet.transactions].sort((a, b) => a.date - b.date);
+    const allTransactions = [...wallet.transactions].sort((a, b) => b.date - a.date);
 
     const page = parseInt(req.query.page) || 1;
     const totalTransactions = allTransactions.length;

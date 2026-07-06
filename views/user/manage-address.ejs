@@ -511,9 +511,8 @@
                 <a href="/edit-address/<%= address._id %>" class="addr-btn addr-btn--edit">
                   <i class="fas fa-pen"></i> Edit
                 </a>
-                <form action="/delete-address/<%= address._id %>" method="POST" style="flex:1; display:contents;">
-                  <button type="submit" class="addr-btn addr-btn--delete"
-                    onclick="return confirm('Delete this address?')">
+                <form action="/delete-address/<%= address._id %>" method="POST" style="flex:1; display:contents;" class="delete-address-form">
+                  <button type="submit" class="addr-btn addr-btn--delete">
                     <i class="fas fa-trash-alt"></i> Delete
                   </button>
                 </form>

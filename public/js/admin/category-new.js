@@ -56,16 +56,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── HELPERS ──────────────────────────────────────────
   function setButtonLoading(btn, isLoading, loadingText = 'Processing...') {
-    if (!btn) return;
-    if (isLoading) {
+  if (!btn) return;
+  if (isLoading) {
+    if (!btn.dataset.originalText) {
       btn.dataset.originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = btn.dataset.originalText || 'Submit';
     }
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.originalText || 'Submit';
   }
+}
 
   function validateCategoryName(name) {
     const trimmed = name.trim();
