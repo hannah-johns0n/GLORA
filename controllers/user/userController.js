@@ -17,6 +17,7 @@ const ChangeEmailOtp = require("../../models/changeEmailOtpModel");
 const { issueOtpSession, readOtpSession, clearOtpSession } = require('../../utils/otpSession');
 const { setFlash } = require('../../utils/flash');
 const { getFlash } = require("../../utils/flash");
+const { getActiveOffers, getOfferPriceForProduct } = require('../../utils/discountService');
 const fs = require('fs');
 dotenv.config();
 const PasswordReset = require('../../models/passwordResetModel');
@@ -552,10 +553,18 @@ const getShopPage = async (req, res) => {
     const unblockedCategories = await Category.find({ isBlocked: false }).select('categoryName');
     const unblockedCategoryNames = unblockedCategories.map(c => c.categoryName);
 
+    // ── FIX: use $elemMatch so min AND max are checked against the SAME variant ──
     const filter = {
       isBlocked: { $ne: true },
       category: { $in: unblockedCategoryNames },
-      'variants.salesPrice': { $gte: minPrice, ...(maxPrice !== Infinity && { $lte: maxPrice }) }
+      variants: {
+        $elemMatch: {
+          salesPrice: {
+            $gte: minPrice,
+            ...(maxPrice !== Infinity && { $lte: maxPrice })
+          }
+        }
+      }
     };
 
     if (category !== 'all') filter.category = category;
@@ -566,16 +575,27 @@ const getShopPage = async (req, res) => {
     else if (sort === 'za') sortOption.productName = -1;
     else if (sort === 'priceLowHigh') sortOption['variants.salesPrice'] = 1;
     else if (sort === 'priceHighLow') sortOption['variants.salesPrice'] = -1;
-
+    console.log("Filter:", filter);
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
     let products = await Product.find(filter)
       .sort(sortOption)
       .skip(skip)
-      .limit(limit);
+      .limit(limit);  
+
+      console.log(products)
 
     products = products.map(p => p.toObject());
+    const offers = await getActiveOffers();
+    products = products.map(product => {
+      const variants = (product.variants || []).map(variant => {
+        const basePrice = variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice;
+        const offerResult = getOfferPriceForProduct(product, basePrice, offers);
+        return { ...variant, basePrice, finalPrice: offerResult.priceAfterOffer };
+      });
+      return { ...product, variants };
+    });
 
     if (loggedInUserId) {
       const wishlistItems = await Wishlist.find({
@@ -659,9 +679,24 @@ const getProductDetails = async (req, res) => {
       isBlocked: false
     }).limit(4);
 
-    let productObj = product.toObject();
+    const offers = await getActiveOffers();
+
+    function attachOfferPricing(prod) {
+      const variants = (prod.variants || []).map(variant => {
+        const sellingPrice = variant.salesPrice > 0 ? variant.salesPrice : variant.regularPrice;
+        const offerResult = getOfferPriceForProduct(prod, sellingPrice, offers);
+        return {
+          ...variant,
+          regularPrice: variant.regularPrice,
+          finalPrice: offerResult.priceAfterOffer
+        };
+      });
+      return { ...prod, variants };
+    }
+
+    let productObj = attachOfferPricing(product.toObject());
     productObj.inWishlist = false;
-    let similarWithWishlist = relatedProducts.map(p => ({ ...p.toObject(), inWishlist: false }));
+    let similarWithWishlist = relatedProducts.map(p => ({ ...attachOfferPricing(p.toObject()), inWishlist: false }));
 
     if (userId) {
       const mainWishlist = await Wishlist.findOne({ userId, productId });
@@ -675,7 +710,7 @@ const getProductDetails = async (req, res) => {
 
       const wishlistedSet = new Set(wishlistedSimilar.map(w => w.productId.toString()));
       similarWithWishlist = relatedProducts.map(p => ({
-        ...p.toObject(),
+        ...attachOfferPricing(p.toObject()),
         inWishlist: wishlistedSet.has(p._id.toString())
       }));
     }

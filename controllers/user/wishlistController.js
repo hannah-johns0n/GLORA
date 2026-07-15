@@ -2,6 +2,7 @@ const Wishlist = require("../../models/wishlistModel");
 const Product = require("../../models/productModel");
 const STATUS_CODES = require("../../constants/statusCodes");
 const { setFlash, getFlash } = require("../../utils/flash");
+const { getActiveOffers, getOfferPriceForProduct } = require("../../utils/discountService");
 
 module.exports = {
 getWishlist: async (req, res) => {
@@ -11,30 +12,39 @@ getWishlist: async (req, res) => {
       .populate("productId");
 
     const validItems = wishlistItems.filter(item => item.productId);
+    const offers = await getActiveOffers();
 
     const wishlist = validItems.map(item => {
-      const product = item.productId.toObject();
-      const variantIndex = item.variantIndex || 0;
-      const selectedVariant = product.variants && product.variants[variantIndex]? product.variants[variantIndex] : (product.variants && product.variants[0]);
-
-      let stockStatus = "unavailable";
-      if (!product.isBlocked && selectedVariant) {
-        if (!selectedVariant.isBlocked && selectedVariant.quantity > 0) {
-          stockStatus = "instock";
-        } else {
-          stockStatus = "outofstock";
-        }
+    const product = item.productId.toObject();
+    const variantIndex = item.variantIndex || 0;
+    const selectedVariant = product.variants && product.variants[variantIndex]? product.variants[variantIndex] : (product.variants && product.variants[0]);
+      
+    let stockStatus = "unavailable";
+    if (!product.isBlocked && selectedVariant) {
+      if (!selectedVariant.isBlocked && selectedVariant.quantity > 0) {
+        stockStatus = "instock";
+      } else {
+        stockStatus = "outofstock";
       }
-
-      return {
-        ...product,
-        inWishlist: true,
-        wishlistId: item._id,
-        variantIndex,
-        selectedVariant,
-        stockStatus   
-      };
-    });
+    }
+  
+    let priceInfo = null;
+    if (selectedVariant) {
+      const basePrice = selectedVariant.salesPrice > 0 ? selectedVariant.salesPrice : selectedVariant.regularPrice;
+      const offerResult = getOfferPriceForProduct(product, basePrice, offers);
+      priceInfo = { basePrice, finalPrice: offerResult.priceAfterOffer };
+    }
+  
+    return {
+      ...product,
+      inWishlist: true,
+      wishlistId: item._id,
+      variantIndex,
+      selectedVariant,
+      priceInfo,
+      stockStatus   
+    };
+  });
 
     res.status(STATUS_CODES.SUCCESS).render("user/wishlist", { wishlist, userName });
   } catch (err) {

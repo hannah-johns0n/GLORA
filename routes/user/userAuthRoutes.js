@@ -124,6 +124,7 @@ router.post('/verify-razorpay-payment', requireAuth, checkoutController.verifyRa
 router.post('/retry-razorpay-order',   requireAuth, checkoutController.retryRazorpayOrder);
 router.post('/verify-retry-payment',   requireAuth, checkoutController.verifyRetryPayment);
 router.get("/order-success/:orderId", requireAuth, checkoutController.orderSuccess);
+router.get('/order-failed/:orderId', requireAuth, checkoutController.getOrderFailed);
 
 router.get('/my-orders', requireAuth, orderController.getMyOrders);
 router.get('/my-orders/:orderId', requireAuth, orderController.getOrderDetails);
@@ -140,7 +141,7 @@ router.post("/update-payment-status", requireAuth, orderController.updatePayment
 
 router.post("/wishlist/toggle/:productId", requireAuth, wishlistController.toggleWishlist);
 router.get("/wishlist/add/:id", requireAuth, wishlistController.addToWishlist);
-router.get("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
+router.post("/wishlist/remove/:id", requireAuth, wishlistController.removeFromWishlist);
 router.get("/wishlist", requireAuth, wishlistController.getWishlist);
 router.post("/cart/add/:productId", requireAuth, cartController.addToCart);
 

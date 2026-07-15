@@ -289,7 +289,7 @@
                   </td>
                   <td>
                     <button
-                      onclick="handleCustomerAction(this, '<%= customer._id %>', <%= !customer.isBlocked ? 'true' : 'false' %>)"
+                      onclick="handleCustomerAction(this, '<%= customer._id %>', '<%= !customer.isBlocked ? true : false%>')"
                       class="ga-action-btn <%= !customer.isBlocked ? 'ga-action-btn--block' : 'ga-action-btn--unblock' %>">
                       <i class="bi bi-<%= !customer.isBlocked ? 'slash-circle' : 'check-circle' %>"></i>
                       <%= !customer.isBlocked ? 'Block' : 'Unblock' %>
@@ -378,13 +378,13 @@
           badge.className = 'ga-badge ga-badge--blocked';
           badge.textContent = 'Blocked';
           button.className = 'ga-action-btn ga-action-btn--unblock';
-          button.setAttribute('onclick', `handleCustomerAction(this, '${customerId}', false)`);
+          button.setAttribute('onclick', `handleCustomerAction(this, '${customerId}', 'false')`);
           button.innerHTML = '<i class="bi bi-check-circle"></i> Unblock';
         } else {
           badge.className = 'ga-badge ga-badge--active';
           badge.textContent = 'Active';
           button.className = 'ga-action-btn ga-action-btn--block';
-          button.setAttribute('onclick', `handleCustomerAction(this, '${customerId}', true)`);
+          button.setAttribute('onclick', `handleCustomerAction(this, '${customerId}', 'true')`);
           button.innerHTML = '<i class="bi bi-slash-circle"></i> Block';
         }
         await Swal.fire({ icon: 'success', title: 'Done!', text: `User ${action === 'block' ? 'blocked' : 'unblocked'} successfully.`, timer: 1500, showConfirmButton: false });

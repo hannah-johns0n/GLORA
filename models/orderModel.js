@@ -8,6 +8,10 @@ const orderSchema = new mongoose.Schema({
     unique:  true,
     default: () => uuidv4()
   },
+  orderNumber: {
+    type: String,
+    unique: true
+  },
   userId: {
     type:     Schema.Types.ObjectId,
     ref:      'User',

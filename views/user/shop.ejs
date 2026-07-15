@@ -532,8 +532,8 @@
             <p class="glora-card__name"><%= product.productName %></p>
             <%
               var activeVariant = product.variants && product.variants.find(function(v) { return !v.isBlocked; });
-              var displaySale    = activeVariant ? activeVariant.salesPrice   : null;
-              var displayRegular = activeVariant ? activeVariant.regularPrice : null;
+              var displaySale    = activeVariant ? activeVariant.finalPrice : null;
+              var displayRegular = activeVariant ? activeVariant.basePrice  : null;
             %>
             <div class="glora-card__price">
               <% if (displaySale != null) { %>

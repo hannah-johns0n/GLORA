@@ -21,7 +21,7 @@ function validateCouponInput(body) {
   if (isNaN(maxUsesNum) || maxUsesNum < 1) return 'Total uses must be at least 1';
 
   if (discountType === 'Percentage') {
-    if (discountValueNum > 100) return 'Percentage discount cannot exceed 100';
+    if (discountValueNum >= 100) return 'Percentage discount cannot exceed 100';
     const maxDiscountNum = Number(maxDiscountAmount);
     if (isNaN(maxDiscountNum) || maxDiscountNum <= 0) return 'Max discount amount is required for percentage coupons';
   }
@@ -35,8 +35,15 @@ function validateCouponInput(body) {
 
 const getCoupons = async (req, res) => {
   try {
-    const coupons = await Coupon.find().lean();
-    res.status(STATUS_CODES.SUCCESS).render('admin/coupons', { coupons });
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
+
+    const totalCoupons = await Coupon.countDocuments();
+    const totalPages = Math.ceil(totalCoupons / limit);
+
+    const coupons = await Coupon.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+    res.status(STATUS_CODES.SUCCESS).render('admin/coupons', { coupons, currentPage: page, totalPages });
   } catch (err) {
     console.error("Error fetching coupons:", err);
     setFlash(res, 'error', 'Something went wrong while loading coupons');
@@ -50,23 +57,11 @@ const getAddCoupon = (req, res) => {
 
 const postAddCoupon = async (req, res) => {
   try {
-    const {
-      couponCode,
-      description,
-      discountType,
-      discountValue,
-      maxDiscountAmount,
-      minimumPurchaseAmount,
-      expiryDate,
-      perUserLimit,
-      maxUses,
-      isActive
-    } = req.body;
+    const { couponCode, description, discountType, discountValue, maxDiscountAmount, minimumPurchaseAmount, expiryDate, perUserLimit, maxUses, isActive } = req.body;
 
     const errorMessage = validateCouponInput(req.body);
     if (errorMessage) {
-      setFlash(res, 'error', errorMessage);
-      return res.redirect('/admin/coupons/add');
+      return res.status(400).json({ success: false, message: errorMessage });
     }
 
     await Coupon.create({
@@ -82,16 +77,13 @@ const postAddCoupon = async (req, res) => {
       isActive: isActive === "on"
     });
 
-    setFlash(res, 'success', 'Coupon added successfully');
-    res.redirect('/admin/coupons');
+    res.status(STATUS_CODES.SUCCESS).json({ success: true, message: 'Coupon added successfully', redirectUrl: '/admin/coupons' });
   } catch (error) {
     console.error("Error creating coupon:", error);
     if (error.code === 11000) {
-      setFlash(res, 'error', 'A coupon with this code already exists');
-    } else {
-      setFlash(res, 'error', 'Failed to create coupon');
+      return res.status(400).json({ success: false, message: 'A coupon with this code already exists' });
     }
-    res.redirect('/admin/coupons/add');
+    res.status(500).json({ success: false, message: 'Failed to create coupon' });
   }
 };
 
@@ -116,23 +108,11 @@ const getEditCoupon = async (req, res) => {
 const postEditCoupon = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      couponCode,
-      description,
-      discountType,
-      discountValue,
-      maxDiscountAmount,
-      minimumPurchaseAmount,
-      expiryDate,
-      perUserLimit,
-      maxUses,
-      isActive
-    } = req.body;
+    const { couponCode, description, discountType, discountValue, maxDiscountAmount, minimumPurchaseAmount, expiryDate, perUserLimit, maxUses, isActive } = req.body;
 
     const errorMessage = validateCouponInput(req.body);
     if (errorMessage) {
-      setFlash(res, 'error', errorMessage);
-      return res.redirect(`/admin/coupons/edit/${id}`);
+      return res.status(400).json({ success: false, message: errorMessage });
     }
 
     await Coupon.findByIdAndUpdate(id, {
@@ -148,16 +128,13 @@ const postEditCoupon = async (req, res) => {
       isActive: isActive === "on"
     });
 
-    setFlash(res, 'success', 'Coupon updated successfully');
-    res.redirect('/admin/coupons');
+    res.status(STATUS_CODES.SUCCESS).json({ success: true, message: 'Coupon updated successfully', redirectUrl: '/admin/coupons' });
   } catch (error) {
     console.error("Error updating coupon:", error);
     if (error.code === 11000) {
-      setFlash(res, 'error', 'A coupon with this code already exists');
-    } else {
-      setFlash(res, 'error', 'Failed to update coupon');
+      return res.status(400).json({ success: false, message: 'A coupon with this code already exists' });
     }
-    res.redirect(`/admin/coupons/edit/${req.params.id}`);
+    res.status(500).json({ success: false, message: 'Failed to update coupon' });
   }
 };
 

@@ -913,16 +913,16 @@
           throw new Error(result.message || 'Failed to place order');
         }
 
-      } else if (paymentMethod === 'razorpay') {
+      }  else if (paymentMethod === 'razorpay') {
         const response = await fetch('/create-razorpay-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ addressId: selectedAddress.value, couponCode, paymentMethod: 'razorpay' })
         });
-
+      
         const data = await response.json();
         if (!data.success) throw new Error(data.message || 'Failed to create payment order');
-
+      
         const options = {
           key: data.key,
           amount: data.amount,
@@ -942,11 +942,7 @@
               })
             });
             const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              window.location.href = verifyData.redirectUrl;
-            } else {
-              Swal.fire({ icon: 'error', title: 'Payment Failed', text: 'Payment verification failed. Please contact support.' });
-            }
+            window.location.href = verifyData.redirectUrl;
           },
           prefill: { name: '<%= userName %>' },
           theme: { color: '#1A1A1A' },
@@ -957,8 +953,14 @@
             }
           }
         };
-
-        new Razorpay(options).open();
+      
+        const rzp = new Razorpay(options);
+      
+        rzp.on('payment.failed', function (response) {
+          window.location.href = `/order-failed/${data.orderId}`;
+        });
+      
+        rzp.open();
         return;
       }
 

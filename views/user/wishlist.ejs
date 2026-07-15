@@ -371,9 +371,9 @@
               </thead>
               <tbody>
                 <% wishlist.forEach(function(product) { %>
-                  <% var activeVariant = product.selectedVariant;
-                    var displaySale=activeVariant ? activeVariant.salesPrice : null; var displayRegular=activeVariant ?
-                    activeVariant.regularPrice : null; %>
+                  <% var activeVariant = product.selectedVariant; %>
+                 <% var displaySale = product.priceInfo ? product.priceInfo.finalPrice : null; %>
+                 <%var displayRegular = product.priceInfo ? product.priceInfo.basePrice : null; %>
                     <tr>
                       <td>
                         <div class="product-cell">

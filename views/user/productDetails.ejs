@@ -508,6 +508,29 @@
         transform: scale(1.06);
       }
 
+      .glora-sim-card__view {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #1A1A1A;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      border: none;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.2s ease;
+      cursor: pointer;
+    }
+
+    .glora-sim-card__view:hover {
+      background: #8B1A1A;
+      color: #fff;
+      text-decoration: none;
+    }
+
       .glora-sim-wishlist {
         position: absolute;
         top: 10px;
@@ -668,8 +691,7 @@
               onclick="selectVariant(<%= index %>)">
               <%= v.unit %>
                 <br>
-                <span style="font-size:11px;opacity:0.75;">₹<%= v.salesPrice> 0 ? v.salesPrice : v.regularPrice
-                    %></span>
+                <span style="font-size:11px;opacity:0.75;">₹<%= v.finalPrice %></span>
             </button>
             <% }); %>
         </div>
@@ -744,9 +766,11 @@
                   <%= p.productName %>
                 </p>
                 <p class="glora-sim-card__price">
-                  ₹<%= p.variants && p.variants[0] ? (p.variants[0].salesPrice> 0 ? p.variants[0].salesPrice :
-                    p.variants[0].regularPrice) : '—' %>
+                  ₹<%= p.variants && p.variants[0] ? p.variants[0].finalPrice : '—' %>
                 </p>
+                <div class="glora-sim-card__view">
+                  View Details
+                </div>
               </div>
             </a>
             <% }); %>
@@ -789,15 +813,14 @@
       function updatePrice(index) {
         const v = variants[index];
         if (!v) return;
-        const sale = v.salesPrice > 0 ? v.salesPrice : v.regularPrice;
-        document.getElementById('priceDisplay').textContent = '₹' + sale;
-
+        document.getElementById('priceDisplay').textContent = '₹' + v.finalPrice;
+            
         const origEl = document.getElementById('originalPriceDisplay');
         const saveEl = document.getElementById('saveDisplay');
-
-        if (v.salesPrice > 0 && v.regularPrice > v.salesPrice) {
+            
+        if (v.regularPrice > v.finalPrice) {
           origEl.textContent = '₹' + v.regularPrice;
-          const saving = v.regularPrice - v.salesPrice;
+          const saving = v.regularPrice - v.finalPrice;
           const pct = Math.round((saving / v.regularPrice) * 100);
           saveEl.textContent = pct + '% off';
         } else {

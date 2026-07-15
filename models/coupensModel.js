@@ -1,5 +1,3 @@
-// models/couponModel.js
-
 const mongoose = require('mongoose');
 
 const couponSchema = new mongoose.Schema({

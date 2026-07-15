@@ -1,0 +1,255 @@
+<%- include('../partials/user/header', { userName: userName }) %>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #FAF7F4;
+    font-family: 'Poppins', sans-serif;
+    color: #1A1A1A;
+  }
+
+  .glora-fail-page {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px 80px;
+  }
+
+  .glora-fail-card {
+    background: #fff;
+    max-width: 560px;
+    width: 100%;
+    padding: 60px 52px;
+    text-align: center;
+    border-top: 4px solid #8B1A1A;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.07);
+  }
+
+  .glora-fail-icon {
+    width: 72px;
+    height: 72px;
+    background: #F5E9E9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .glora-fail-icon svg {
+    width: 36px;
+    height: 36px;
+    stroke: #8B1A1A;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .glora-fail-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #8B1A1A;
+    margin-bottom: 12px;
+  }
+
+  .glora-fail-title {
+    font-family: 'Cormorant Garant', serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    color: #1A1A1A;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  .glora-fail-title em {
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .glora-fail-divider {
+    width: 48px;
+    height: 1px;
+    background: #8B1A1A;
+    margin: 0 auto 28px;
+  }
+
+  .glora-fail-msg {
+    font-size: 13px;
+    font-weight: 300;
+    color: #888;
+    line-height: 1.9;
+    margin-bottom: 40px;
+  }
+
+  .glora-fail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .glora-fail-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .glora-fail-btn--primary {
+    background: #1A1A1A;
+    color: #fff;
+  }
+
+  .glora-fail-btn--primary:hover {
+    background: #8B1A1A;
+    color: #fff;
+  }
+
+  .glora-fail-btn--outline {
+    background: transparent;
+    border: 1.5px solid #1A1A1A;
+    color: #1A1A1A;
+  }
+
+  .glora-fail-btn--outline:hover {
+    background: #1A1A1A;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .glora-fail-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 480px) {
+    .glora-fail-card { padding: 44px 24px; }
+  }
+</style>
+
+<div class="glora-fail-page">
+  <div class="glora-fail-card">
+
+    <div class="glora-fail-icon">
+      <svg viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </div>
+
+    <p class="glora-fail-eyebrow">Payment Failed</p>
+
+    <h1 class="glora-fail-title">
+      Your payment<br><em>could not be completed</em>
+    </h1>
+
+    <div class="glora-fail-divider"></div>
+
+    <p class="glora-fail-msg">
+      Don't worry, your order has been saved.<br>
+      You can retry the payment or try a different method.
+    </p>
+
+    <div class="glora-fail-actions">
+      <button type="button" id="retryPaymentBtn" class="glora-fail-btn glora-fail-btn--primary">
+        Retry Payment
+      </button>
+      <a href="/shop" class="glora-fail-btn glora-fail-btn--outline">
+        Continue Shopping
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const orderId = "<%= orderId %>";
+  const retryBtn = document.getElementById('retryPaymentBtn');
+
+  retryBtn.addEventListener('click', async () => {
+    retryBtn.disabled = true;
+    retryBtn.textContent = 'Please wait...';
+
+    try {
+      const res = await fetch('/retry-razorpay-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.message || 'Unable to retry payment');
+        retryBtn.disabled = false;
+        retryBtn.textContent = 'Retry Payment';
+        return;
+      }
+
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.razorpayOrderId,
+        name: "Glora",
+        description: "Order Payment",
+        handler: async function (response) {
+          const verifyRes = await fetch('/verify-retry-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: data.orderId
+            })
+          });
+
+          const verifyData = await verifyRes.json();
+          window.location.href = verifyData.redirectUrl;
+        },
+        modal: {
+          ondismiss: function () {
+            retryBtn.disabled = false;
+            retryBtn.textContent = 'Retry Payment';
+          }
+        },
+        theme: { color: "#1A1A1A" }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong. Please try again.');
+      retryBtn.disabled = false;
+      retryBtn.textContent = 'Retry Payment';
+    }
+  });
+</script>
+
+<%- include('../partials/user/footer') %>

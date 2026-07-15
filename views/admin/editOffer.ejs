@@ -446,18 +446,15 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      // Set minimum expiry date
       const endDate = document.getElementById('endDate');
       endDate.min = new Date().toISOString().split('T')[0];
 
-      // Update discount symbol
       const discountType = document.getElementById('discountType');
       const discountSymbol = document.getElementById('discount-symbol');
       discountType.addEventListener('change', (e) => {
         discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
       });
 
-      // Toggle switch label
       const isActiveSwitch = document.getElementById('isActive');
       const statusLabel = document.getElementById('statusLabel');
       const updateStatusLabel = () => {
@@ -483,7 +480,9 @@
           <select name="product" class="ga-select" required>
             <option value="" disabled selected>Select a product</option>
             <% products.forEach(product => { %>
-              <option value="<%= product._id %>"><%= product.productName %></option>
+              <option value="<%= product._id %>" data-price="<%= product.minPrice %>" <%=offer.product && offer.product.toString()===product._id.toString() ? 'selected' : '' %>>
+                <%= product.productName %>
+              </option>
             <% }) %>
           </select>`;
         } else if (this.value === 'Category') {
@@ -506,7 +505,7 @@
   const description = this.querySelector('[name="description"]').value.trim();
   const discountValue = parseFloat(this.querySelector('[name="discountValue"]').value);
   const discountTypeValue = this.querySelector('[name="discountType"]').value;
-  const minPurchase = this.querySelector('[name="minPurchase"]').value.trim();
+  const minPurchase = parseFloat(this.querySelector('[name="minPurchase"]').value.trim());
   const endDateValue = this.querySelector('[name="endDate"]').value.trim();
   const totalUses = this.querySelector('[name="totalUses"]').value.trim();
   const offerType = this.querySelector('[name="offerType"]').value.trim();
@@ -521,6 +520,45 @@
     });
     return;
   }
+
+  if (discountTypeValue === 'Fixed Amount' && discountValue >= minPurchase) {
+  e.preventDefault();
+  Swal.fire({
+    title: 'Invalid Discount',
+    text: 'Discount amount must be less than minimum purchase amount.',
+    icon: 'error',
+    confirmButtonColor: '#1A1A1A'
+  });
+  return;
+}
+
+if (offerType === 'Product') {
+  const productSelect = this.querySelector('[name="product"]');
+  const selectedOption = productSelect.options[productSelect.selectedIndex];
+  const productPrice = parseFloat(selectedOption.dataset.price);
+
+  if (minPurchase > productPrice) {
+    e.preventDefault();
+    Swal.fire({
+      title: 'Invalid Minimum Purchase',
+      text: 'Minimum purchase cannot be more than the product price (₹' + productPrice + ').',
+      icon: 'error',
+      confirmButtonColor: '#1A1A1A'
+    });
+    return;
+  }
+
+  if (discountTypeValue === 'Fixed Amount' && discountValue >= productPrice) {
+    e.preventDefault();
+    Swal.fire({
+      title: 'Invalid Discount',
+      text: 'Discount amount must be less than the product price (₹' + productPrice + ').',
+      icon: 'error',
+      confirmButtonColor: '#1A1A1A'
+    });
+    return;
+  }
+}
 
   if (discountTypeValue === 'Percentage' && discountValue >= 100) {
     e.preventDefault();

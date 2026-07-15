@@ -10,13 +10,7 @@ const crypto = require("crypto");
 const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose');
 const { setFlash } = require('../../utils/flash');
-const {
-  getActiveOffers,
-  calculateCartPricing,
-  findValidCoupon,
-  updateCouponUsage,
-  calculateCouponDiscount
-} = require('../../utils/discountService');
+const { getActiveOffers, calculateCartPricing, findValidCoupon, updateCouponUsage, calculateCouponDiscount } = require('../../utils/discountService');
 
 function getVariantPrice(item) {
   const variantIndex = item.variantIndex || 0;
@@ -51,6 +45,12 @@ async function reduceStock(orderItems) {
     );
   }
 }
+
+const generateOrderNumber = async () => {
+  const count = await Order.countDocuments();
+  const nextNumber = count + 1;
+  return `ORD${String(nextNumber).padStart(6, '0')}`; 
+};
 
 const getCheckoutPage = async (req, res) => {
   try {
@@ -193,6 +193,7 @@ const placeOrder = async (req, res) => {
     const totalDiscount = Number((pricing.offerDiscount + couponDiscount).toFixed(2));
     const finalTotal = Number((priceAfterCoupon + shipping).toFixed(2));
     const orderId = uuidv4();
+    const orderNumber = await generateOrderNumber();
 
     const orderItems = pricing.items.map(item => ({
       productId: item.productId._id,
@@ -236,6 +237,7 @@ const placeOrder = async (req, res) => {
       try {
         const walletOrder = new Order({
           orderId,
+          orderNumber, 
           userId,
           addressId,
           orderItems,
@@ -283,6 +285,7 @@ const placeOrder = async (req, res) => {
 
     const order = new Order({
       orderId,
+      orderNumber, 
       userId,
       addressId,
       orderItems,
@@ -354,6 +357,7 @@ const createRazorpayOrder = async (req, res) => {
     const totalDiscount = Number((pricing.offerDiscount + couponDiscount).toFixed(2));
     const finalTotal = Number((pricing.priceAfterOffer + shipping - couponDiscount).toFixed(2));
     const orderId = uuidv4();
+    const orderNumber = await generateOrderNumber();
 
     const orderItems = pricing.items.map(item => ({
       productId: item.productId._id,
@@ -376,6 +380,7 @@ const createRazorpayOrder = async (req, res) => {
 
     const order = new Order({
       orderId,
+      orderNumber, 
       userId,
       addressId,
       orderItems,
@@ -459,7 +464,7 @@ const verifyRazorpayOrder = async (req, res) => {
 
   } catch (err) {
     console.error('verifyRazorpayOrder error:', err);
-    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ success: false, redirectUrl: '/order-failed' });
+    return res.status(STATUS_CODES.SUCCESS).json({ success: false, redirectUrl: `/order-failed/${orderId}` });
   }
 };
 
@@ -478,6 +483,27 @@ const orderSuccess = async (req, res) => {
     console.error(err);
     setFlash(res, 'error', 'Something went wrong');
     res.redirect('/');
+  }
+};
+
+const getOrderFailed = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({ orderId, userId }).lean();
+    if (!order) {
+      return res.redirect('/shop');
+    }
+
+    res.status(STATUS_CODES.SUCCESS).render('user/order-failed', {
+      userName: req.user.name,
+      orderId: order.orderId,
+      amount: order.totalPrice
+    });
+  } catch (err) {
+    console.error('getOrderFailed error:', err);
+    res.redirect('/shop');
   }
 };
 
@@ -571,6 +597,7 @@ const verifyRetryPayment = async (req, res) => {
 
 module.exports = {
   orderSuccess,
+  getOrderFailed,
   placeOrder,
   createRazorpayOrder,
   verifyRazorpayOrder,

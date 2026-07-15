@@ -317,7 +317,7 @@
   <div class="glora-card">
     <div class="glora-order-header">
       <div>
-        <p class="glora-order-id">Order #<%= order.orderId %></p>
+        <p class="glora-order-id">Order #<%= order.orderNumber  %></p>
         <p class="glora-order-date">
           <i class="far fa-calendar-alt"></i>
           Placed on <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>

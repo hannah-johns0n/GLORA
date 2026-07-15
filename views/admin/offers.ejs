@@ -61,6 +61,40 @@
     .ga-empty i { font-size: 2.5rem; display: block; margin-bottom: 14px; color: #E8E2DA; }
     .ga-empty p { font-size: 13px; margin-bottom: 20px; }
 
+    .ga-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  flex-wrap: wrap;
+}
+
+.ga-page-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.ga-page-btn:hover {
+  background: #f4f4f4;
+}
+
+.ga-page-btn.active {
+  background: #8B1A1A;
+  color: #fff;
+  border-color: #8B1A1A;
+}
+
+.ga-page-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
       .ga-page-head { padding: 24px 16px 0; }
@@ -174,6 +208,18 @@
           </tbody>
         </table>
       </div>
+      <% if (totalPages > 1) { %>
+      <div class="ga-pagination">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <a href="/admin/offers?page=<%= i %>"
+            class="ga-page-btn <%= i === currentPage ? 'active' : '' %>"
+          >
+            <%= i %>
+          </a>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
     </div>
 
     <% } else { %>
@@ -220,6 +266,16 @@
       }
     });
   }
+</script>
+<script>
+  <% if (flash) { %>
+    Swal.fire({
+      title: "<%= flash.type === 'success' ? 'Success' : 'Error' %>",
+      text: "<%= flash.message %>",
+      icon: "<%= flash.type %>",
+      confirmButtonColor: "#1A1A1A"
+    });
+  <% } %>
 </script>
 
 <%- include('../partials/admin/footer') %>

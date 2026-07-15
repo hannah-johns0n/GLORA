@@ -1,235 +1,427 @@
 <%- include('../partials/admin/header') %>
 
-<main class="ga-main">
-  <style>
-    /* ── Page Header ── */
-    .ga-page-head { padding: 32px 32px 0; margin-bottom: 28px; }
-    .ga-page-head__eyebrow { font-size: 10px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase; color: #D4A96A; margin-bottom: 6px; }
-    .ga-page-head__title { font-family: 'Cormorant Garant', serif; font-size: 36px; font-weight: 600; color: #1A1A1A; letter-spacing: -0.5px; line-height: 1; }
+  <main class="ga-main">
+    <style>
+      /* ── Page Header ── */
+      .ga-page-head {
+        padding: 32px 32px 0;
+        margin-bottom: 28px;
+      }
 
-    /* ── Section wrapper ── */
-    .ga-section { padding: 0 32px 40px; }
+      .ga-page-head__eyebrow {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: #D4A96A;
+        margin-bottom: 6px;
+      }
 
-    /* ── Form card ── */
-    .ga-form-card { background: #fff; border-radius: 3px; overflow: hidden; max-width: 860px; margin: 0 auto; }
+      .ga-page-head__title {
+        font-family: 'Cormorant Garant', serif;
+        font-size: 36px;
+        font-weight: 600;
+        color: #1A1A1A;
+        letter-spacing: -0.5px;
+        line-height: 1;
+      }
 
-    /* ── Card top bar ── */
-    .ga-form-card__bar { background: #1A1A1A; padding: 18px 28px; display: flex; align-items: center; gap: 10px; }
-    .ga-form-card__bar-title { font-family: 'Cormorant Garant', serif; font-size: 22px; font-weight: 600; color: #fff; }
-    .ga-form-card__bar-icon { color: #D4A96A; font-size: 16px; }
+      /* ── Section wrapper ── */
+      .ga-section {
+        padding: 0 32px 40px;
+      }
 
-    /* ── Form body ── */
-    .ga-form-body { padding: 32px 28px; }
+      /* ── Form card ── */
+      .ga-form-card {
+        background: #fff;
+        border-radius: 3px;
+        overflow: hidden;
+        max-width: 860px;
+        margin: 0 auto;
+      }
 
-    /* ── Two-column grid ── */
-    .ga-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+      /* ── Card top bar ── */
+      .ga-form-card__bar {
+        background: #1A1A1A;
+        padding: 18px 28px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
 
-    /* ── Each field group ── */
-    .ga-field { margin-bottom: 24px; }
+      .ga-form-card__bar-title {
+        font-family: 'Cormorant Garant', serif;
+        font-size: 22px;
+        font-weight: 600;
+        color: #fff;
+      }
 
-    /* ── Labels ── */
-    .ga-label { display: block; font-size: 9px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: #aaa; margin-bottom: 8px; }
+      .ga-form-card__bar-icon {
+        color: #D4A96A;
+        font-size: 16px;
+      }
 
-    /* ── Inputs, selects, textareas ── */
-    .ga-input,
-    .ga-select,
-    .ga-textarea {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid #E8E2DA;
-      border-radius: 2px;
-      font-family: 'Poppins', sans-serif;
-      font-size: 13px;
-      color: #1A1A1A;
-      background: #fff;
-      outline: none;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
-    }
-    .ga-input:focus,
-    .ga-select:focus,
-    .ga-textarea:focus { border-color: #8B1A1A; }
-    .ga-input::placeholder,
-    .ga-textarea::placeholder { color: #ccc; }
+      /* ── Form body ── */
+      .ga-form-body {
+        padding: 32px 28px;
+      }
 
-    /* ── Textarea specific ── */
-    .ga-textarea { resize: vertical; min-height: 90px; }
+      /* ── Two-column grid ── */
+      .ga-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 28px;
+      }
 
-    /* ── Input with a prefix symbol (like ₹ or %) ── */
-    .ga-input-wrap { display: flex; align-items: stretch; }
-    .ga-input-prefix { display: flex; align-items: center; padding: 0 12px; background: #F4F1EC; border: 1.5px solid #E8E2DA; border-right: none; border-radius: 2px 0 0 2px; font-size: 13px; color: #888; white-space: nowrap; }
-    .ga-input-wrap .ga-input { border-radius: 0 2px 2px 0; }
+      /* ── Each field group ── */
+      .ga-field {
+        margin-bottom: 24px;
+      }
 
-    /* ── Divider line ── */
-    .ga-divider { border: none; border-top: 1px solid #F4F1EC; margin: 8px 0 28px; }
+      /* ── Labels ── */
+      .ga-label {
+        display: block;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: #aaa;
+        margin-bottom: 8px;
+      }
 
-    /* ── Toggle switch for status ── */
-    .ga-toggle-wrap { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
-    .ga-toggle { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
-    .ga-toggle input { opacity: 0; width: 0; height: 0; }
-    .ga-toggle-slider { position: absolute; inset: 0; background: #E8E2DA; border-radius: 26px; cursor: pointer; transition: background 0.2s; }
-    .ga-toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
-    .ga-toggle input:checked + .ga-toggle-slider { background: #2e6e4a; }
-    .ga-toggle input:checked + .ga-toggle-slider::before { transform: translateX(22px); }
-    #statusLabel.text-success { color: #2e6e4a; font-weight: 600; }
-    #statusLabel.text-danger  { color: #8B1A1A; font-weight: 600; }
+      /* ── Inputs, selects, textareas ── */
+      .ga-input,
+      .ga-select,
+      .ga-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #E8E2DA;
+        border-radius: 2px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        color: #1A1A1A;
+        background: #fff;
+        outline: none;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+      }
 
-    /* ── Form footer buttons ── */
-    .ga-form-footer { display: flex; justify-content: flex-end; gap: 10px; }
-    .ga-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border-radius: 2px; }
-    .ga-btn--dark   { background: #1A1A1A; color: #fff; }
-    .ga-btn--dark:hover { background: #8B1A1A; color: #fff; }
-    .ga-btn--ghost  { background: transparent; border: 1.5px solid #E8E2DA; color: #888; }
-    .ga-btn--ghost:hover { border-color: #8B1A1A; color: #8B1A1A; }
+      .ga-input:focus,
+      .ga-select:focus,
+      .ga-textarea:focus {
+        border-color: #8B1A1A;
+      }
 
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .ga-page-head { padding: 24px 16px 0; }
-      .ga-section { padding: 0 16px 32px; }
-      .ga-form-body { padding: 24px 16px; }
-      .ga-form-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+      .ga-input::placeholder,
+      .ga-textarea::placeholder {
+        color: #ccc;
+      }
 
-  <div class="ga-page-head">
-    <p class="ga-page-head__eyebrow">Manage</p>
-    <h1 class="ga-page-head__title">Create Offer</h1>
-  </div>
+      /* ── Textarea specific ── */
+      .ga-textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
 
-  <div class="ga-section">
-    <div class="ga-form-card">
+      /* ── Input with a prefix symbol (like ₹ or %) ── */
+      .ga-input-wrap {
+        display: flex;
+        align-items: stretch;
+      }
 
-      <div class="ga-form-card__bar">
-        <i class="bi bi-tag ga-form-card__bar-icon"></i>
-        <span class="ga-form-card__bar-title">New Offer</span>
-      </div>
+      .ga-input-prefix {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        background: #F4F1EC;
+        border: 1.5px solid #E8E2DA;
+        border-right: none;
+        border-radius: 2px 0 0 2px;
+        font-size: 13px;
+        color: #888;
+        white-space: nowrap;
+      }
 
-      <div class="ga-form-body">
-        <form action="/admin/offers/add" method="POST" id="offerForm">
+      .ga-input-wrap .ga-input {
+        border-radius: 0 2px 2px 0;
+      }
 
-          <div class="ga-form-grid">
+      /* ── Divider line ── */
+      .ga-divider {
+        border: none;
+        border-top: 1px solid #F4F1EC;
+        margin: 8px 0 28px;
+      }
 
-            <div>
+      /* ── Toggle switch for status ── */
+      .ga-toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+      }
 
-              <div class="ga-field">
-                <label for="title" class="ga-label">Offer Title</label>
-                <input type="text" name="title" id="title" class="ga-input" placeholder="e.g., Monsoon Glow Sale" required>
-              </div>
+      .ga-toggle {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+      }
 
-              <div class="ga-field">
-                <label for="description" class="ga-label">Description</label>
-                <textarea name="description" id="description" class="ga-textarea" placeholder="e.g., Special discount on skincare essentials" required></textarea>
-              </div>
+      .ga-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
 
-              <div class="ga-field">
-                <label for="discountType" class="ga-label">Discount Type</label>
-                <select name="discountType" id="discountType" class="ga-select" required>
-                  <option value="Percentage">Percentage (%)</option>
-                  <option value="Fixed Amount">Fixed Amount (₹)</option>
-                </select>
-              </div>
+      .ga-toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: #E8E2DA;
+        border-radius: 26px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
 
-              <div class="ga-field">
-                <label for="discountValue" class="ga-label">Discount Value</label>
-                <div class="ga-input-wrap">
-                  <span class="ga-input-prefix" id="discount-symbol">%</span>
-                  <input type="number" name="discountValue" id="discountValue" class="ga-input" placeholder="e.g., 15 or 500" required step="0.01" min="0.01">
+      .ga-toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.2s;
+      }
+
+      .ga-toggle input:checked+.ga-toggle-slider {
+        background: #2e6e4a;
+      }
+
+      .ga-toggle input:checked+.ga-toggle-slider::before {
+        transform: translateX(22px);
+      }
+
+      #statusLabel.text-success {
+        color: #2e6e4a;
+        font-weight: 600;
+      }
+
+      #statusLabel.text-danger {
+        color: #8B1A1A;
+        font-weight: 600;
+      }
+
+      /* ── Form footer buttons ── */
+      .ga-form-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .ga-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 22px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-radius: 2px;
+      }
+
+      .ga-btn--dark {
+        background: #1A1A1A;
+        color: #fff;
+      }
+
+      .ga-btn--dark:hover {
+        background: #8B1A1A;
+        color: #fff;
+      }
+
+      .ga-btn--ghost {
+        background: transparent;
+        border: 1.5px solid #E8E2DA;
+        color: #888;
+      }
+
+      .ga-btn--ghost:hover {
+        border-color: #8B1A1A;
+        color: #8B1A1A;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 768px) {
+        .ga-page-head {
+          padding: 24px 16px 0;
+        }
+
+        .ga-section {
+          padding: 0 16px 32px;
+        }
+
+        .ga-form-body {
+          padding: 24px 16px;
+        }
+
+        .ga-form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+
+    <div class="ga-page-head">
+      <p class="ga-page-head__eyebrow">Manage</p>
+      <h1 class="ga-page-head__title">Create Offer</h1>
+    </div>
+
+    <div class="ga-section">
+      <div class="ga-form-card">
+
+        <div class="ga-form-card__bar">
+          <i class="bi bi-tag ga-form-card__bar-icon"></i>
+          <span class="ga-form-card__bar-title">New Offer</span>
+        </div>
+
+        <div class="ga-form-body">
+          <form action="/admin/offers/add" method="POST" id="offerForm">
+
+            <div class="ga-form-grid">
+
+              <div>
+
+                <div class="ga-field">
+                  <label for="title" class="ga-label">Offer Title</label>
+                  <input type="text" name="title" id="title" class="ga-input" placeholder="e.g., Monsoon Glow Sale"
+                    required>
                 </div>
+
+                <div class="ga-field">
+                  <label for="description" class="ga-label">Description</label>
+                  <textarea name="description" id="description" class="ga-textarea"
+                    placeholder="e.g., Special discount on skincare essentials" required></textarea>
+                </div>
+
+                <div class="ga-field">
+                  <label for="discountType" class="ga-label">Discount Type</label>
+                  <select name="discountType" id="discountType" class="ga-select" required>
+                    <option value="Percentage">Percentage (%)</option>
+                    <option value="Fixed Amount">Fixed Amount (₹)</option>
+                  </select>
+                </div>
+
+                <div class="ga-field">
+                  <label for="discountValue" class="ga-label">Discount Value</label>
+                  <div class="ga-input-wrap">
+                    <span class="ga-input-prefix" id="discount-symbol">%</span>
+                    <input type="number" name="discountValue" id="discountValue" class="ga-input"
+                      placeholder="e.g., 15 or 500" required step="0.01" min="0.01">
+                  </div>
+                </div>
+
               </div>
 
+              <div>
+
+                <div class="ga-field">
+                  <label for="minPurchase" class="ga-label">Minimum Purchase</label>
+                  <div class="ga-input-wrap">
+                    <span class="ga-input-prefix">₹</span>
+                    <input type="number" name="minPurchase" id="minPurchase" class="ga-input" placeholder="e.g., 1000"
+                      required min="0">
+                  </div>
+                </div>
+
+                <div class="ga-field">
+                  <label for="endDate" class="ga-label">Expiry Date</label>
+                  <input type="date" name="endDate" id="endDate" class="ga-input" required>
+                </div>
+
+                <div class="ga-field">
+                  <label for="totalUses" class="ga-label">Total Uses</label>
+                  <input type="number" name="totalUses" id="totalUses" class="ga-input" placeholder="e.g., 100" required
+                    min="1">
+                </div>
+
+                <div class="ga-field">
+                  <label for="offerType" class="ga-label">Offer Type</label>
+                  <select name="offerType" id="offerType" class="ga-select" required>
+                    <option value="" disabled selected>Select offer scope</option>
+                    <option value="Global">Global (All Products)</option>
+                    <option value="Category">Category Specific</option>
+                    <option value="Product">Product Specific</option>
+                  </select>
+                </div>
+
+                <div class="ga-field" id="targetSelection"></div>
+
+                <div class="ga-field">
+                  <label class="ga-label">Status</label>
+                  <div class="ga-toggle-wrap">
+                    <label class="ga-toggle">
+                      <input type="checkbox" id="isActive" name="isActive" checked>
+                      <span class="ga-toggle-slider"></span>
+                    </label>
+                    <span id="statusLabel" class="text-success">Active</span>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
-            <div>
+            <hr class="ga-divider">
 
-              <div class="ga-field">
-                <label for="minPurchase" class="ga-label">Minimum Purchase</label>
-                <div class="ga-input-wrap">
-                  <span class="ga-input-prefix">₹</span>
-                  <input type="number" name="minPurchase" id="minPurchase" class="ga-input" placeholder="e.g., 1000" required min="0">
-                </div>
-              </div>
-
-              <div class="ga-field">
-                <label for="endDate" class="ga-label">Expiry Date</label>
-                <input type="date" name="endDate" id="endDate" class="ga-input" required>
-              </div>
-
-              <div class="ga-field">
-                <label for="totalUses" class="ga-label">Total Uses</label>
-                <input type="number" name="totalUses" id="totalUses" class="ga-input" placeholder="e.g., 100" required min="1">
-              </div>
-
-              <div class="ga-field">
-                <label for="offerType" class="ga-label">Offer Type</label>
-                <select name="offerType" id="offerType" class="ga-select" required>
-                  <option value="" disabled selected>Select offer scope</option>
-                  <option value="Global">Global (All Products)</option>
-                  <option value="Category">Category Specific</option>
-                  <option value="Product">Product Specific</option>
-                </select>
-              </div>
-
-              <div class="ga-field" id="targetSelection"></div>
-
-              <div class="ga-field">
-                <label class="ga-label">Status</label>
-                <div class="ga-toggle-wrap">
-                  <label class="ga-toggle">
-                    <input type="checkbox" id="isActive" name="isActive" checked>
-                    <span class="ga-toggle-slider"></span>
-                  </label>
-                  <span id="statusLabel" class="text-success">Active</span>
-                </div>
-              </div>
-
+            <div class="ga-form-footer">
+              <a href="/admin/offers" class="ga-btn ga-btn--ghost">
+                <i class="bi bi-x-lg"></i> Cancel
+              </a>
+              <button type="submit" class="ga-btn ga-btn--dark">
+                <i class="bi bi-check-lg"></i> Save Offer
+              </button>
             </div>
-          </div>
 
-          <hr class="ga-divider">
-
-          <div class="ga-form-footer">
-            <a href="/admin/offers" class="ga-btn ga-btn--ghost">
-              <i class="bi bi-x-lg"></i> Cancel
-            </a>
-            <button type="submit" class="ga-btn ga-btn--dark">
-              <i class="bi bi-check-lg"></i> Save Offer
-            </button>
-          </div>
-
-        </form>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
 
-</main>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const endDate = document.getElementById('endDate');
-    endDate.min = new Date().toISOString().split('T')[0];
+      const endDate = document.getElementById('endDate');
+      endDate.min = new Date().toISOString().split('T')[0];
 
-    const discountType = document.getElementById('discountType');
-    const discountSymbol = document.getElementById('discount-symbol');
-    discountType.addEventListener('change', (e) => {
-      discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
-    });
+      const discountType = document.getElementById('discountType');
+      const discountSymbol = document.getElementById('discount-symbol');
+      discountType.addEventListener('change', (e) => {
+        discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
+      });
 
-    document.getElementById('offerType').addEventListener('change', function () {
-      const targetSelection = document.getElementById('targetSelection');
-      if (this.value === 'Product') {
-        targetSelection.innerHTML = `
+      document.getElementById('offerType').addEventListener('change', function () {
+        const targetSelection = document.getElementById('targetSelection');
+        if (this.value === 'Product') {
+          targetSelection.innerHTML = `
           <label class="ga-label">Select Product</label>
           <select name="product" class="ga-select" required>
             <option value="" disabled selected>Choose a product</option>
             <% products.forEach(product => { %>
-              <option value="<%= product._id %>"><%= product.productName %></option>
+              <option value="<%= product._id %>" data-price="<%= product.minPrice %>"><%= product.productName %></option>
             <% }) %>
           </select>`;
-      } else if (this.value === 'Category') {
-        targetSelection.innerHTML = `
+        } else if (this.value === 'Category') {
+          targetSelection.innerHTML = `
           <label class="ga-label">Select Category</label>
           <select name="category" class="ga-select" required>
             <option value="" disabled selected>Choose a category</option>
@@ -237,91 +429,130 @@
               <option value="<%= category._id %>"><%= category.categoryName %></option>
             <% }) %>
           </select>`;
-      } else {
-        targetSelection.innerHTML = '';
-      }
+        } else {
+          targetSelection.innerHTML = '';
+        }
+      });
+
+      const isActiveSwitch = document.getElementById('isActive');
+      const statusLabel = document.getElementById('statusLabel');
+      isActiveSwitch.addEventListener('change', () => {
+        if (isActiveSwitch.checked) {
+          statusLabel.textContent = 'Active';
+          statusLabel.classList.remove('text-danger');
+          statusLabel.classList.add('text-success');
+        } else {
+          statusLabel.textContent = 'Inactive';
+          statusLabel.classList.remove('text-success');
+          statusLabel.classList.add('text-danger');
+        }
+      });
+
+      document.getElementById('offerForm').addEventListener('submit', function (e) {
+        const title = this.querySelector('[name="title"]').value.trim();
+        const description = this.querySelector('[name="description"]').value.trim();
+        const discountValue = parseFloat(this.querySelector('[name="discountValue"]').value);
+        const minPurchase = parseFloat(this.querySelector('[name="minPurchase"]').value);
+        const endDateValue = this.querySelector('[name="endDate"]').value.trim();
+        const totalUses = parseFloat(this.querySelector('[name="totalUses"]').value);
+        const offerType = this.querySelector('[name="offerType"]').value.trim();
+        const discountTypeValue = this.querySelector('[name="discountType"]').value;
+
+        if (!title || !description || isNaN(discountValue) || isNaN(minPurchase) || !endDateValue || isNaN(totalUses) || !offerType) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Missing Fields',
+            text: 'Please fill in all required fields before submitting.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+
+        if (discountValue <= 0) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Invalid Discount',
+            text: 'Discount value must be greater than 0.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+
+        if (discountTypeValue === 'Percentage' && discountValue >= 100) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Invalid Discount',
+            text: 'Percentage discount must be less than 100%.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+
+        if (discountTypeValue === 'Fixed Amount' && discountValue >= minPurchase) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Invalid Discount',
+            text: 'Discount amount must be less than minimum purchase amount.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+
+        if (offerType === 'Product') {
+          const productSelect = this.querySelector('[name="product"]');
+          const selectedOption = productSelect.options[productSelect.selectedIndex];
+          const productPrice = parseFloat(selectedOption.dataset.price);
+
+          if (minPurchase > productPrice) {
+            e.preventDefault();
+            Swal.fire({
+              title: 'Invalid Minimum Purchase',
+              text: 'Minimum purchase cannot be more than the product price (₹' + productPrice + ').',
+              icon: 'error',
+              confirmButtonColor: '#1A1A1A'
+            });
+            return;
+          }
+
+          if (discountTypeValue === 'Fixed Amount' && discountValue >= productPrice) {
+            e.preventDefault();
+            Swal.fire({
+              title: 'Invalid Discount',
+              text: 'Discount amount must be less than the product price (₹' + productPrice + ').',
+              icon: 'error',
+              confirmButtonColor: '#1A1A1A'
+            });
+            return;
+          }
+        }
+
+        if (minPurchase < 0) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Invalid Amount',
+            text: 'Minimum purchase amount cannot be negative.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+
+        if (totalUses < 1) {
+          e.preventDefault();
+          Swal.fire({
+            title: 'Invalid Value',
+            text: 'Total uses must be at least 1.',
+            icon: 'error',
+            confirmButtonColor: '#1A1A1A'
+          });
+          return;
+        }
+      });
     });
+  </script>
 
-    const isActiveSwitch = document.getElementById('isActive');
-    const statusLabel = document.getElementById('statusLabel');
-    isActiveSwitch.addEventListener('change', () => {
-      if (isActiveSwitch.checked) {
-        statusLabel.textContent = 'Active';
-        statusLabel.classList.remove('text-danger');
-        statusLabel.classList.add('text-success');
-      } else {
-        statusLabel.textContent = 'Inactive';
-        statusLabel.classList.remove('text-success');
-        statusLabel.classList.add('text-danger');
-      }
-    });
-
-    document.getElementById('offerForm').addEventListener('submit', function (e) {
-      const title = this.querySelector('[name="title"]').value.trim();
-      const description = this.querySelector('[name="description"]').value.trim();
-      const discountValue = parseFloat(this.querySelector('[name="discountValue"]').value);
-      const minPurchase = parseFloat(this.querySelector('[name="minPurchase"]').value);
-      const endDateValue = this.querySelector('[name="endDate"]').value.trim();
-      const totalUses = parseFloat(this.querySelector('[name="totalUses"]').value);
-      const offerType = this.querySelector('[name="offerType"]').value.trim();
-      const discountTypeValue = this.querySelector('[name="discountType"]').value;
-
-      if (!title || !description || isNaN(discountValue) || isNaN(minPurchase) || !endDateValue || isNaN(totalUses) || !offerType) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Missing Fields',
-          text: 'Please fill in all required fields before submitting.',
-          icon: 'error',
-          confirmButtonColor: '#1A1A1A'
-        });
-        return;
-      }
-
-      if (discountValue <= 0) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Invalid Discount',
-          text: 'Discount value must be greater than 0.',
-          icon: 'error',
-          confirmButtonColor: '#1A1A1A'
-        });
-        return;
-      }
-
-      if (discountTypeValue === 'Percentage' && discountValue >= 100) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Invalid Discount',
-          text: 'Percentage discount must be less than 100%.',
-          icon: 'error',
-          confirmButtonColor: '#1A1A1A'
-        });
-        return;
-      }
-
-      if (minPurchase < 0) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Invalid Amount',
-          text: 'Minimum purchase amount cannot be negative.',
-          icon: 'error',
-          confirmButtonColor: '#1A1A1A'
-        });
-        return;
-      }
-
-      if (totalUses < 1) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Invalid Value',
-          text: 'Total uses must be at least 1.',
-          icon: 'error',
-          confirmButtonColor: '#1A1A1A'
-        });
-        return;
-      }
-    });
-  });
-</script>
-
-<%- include('../partials/admin/footer') %>
+  <%- include('../partials/admin/footer') %>

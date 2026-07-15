@@ -279,6 +279,8 @@
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
 
@@ -303,50 +305,87 @@
     toggleMaxDiscountField();
 
     document.getElementById('editCouponForm').addEventListener('submit', function (e) {
-      const discountType = discountTypeSelect.value;
-      const discountValue = parseFloat(document.getElementById('discountValue').value);
-      const minimumPurchase = parseFloat(document.getElementById('minimumPurchaseAmount').value);
-      const maxDiscount = parseFloat(maxDiscountInput.value);
-      const perUserLimit = parseFloat(document.getElementById('perUserLimit').value);
-      const maxUses = parseFloat(document.getElementById('maxUses').value);
+  e.preventDefault();
 
-      if (isNaN(discountValue) || discountValue <= 0) {
-        e.preventDefault();
-        alert('Discount value must be greater than 0');
-        return;
-      }
+  const description = document.getElementById('description').value.trim();
+  const discountType = discountTypeSelect.value;
+  const discountValue = parseFloat(document.getElementById('discountValue').value);
+  const minimumPurchase = parseFloat(document.getElementById('minimumPurchaseAmount').value);
+  const maxDiscount = parseFloat(maxDiscountInput.value);
+  const perUserLimit = parseFloat(document.getElementById('perUserLimit').value);
+  const maxUses = parseFloat(document.getElementById('maxUses').value);
 
-      if (discountType === 'Percentage') {
-        if (discountValue > 100) {
-          e.preventDefault();
-          alert('Percentage discount cannot be more than 100');
-          return;
-        }
-        if (!maxDiscount || maxDiscount <= 0) {
-          e.preventDefault();
-          alert('Please enter a valid max discount amount');
-          return;
-        }
-      }
-
-      if (discountType === 'Fixed Amount' && discountValue >= minimumPurchase) {
-        e.preventDefault();
-        alert('Fixed discount amount must be less than minimum purchase amount');
-        return;
-      }
-
-      if (isNaN(perUserLimit) || perUserLimit < 1) {
-        e.preventDefault();
-        alert('Per user limit must be at least 1');
-        return;
-      }
-
-      if (isNaN(maxUses) || maxUses < 1) {
-        e.preventDefault();
-        alert('Total uses must be at least 1');
-        return;
-      }
+  const showError = (message) => {
+    Swal.fire({
+      title: "Invalid Input",
+      text: message,
+      icon: "warning",
+      confirmButtonColor: "#8B1A1A"
     });
+  };
+
+  if (!description) {
+    showError('Description is required');
+    return;
+  }
+
+  if (isNaN(discountValue) || discountValue <= 0) {
+    showError('Discount value must be greater than 0');
+    return;
+  }
+
+  if (discountType === 'Percentage') {
+    if (discountValue >= 100) {
+      showError('Percentage discount cannot be more than or equal to 100');
+      return;
+    }
+    if (!maxDiscount || maxDiscount <= 0) {
+      showError('Please enter a valid max discount amount');
+      return;
+    }
+  }
+
+  if (discountType === 'Fixed Amount' && discountValue >= minimumPurchase) {
+    showError('Fixed discount amount must be less than minimum purchase amount');
+    return;
+  }
+
+  if (isNaN(perUserLimit) || perUserLimit < 1) {
+    showError('Per user limit must be at least 1');
+    return;
+  }
+
+  if (isNaN(maxUses) || maxUses < 1) {
+    showError('Total uses must be at least 1');
+    return;
+  }
+
+  const formData = new FormData(this);
+
+  fetch(this.action, {
+    method: 'POST',
+    body: new URLSearchParams(formData)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          title: "Success",
+          text: data.message,
+          icon: "success",
+          confirmButtonColor: "#8B1A1A"
+        }).then(() => {
+          window.location.href = data.redirectUrl;
+        });
+      } else {
+        showError(data.message);
+      }
+    })
+    .catch(() => {
+      showError('Something went wrong, please try again');
+    });
+});
+
 
     discountTypeSelect.addEventListener('change', (e) => {
       discountSymbol.textContent = e.target.value === 'Percentage' ? '%' : '₹';
@@ -376,5 +415,18 @@
 
   });
 </script>
+
+<% if (typeof messages !== 'undefined' && messages.error) { %>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+      title: "Error",
+      text: "<%= messages.error %>",
+      icon: "error",
+      confirmButtonColor: "#8B1A1A"
+    });
+  });
+</script>
+<% } %>
 
 <%- include('../partials/admin/footer') %>

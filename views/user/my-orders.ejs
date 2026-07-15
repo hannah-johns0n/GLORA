@@ -651,7 +651,7 @@
 
             <!-- Header -->
             <div class="order-card__header">
-              <span class="order-card__id">Order #<%= order.orderId %></span>
+              <span class="order-card__id">Order #<%= order.orderNumber  %></span>
               <span class="order-card__date">
                 Placed <%= new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
               </span>

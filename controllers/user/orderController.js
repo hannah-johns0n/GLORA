@@ -6,6 +6,7 @@ const Address = require('../../models/addressModel');
 const User = require('../../models/userModel');
 const Wallet = require('../../models/walletModel');
 const STATUS_CODES = require('../../constants/statusCodes');
+const offer = require('../../models/offerModel')
 const PDFDocument = require('pdfkit');
 const { getFlash } = require('../../utils/flash');
 

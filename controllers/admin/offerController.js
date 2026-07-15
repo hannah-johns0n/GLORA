@@ -2,9 +2,22 @@ const Offer = require("../../models/offerModel");
 const Product = require("../../models/productModel");
 const Category = require("../../models/categoryModel");
 const STATUS_CODES = require("../../constants/statusCodes");
-const { setFlash } = require("../../utils/flash");
+const { setFlash, getFlash } = require("../../utils/flash");
 
-function validateOfferInput(body) {
+function getMinPrice(product) {
+  const prices = product.variants.map(v => v.salesPrice);
+  return prices.length ? Math.min(...prices) : 0;
+}
+
+function attachMinPrice(products) {
+  return products.map(p => {
+    const productObj = p.toObject();
+    productObj.minPrice = getMinPrice(p);
+    return productObj;
+  });
+}
+
+async function validateOfferInput(body) {
   const { title, description, offerType, discountType, discountValue, product, category, minPurchase, totalUses, endDate } = body;
 
   if (!title || !title.trim()) return 'Offer title is required';
@@ -25,16 +38,52 @@ function validateOfferInput(body) {
   if (isNaN(minPurchaseNum) || minPurchaseNum < 0) return 'Minimum purchase amount is invalid';
   if (isNaN(totalUsesNum) || totalUsesNum < 1) return 'Total uses must be at least 1';
 
+  if (discountType === 'Fixed Amount' && discountValueNum >= minPurchaseNum) {
+    return 'Discount amount must be less than minimum purchase amount';
+  }
+
+  if (offerType === 'Product') {
+    const productDoc = await Product.findById(product);
+    if (!productDoc) return 'Selected product not found';
+
+    const minPrice = getMinPrice(productDoc);
+
+    if (minPurchaseNum > minPrice) {
+      return `Minimum purchase cannot be more than the product price (₹${minPrice})`;
+    }
+
+    if (discountType === 'Fixed Amount' && discountValueNum >= minPrice) {
+      return `Discount amount must be less than the product price (₹${minPrice})`;
+    }
+  }
+
   return null;
 }
 
 const getOffers = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
+
+    const totalOffers = await Offer.countDocuments();
+    const totalPages = Math.ceil(totalOffers / limit);
+
     const offers = await Offer.find()
       .populate("product category")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(STATUS_CODES.SUCCESS).render("admin/offers", { offers });
+    const flash = getFlash(req, res);
+
+    res.status(STATUS_CODES.SUCCESS).render("admin/offers", {
+      offers,
+      currentPage: page,
+      totalPages,
+      totalOffers,
+      flash,
+    });
   } catch (error) {
     console.error("Error fetching offers:", error);
     setFlash(res, 'error', 'Something went wrong while loading offers');
@@ -48,7 +97,7 @@ const getAddOffer = async (req, res) => {
     const categories = await Category.find({ isBlocked: false });
 
     res.status(STATUS_CODES.SUCCESS).render("admin/addOffer", {
-      products: products || [],
+      products: attachMinPrice(products) || [],
       categories: categories || []
     });
   } catch (error) {
@@ -62,7 +111,7 @@ const postAddOffer = async (req, res) => {
   try {
     const { title, description, offerType, discountType, discountValue, product, category, minPurchase, totalUses, endDate } = req.body;
 
-    const errorMessage = validateOfferInput(req.body);
+    const errorMessage = await validateOfferInput(req.body);
     if (errorMessage) {
       setFlash(res, 'error', errorMessage);
       return res.redirect('/admin/offers/add');
@@ -103,7 +152,11 @@ const getEditOffer = async (req, res) => {
     const products = await Product.find({ isBlocked: false });
     const categories = await Category.find({ isBlocked: false });
 
-    res.status(STATUS_CODES.SUCCESS).render("admin/editOffer", { offer, products, categories });
+    res.status(STATUS_CODES.SUCCESS).render("admin/editOffer", {
+      offer,
+      products: attachMinPrice(products),
+      categories
+    });
   } catch (error) {
     console.error("Error loading edit offer:", error);
     setFlash(res, 'error', 'Something went wrong');
@@ -113,13 +166,9 @@ const getEditOffer = async (req, res) => {
 
 const postEditOffer = async (req, res) => {
   try {
-    const {
-      title, description, offerType, discountType,
-      discountValue, product, category, totalUses,
-      minPurchase, endDate, isActive
-    } = req.body;
+    const { title, description, offerType, discountType, discountValue, product, category, totalUses, minPurchase, endDate, isActive } = req.body;
 
-    const errorMessage = validateOfferInput(req.body);
+    const errorMessage = await validateOfferInput(req.body);
     if (errorMessage) {
       setFlash(res, 'error', errorMessage);
       return res.redirect(`/admin/offers/edit/${req.params.id}`);

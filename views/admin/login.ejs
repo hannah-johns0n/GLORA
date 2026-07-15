@@ -3,102 +3,253 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Login</title>
- <link rel="stylesheet" href="/css/admin.css" />
+  <title>Admin Login — GLORA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/admin.css" />
+
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --admin-void:   #121110;
+      --admin-panel:  #1C1A17;
+      --admin-gold:   #C6A15B;
+      --admin-gold-dim: #8F7A4F;
+      --admin-ivory:  #F3EEE6;
+      --admin-muted:  #8A8378;
+      --admin-red:    #B04A4A;
+      --admin-line:   rgba(198, 161, 91, 0.22);
     }
 
-    /* Prevent SweetAlert2 from collapsing full-height layout */
-    html,
-    body {
+    html, body {
+      height: 100%;
       width: 100%;
     }
 
-    html.swal2-height-auto,
-    body.swal2-height-auto {
+    html.swal2-height-auto, body.swal2-height-auto {
       height: 100vh !important;
     }
 
-    .login-container {
-      background: #fff;
-      padding: 2rem;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-      width: 350px;
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--admin-void);
+      background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(198,161,91,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(198,161,91,0.05) 0%, transparent 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    
+    .admin-card {
+      background: var(--admin-panel);
+      border: 1px solid var(--admin-line);
+      padding: 44px 38px 34px;
     }
 
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 1.5rem;
+    .admin-heading { text-align: center; margin-bottom: 32px; }
+
+    .admin-eyebrow {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--admin-gold-dim);
+      margin-bottom: 10px;
     }
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
+    .admin-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
       font-weight: 600;
+      color: var(--admin-ivory);
+      margin-bottom: 8px;
     }
 
-    .form-group input {
+    .admin-sub {
+      font-size: 11px;
+      color: var(--admin-muted);
+      letter-spacing: 0.3px;
+    }
+
+    /* Error / blocked banner */
+    .admin-banner {
+      display: none;
+      padding: 11px 14px;
+      background: rgba(176, 74, 74, 0.1);
+      border-left: 2px solid var(--admin-red);
+      color: #D89999;
+      font-size: 11.5px;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    /* Form */
+    .admin-form { display: flex; flex-direction: column; gap: 18px; }
+
+    .admin-field { display: flex; flex-direction: column; gap: 8px; }
+
+    .admin-label {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--admin-gold-dim);
+    }
+
+    .admin-input-wrap { position: relative; }
+
+    .admin-input {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--admin-line);
+      color: var(--admin-ivory);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      outline: none;
+      border-radius: 0;
+      transition: border-color 0.2s ease, background 0.2s ease;
     }
 
-    .error-message {
-      color: #ff3333;
-      font-size: 0.9rem;
-      text-align: center;
-      margin-bottom: 1rem;
+    .admin-input::placeholder { color: #55504A; }
+
+    .admin-input:focus {
+      border-color: var(--admin-gold);
+      background: rgba(198,161,91,0.04);
     }
 
-    .btn {
-      width: 100%;
-      background-color: #333;
-      color: #fff;
-      padding: 0.7rem;
+    .admin-input-wrap input { padding-right: 42px; }
+
+    .admin-toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
       border: none;
-      border-radius: 4px;
-      font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      color: var(--admin-muted);
+      font-size: 13px;
+      padding: 0;
+      transition: color 0.2s ease;
     }
 
-    .btn:hover {
-      background-color: #555;
+    .admin-toggle:hover { color: var(--admin-gold); }
+
+    .admin-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--admin-gold);
+      color: var(--admin-void);
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      margin-top: 8px;
+    }
+
+    .admin-submit:hover { background: #D8B876; }
+    .admin-submit:active { transform: translateY(1px); }
+
+
+    @media (max-width: 420px) {
+      .admin-card { padding: 36px 24px 28px; }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Admin Login</h2>
+    <div class="admin-card">
 
-    <form method="POST" action="/admin/login">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" placeholder="Enter admin email" required />
+      <div class="admin-heading">
+        <p class="admin-eyebrow">Restricted Access</p>
+        <h1 class="admin-title">Administrator Sign-In</h1>
+        <p class="admin-sub">Authorized personnel only.</p>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password" placeholder="Enter password" required />
+      <!-- Blocked / flash banner -->
+      <div id="blocked-message" class="admin-banner" <% if (!(typeof flash !== 'undefined' && flash && flash.type === 'blocked')) { %>style="display:none;"<% } %>>
+        <%= (typeof flash !== 'undefined' && flash && flash.type === 'blocked') ? flash.message : 'Your account has been blocked. Please contact support.' %>
       </div>
 
-      <button class="btn" type="submit">Login</button>
-    </form>
-  </div>
+      <form method="POST" action="/admin/login" class="admin-form">
+
+        <div class="admin-field">
+          <label class="admin-label" for="email">Email</label>
+          <div class="admin-input-wrap">
+            <input type="email" id="email" name="email" class="admin-input" placeholder="admin@glora.com" required />
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label class="admin-label" for="password">Password</label>
+          <div class="admin-input-wrap">
+            <input type="password" id="password" name="password" class="admin-input" placeholder="Enter password" required />
+            <button type="button" class="admin-toggle" id="togglePassword">
+              <i class="bi bi-eye-slash" id="togglePasswordIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="admin-submit" type="submit">Sign In</button>
+
+      </form>
+
+    </div>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/admin/login.js"></script>
+
+  <script>
+    // Password toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput  = document.getElementById('password');
+    const toggleIcon     = document.getElementById('togglePasswordIcon');
+
+    togglePassword.addEventListener('click', function () {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
+      }
+    });
+
+    // Error alert
+    <% if (typeof error !== 'undefined' && error) { %>
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: "<%= error %>",
+        background: '#1C1A17',
+        color: '#F3EEE6',
+        confirmButtonColor: '#C6A15B'
+      });
+    <% } %>
+
+    // Login success
+    <% if (typeof flash !== 'undefined' && flash && flash.type === 'loginSuccess') { %>
+      Swal.fire({
+        icon: 'success',
+        title: 'Welcome back',
+        text: 'You have signed in successfully.',
+        background: '#1C1A17',
+        color: '#F3EEE6',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    <% } %>
+  </script>
+
 </body>
 </html>
