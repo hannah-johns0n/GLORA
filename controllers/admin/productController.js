@@ -11,34 +11,40 @@ exports.productListPage = async (req, res) => {
         const limit = 10;
         const skip = (page - 1) * limit;
 
-        const totalProducts = await Product.countDocuments();
+        const search = req.query.search ? req.query.search.trim() : '';
 
-        const products = await Product.find({})
+        const filter = search
+            ? { productName: { $regex: search, $options: 'i' } }
+            : {};
+
+        const totalProducts = await Product.countDocuments(filter); // use filter here too
+
+        const products = await Product.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
         const productsWithThumb = products.map(product => {
-    const productObj = product.toObject();
-    
-    const firstVariant = productObj.variants && productObj.variants.length > 0 
-        ? productObj.variants[0] 
-        : null;
+            const productObj = product.toObject();
 
-    const totalQuantity = productObj.variants && productObj.variants.length > 0
-        ? productObj.variants.reduce((sum, variant) => sum + variant.quantity, 0)
-        : null;
+            const firstVariant = productObj.variants && productObj.variants.length > 0
+                ? productObj.variants[0]
+                : null;
 
-    return {
-        ...productObj,
-        thumb: product.images && product.images.length > 0
-            ? `/uploads/products/${product.images[0]}`
-            : null,
-        regularPrice: firstVariant ? firstVariant.regularPrice : null,
-        salesPrice: firstVariant ? firstVariant.salesPrice : null,
-        quantity: totalQuantity, 
-    };
-});
+            const totalQuantity = productObj.variants && productObj.variants.length > 0
+                ? productObj.variants.reduce((sum, variant) => sum + variant.quantity, 0)
+                : null;
+
+            return {
+                ...productObj,
+                thumb: product.images && product.images.length > 0
+                    ? `/uploads/products/${product.images[0]}`
+                    : null,
+                regularPrice: firstVariant ? firstVariant.regularPrice : null,
+                salesPrice: firstVariant ? firstVariant.salesPrice : null,
+                quantity: totalQuantity,
+            };
+        });
 
         const totalPages = Math.ceil(totalProducts / limit);
 
@@ -46,7 +52,8 @@ exports.productListPage = async (req, res) => {
             products: productsWithThumb,
             currentPage: page,
             totalPages,
-            totalProducts
+            totalProducts,
+            search   
         });
     } catch (error) {
         console.error('Failed to load products:', error);
@@ -115,6 +122,15 @@ exports.editProduct = async (req, res) => {
                     message: "Sales price cannot be greater than regular price"
                 });
             }
+        }
+        const unitList = parsedVariants.map(v => v.unit.trim().toLowerCase());
+        const uniqueUnits = new Set(unitList);
+
+        if (uniqueUnits.size !== unitList.length) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: "Duplicate variant sizes are not allowed. Each variant must have a unique size/unit."
+            });
         }
         const nameRegex = /^[A-Za-z\s]+$/;
         if (!nameRegex.test(productName.trim())) {
@@ -248,6 +264,16 @@ exports.addProduct = async (req, res) => {
             if (regular < sale) {
                 return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: "Sales price cannot be greater than regular price" });
             }
+        }
+
+        const unitList = parsedVariants.map(v => v.unit.trim().toLowerCase());
+        const uniqueUnits = new Set(unitList);
+
+        if (uniqueUnits.size !== unitList.length) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                success: false,
+                message: "Duplicate variant sizes are not allowed. Each variant must have a unique size/unit."
+            });
         }
 
         const product = new Product({

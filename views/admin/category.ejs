@@ -248,6 +248,21 @@
 
   <div class="ga-section">
     <div class="ga-card">
+      <form method="GET" class="ga-search-form" style="margin-bottom: 16px;">
+  <input
+    type="text"
+    name="search"
+    value="<%= search %>"
+    placeholder="Search categories by name..."
+    class="form-control"
+    style="max-width: 300px; display: inline-block;">
+  <button type="submit" class="ga-btn ga-btn--dark">
+    <i class="bi bi-search"></i> Search
+  </button>
+  <% if (search && search.length > 0) { %>
+    <a href="/admin/categories" class="ga-btn ga-btn--ghost">Clear</a>
+  <% } %>
+</form>
       <div class="ga-table-wrap">
         <table class="ga-table">
           <thead>
@@ -307,7 +322,7 @@
       <ul class="ga-pagination">
         <% for (let i = 1; i <= totalPages; i++) { %>
         <li class="<%= i === currentPage ? 'active' : '' %>">
-          <a href="?page=<%= i %>"><%= i %></a>
+          <a href="?page=<%= i %>&search=<%= search %>"><%= i %></a>
         </li>
         <% } %>
       </ul>

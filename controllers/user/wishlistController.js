@@ -8,8 +8,7 @@ module.exports = {
 getWishlist: async (req, res) => {
   try {
     const userName = req.user?.name || "User";
-    const wishlistItems = await Wishlist.find({ userId: req.user._id })
-      .populate("productId");
+    const wishlistItems = await Wishlist.find({ userId: req.user._id }).populate("productId");
 
     const validItems = wishlistItems.filter(item => item.productId);
     const offers = await getActiveOffers();

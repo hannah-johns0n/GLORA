@@ -542,6 +542,7 @@ const getShopPage = async (req, res) => {
   }
 
   try {
+
     const search = req.query.search || '';
     const category = req.query.category || 'all';
     const minPrice = parseFloat(req.query.minPrice) || 0;
@@ -553,7 +554,6 @@ const getShopPage = async (req, res) => {
     const unblockedCategories = await Category.find({ isBlocked: false }).select('categoryName');
     const unblockedCategoryNames = unblockedCategories.map(c => c.categoryName);
 
-    // ── FIX: use $elemMatch so min AND max are checked against the SAME variant ──
     const filter = {
       isBlocked: { $ne: true },
       category: { $in: unblockedCategoryNames },
@@ -583,8 +583,6 @@ const getShopPage = async (req, res) => {
       .sort(sortOption)
       .skip(skip)
       .limit(limit);  
-
-      console.log(products)
 
     products = products.map(p => p.toObject());
     const offers = await getActiveOffers();
